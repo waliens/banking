@@ -25,7 +25,7 @@ class Currency(Enum):
 
 
 class Transaction(object):
-    def __init__(self, amount: Decimal, currency: Currency, when: datetime, src: Account, dest: Account, **metadata):
+    def __init__(self, amount: Decimal, currency: Currency, when: datetime, src: Account, dest: Account, id_fn: callable, **metadata):
         """
         Immutable
 
@@ -41,6 +41,8 @@ class Transaction(object):
             source account
         _to: Account
             dest account
+        id_fn: callable
+            A function to generate a unique transaction from the transaction itself
         metadata: dict
             Transaction metadata
         """
@@ -50,11 +52,16 @@ class Transaction(object):
         self._when = when
         self._src = src
         self._dest = dest
+        self._id_fn = id_fn
         self._metadata = metadata
 
     def __repr__(self):
-        return "Transaction(amount={}{}, when={}, from={}, to={})".format(
-            self._amount, Currency.get_symbol(self._currency), self._when, self._src.number, self._dest.number)
+        return "Transaction(id={}, amount={}{}, when={}, from={}, to={})".format(
+            self.identifier, self._amount, Currency.get_symbol(self._currency), self._when, self._src.number, self._dest.number)
+
+    @property
+    def identifier(self):
+        return self._id_fn(self)
 
     @property
     def source(self):

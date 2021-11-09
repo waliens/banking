@@ -31,6 +31,31 @@ def parse_date(s):
     return datetime.strptime(sanitize(s), "%d/%m/%Y")
 
 
+def account_tag(a: Account):
+    s = ""
+    if a.number is not None:
+        s += a.number.replace(" ", "")
+    return s
+
+
+def extract_ref(transaction: str):
+    match = re.match(r".*REF\. : ([0-9A-Za-z]+)( .*)?$", transaction)
+    if match is None:
+        return "noref"
+    else:
+        return match.group(1)
+
+
+def identifier_fn(t: Transaction):
+    return "{when}/{valued}/{_from}/{_to}/{amount}/{ref}".format(
+        when=t.when.date().isoformat(),
+        valued=t.metadata["valued_at"].date().isoformat(),
+        _from=account_tag(t.source),
+        _to=account_tag(t.dest),
+        amount=t.amount,
+        ref=extract_ref(t.metadata["transaction"]))
+
+
 class BelfiusParserOrchestrator(ParserOrchestrator):
     """Transaction data as csv files per account. Account groups read from json file.
     Possible to specify accounts which have no csv file, in this case, specify them in accounts_no_csv.
@@ -193,6 +218,7 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
                 src=src_account, dest=dest_account,
                 currency=Currency.validate(row[11]),
                 when=parse_date(row[1]),
+                id_fn=identifier_fn,
                 valued_at=parse_date(row[9]),
                 statement_nb=sanitize(row[2]),
                 transaction_nb=sanitize(row[3]),
