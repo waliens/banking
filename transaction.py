@@ -1,3 +1,5 @@
+from __future__ import annotations
+import bisect
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
@@ -83,8 +85,80 @@ class Transaction(object):
     def when(self):
         return self._when
 
-    # TODO make this better
+    # TODO make this better: metadata a attributes
     @property
     def metadata(self):
         return self._metadata
 
+
+class TransactionBook(object):
+    def __init__(self):
+        self._transaction_index = dict()
+        self._data = list()  # stores the transaction (sorted by (when, identifier))
+        self._t_key_fn = lambda tr: (tr.when, tr.identifier)
+
+    def insert(self, t: Transaction, do_raise=False):
+        if t.identifier in self._transaction_index:
+            if do_raise:
+                raise KeyError("transaction already in transaction book")
+            else:
+                return
+        self._transaction_index[t.identifier] = t
+        index = bisect.bisect_left(self._data, self._t_key_fn(t), key=self._t_key_fn)
+        self._data.insert(index, t)
+
+    def delete_by_id(self, identifier):
+        t = self._transaction_index.get(identifier)
+        if t is None:
+            return
+        index = bisect.bisect_left(self._data, self._t_key_fn(t), key=self._t_key_fn)
+        self._data.pop(index)
+        self._transaction_index.pop(identifier)
+
+    def get_by_id(self, identifier):
+        return self._transaction_index[identifier]
+
+    def search_by(self, **query):
+        attr_query = {
+            k: query.pop(k) for k in ["identifier", "source", "dest", "amount", "currency", "when"] if k in query}
+        meta_query = query
+        matching = list()
+        for t in self._data:
+            check = True
+            for attr_key, attr_val in attr_query.items():
+                if hasattr(t, attr_key):
+                    check = check and getattr(t, attr_key) == attr_val
+            for meta_key, meta_val in meta_query.items():
+                if meta_key in t.metadata:
+                    check = check and t.metadata[meta_key] == meta_val
+            if check:
+                matching.append(t)
+        return matching
+
+    def between(self, start=None, end=None):
+        if start is not None and end is not None and start > end:
+            raise ValueError("incorrect date range ('{}' > '{}')".format(start, end))
+        index_l, index_r = 0, len(self)
+        if start is not None:
+            index_l = bisect.bisect_left(self._data, start.when, key=lambda t: t.when)
+        if end is not None:
+            index_r = bisect.bisect_right(self._data, end.when, key=lambda t: t.when)
+        return [self._data[i] for i in range(index_l, index_r)]
+
+    def __len__(self):
+        return len(self._data)
+
+    def __getitem__(self, item):
+        return self._data[item]
+
+    def __iter__(self):
+        for t in self._data:
+            yield t
+
+    def merge(self, tbook: TransactionBook, in_place=False):
+        """merge current transac book with other book (in place if requested) -> within the current book)"""
+        #TODO make this O(n) instead of O(n log n)
+        new_book = self if in_place else TransactionBook()
+        for t in (tbook if in_place else [*tbook, *self]):
+            new_book.insert(t)
+        return new_book

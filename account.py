@@ -48,7 +48,8 @@ class Transactionable(metaclass=abc.ABCMeta):
 class Account(Transactionable):
     def __init__(self, number: str = None,  name: str = None, initial: str = None):
         """"""
-        self._history = list()
+        from transaction import TransactionBook
+        self._history = TransactionBook()
         self._balance = Decimal()
         self._initial = Decimal() if initial is None else Decimal(initial)
         self._number = number
@@ -57,6 +58,9 @@ class Account(Transactionable):
     def __repr__(self):
         return "Account(identifier={}, number={}, balance={}, name={}, n_trans={})".format(
             self.identifier, self._number, self._balance, self._name, len(self._history))
+
+    def __cmp__(self, other):
+        return isinstance(other, Account) and other.identifier == self.identifier
 
     @property
     def initial(self):
@@ -94,6 +98,10 @@ class Account(Transactionable):
     def name(self, v):
         self._name = v
 
+    @property
+    def history(self):
+        return self._history
+
     def submit_transactions(self, transactions):
         """
         Returns:
@@ -125,7 +133,7 @@ class Account(Transactionable):
         elif is_dest:
             self._balance += t.amount
         if is_source or is_dest:
-            self._history.append(t)
+            self._history.insert(t, do_raise=True)
             return True
         else:
             return False
@@ -139,12 +147,8 @@ class Account(Transactionable):
             yield t
 
     def diff_between(self, start=None, end=None):
-        if start is not None and end is not None and start > end:
-            raise ValueError("incorrect date range ('{}' > '{}')".format(start, end))
         amount = Decimal()
-        for t in self._history:
-            if (start is not None and t.when < start) or (end is not None and t.when > end):
-                continue
+        for t in self._history.between(start=start, end=end):
             if t.source.identifier == self.identifier:
                 amount -= t.amount
             elif t.dest.identifier == self.identifier:
@@ -219,6 +223,16 @@ class AccountBook(object):
     def get_by_number(self, number):
         return self._numbers_index.get(number)
 
+    def search_by_name(self, q):
+        pattern = re.compile(".*" + q + ".*")
+        matches = list()
+        for a in self:
+            for i in self._uf_match.find_comp(a.identifier):
+                if i[1] is not None and pattern.match(i[1]) is not None:
+                    matches.append(a)
+                    break
+        return matches
+
 
 class AccountGroup(Transactionable):
     """A transactionable group of accounts with a name"""
@@ -271,4 +285,11 @@ class AccountGroup(Transactionable):
         if t.dest.identifier in self:
             self[t.dest.identifier].submit_transaction(t)
         return True
+
+    def transaction_book(self):
+        from transaction import TransactionBook
+        tbook = TransactionBook()
+        for account in self:
+            tbook.merge(account.history, in_place=True)
+        return tbook
 
