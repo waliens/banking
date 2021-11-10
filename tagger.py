@@ -1,6 +1,9 @@
+import abc
 import json
 import os
 from collections import defaultdict
+
+from transaction import Transaction
 
 
 class Tag(object):
@@ -11,6 +14,9 @@ class Tag(object):
         self._color = color
         self._income = income
         self._default = default
+
+    def __repr__(self):
+        return "Tag(id={}, name={})".format(self._identifier, self._name)
 
     @property
     def name(self):
@@ -31,6 +37,7 @@ class Tag(object):
     @property
     def income(self):
         return self._income
+
     @property
     def default(self):
         return self._default
@@ -39,6 +46,12 @@ class Tag(object):
 class TagTree(object):
     def __init__(self, path):
         self._tags, self._roots, self._tree = self.load_tree(path)
+
+    def __getitem__(self, item):
+        return self._tags[item]
+
+    def __len__(self):
+        return len(self._tags)
 
     @classmethod
     def load_tree(cls, path):
@@ -78,6 +91,11 @@ class TagTree(object):
                 self._print_children(child, level + 1)
         else:
             print()
+
+
+# class TransactionClassifier(metaclass=abc.ABCMeta):
+#     @abc.abstractmethod
+#     def tag(self, t: Transaction):
 
 
 if __name__ == "__main__":
