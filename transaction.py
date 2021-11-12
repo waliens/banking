@@ -1,6 +1,6 @@
 from __future__ import annotations
 import bisect
-from datetime import datetime
+from datetime import date
 from decimal import Decimal
 from enum import Enum
 
@@ -27,7 +27,7 @@ class Currency(Enum):
 
 
 class Transaction(object):
-    def __init__(self, amount: Decimal, currency: Currency, when: datetime, src: Account, dest: Account, id_fn: callable, **metadata):
+    def __init__(self, amount: Decimal, currency: Currency, when: date, src: Account, dest: Account, id_fn: callable, **metadata):
         """
         Immutable
 
@@ -37,7 +37,7 @@ class Transaction(object):
             The amount of money involved in the transaction from :src to :dest (always positive)
         currency: Currency
             The currency
-        when: Datetime
+        when: date
             The time when the transaction happened
         _from: Account
             source account

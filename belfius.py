@@ -48,8 +48,8 @@ def extract_ref(transaction: str):
 
 def identifier_fn(t: Transaction):
     return "{when}/{valued}/{_from}/{_to}/{amount}/{ref}".format(
-        when=t.when.date().isoformat(),
-        valued=t.metadata["valued_at"].date().isoformat(),
+        when=t.when.isoformat(),
+        valued=t.metadata["valued_at"].isoformat(),
         _from=account_tag(t.source),
         _to=account_tag(t.dest),
         amount=t.amount,
@@ -217,9 +217,9 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
                 amount=amount.copy_abs(),
                 src=src_account, dest=dest_account,
                 currency=Currency.validate(row[11]),
-                when=parse_date(row[1]),
+                when=parse_date(row[1]).date(),
                 id_fn=identifier_fn,
-                valued_at=parse_date(row[9]),
+                valued_at=parse_date(row[9]).date(),
                 statement_nb=sanitize(row[2]),
                 transaction_nb=sanitize(row[3]),
                 road_number=sanitize(row[6]),
