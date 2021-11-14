@@ -13,7 +13,7 @@ from util import UnionFind
 
 
 def sanitize(e):
-    """strip and replace non single character space characthers by single space"""
+    """strip and replace multiple consecutive spaces by single space"""
     cleaned = re.sub("\s+", " ", e.strip())
     return None if len(cleaned) == 0 else cleaned
 
@@ -64,17 +64,17 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
         self._accounts_no_csv = {} if accounts_no_csv is None else set(accounts_no_csv)
 
     def read(self, path, add_env_group=False):
-        # register them in the account db
+        # read accounts from the csv files
         account_book = self.read_account_book(path)
 
-        # read my accounts
-        groups = self._read_my_accounts(path)
+        # read personal accounts and create groups
+        groups = self._read_personal_accounts(path)
         my_account_groups = [AccountGroup(
             {a.identifier for a in accounts}, account_book, name=name
         ) for name, accounts in groups.items()]
         env = AccountGroup(set(), account_book, "environment")
 
-        # create custom groups for account without csvs
+        # create custom groups for personal account without csv
         missing_csv_group = AccountGroup({
             a.identifier for g_name, accs in groups.items() for a in accs
             if a.number in self._accounts_no_csv
@@ -85,6 +85,7 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
         for g in my_account_groups:
             group_accounts = group_accounts.union({a.identifier for a in g})
 
+        # add transactions
         transaction_files = self.transac_files(path)
 
         for transac_file in transaction_files:
@@ -103,7 +104,7 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
             return my_account_groups
 
     @staticmethod
-    def _read_my_accounts(path):
+    def _read_personal_accounts(path):
         with open(os.path.join(path, "accounts.json"), "r", encoding="utf-8") as file:
             content = json.load(file)
             groups = dict()
@@ -113,7 +114,9 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
 
     @classmethod
     def read_account_book(cls, path):
-
+        """Read all accounts involved in transactions from the csv files. Merge same accounts when possible.
+          Use both account number matching and list of matching stored in the data path
+          (under the name account_match.json)"""
         accounts = set()
         for filename in cls.transac_files(path):
             filepath = os.path.join(path, filename)
@@ -124,16 +127,19 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
         match_json_filepath = os.path.join(path, "account_match.json")
         uf = UnionFind.load_from_json(match_json_filepath)
 
+        # read personal accounts and add them to the list (if by chance they were missing)
         accounts_duplicates = list()
-        groups = cls._read_my_accounts(path)
+        groups = cls._read_personal_accounts(path)
         for name, accs in groups.items():
             accounts = accounts.union({acc.identifier for acc in accs})
 
+        # map account number with account if account number exist
         by_numbers = defaultdict(list)
         for a in accounts:
             if a[0] is not None:
                 by_numbers[a[0]].append(a)
 
+        # iterate over saved matches and update match if necessary with number matching.
         for repr in uf.representatives():
             duplicates = uf.find_comp(repr)
             number = repr[0]
@@ -158,15 +164,18 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
         for a in accounts:
             accounts_duplicates.append((Account(*a), {}))
 
+        # add accounts to the book
         account_book = AccountBook()
         for acc, dup in accounts_duplicates:
             account_book.add_account(acc, dup)
 
+        # set initial account value for persoal accounts in the book
         for g in groups.values():
             for a in g:
                 a_book = account_book[a.identifier]
                 a_book.initial = a.initial
 
+        # update saved matches file
         account_book._uf_match.save_to_json(match_json_filepath)
 
         return account_book
