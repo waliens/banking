@@ -6,7 +6,7 @@ from decimal import Decimal
 from enum import Enum
 
 from account import Account
-from tagger import Tag, TagTree
+from tags import Tag, TagTree
 
 
 class Currency(Enum):
