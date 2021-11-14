@@ -47,6 +47,12 @@ class TagTree(object):
     def __getitem__(self, item):
         return self._tags[item]
 
+    def __contains__(self, item):
+        return item in self._tags
+
+    def tag_name(self, identifier):
+        return self._tags[identifier].name
+
     def __len__(self):
         return len(self._tags)
 

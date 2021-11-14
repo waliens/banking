@@ -1,10 +1,12 @@
 from __future__ import annotations
 import bisect
+import json
 from datetime import date
 from decimal import Decimal
 from enum import Enum
 
 from account import Account
+from tagger import Tag, TagTree
 
 
 class Currency(Enum):
@@ -121,6 +123,12 @@ class TransactionBook(object):
     def get_by_id(self, identifier):
         return self._transaction_index[identifier]
 
+    def has(self, transaction):
+        return transaction.identifier in self._transaction_index
+
+    def has_id(self, identifier):
+        return identifier in self._transaction_index
+
     def search_by(self, **query):
         """Search transactions with a query.
 
@@ -182,3 +190,39 @@ class TransactionBook(object):
         for t in (tbook if in_place else [*tbook, *self]):
             new_book.insert(t)
         return new_book
+
+
+class TaggedTransactionBook(object):
+    def __init__(self, book: TransactionBook, tag_tree: TagTree):
+        self._book = book
+        self._tag_tree = tag_tree
+        self._tagged_transac = dict()
+
+    def add_tag(self, transaction: Transaction, tag: Tag):
+        return self.add_tag_by_ids(transaction.identifier, tag.identifier)
+
+    def add_tag_by_ids(self, transac_id, tag_id):
+        if transac_id in self._tagged_transac:
+            if tag_id != self._tagged_transac[transac_id]:
+                raise ValueError("transaction '{}' already has a tag ('{}') but different from '{}'".format(
+                    transac_id, self._tag_tree.tag_name(self._tagged_transac[transac_id]), self._tag_tree.tag_name(tag_id)
+                ))
+        if not self._book.has_id(transac_id):
+            raise ValueError("unknown transaction '{}'".format(transac_id))
+        if tag_id not in self._tag_tree:
+            raise ValueError("invalid tag with id '{}'".format(tag_id))
+        self._tagged_transac[transac_id] = tag_id
+
+    @property
+    def book(self):
+        return self._book
+
+    @staticmethod
+    def build_from_file(tbook: TransactionBook, tag_tree: TagTree, filepath: str):
+        with open(filepath, "r", encoding="utf8") as file:
+            loaded = json.load(file)
+            book = TaggedTransactionBook(tbook, tag_tree)
+            for transac_id, tag_id in loaded.items():
+                book.add_tag_by_ids(transac_id, tag_id)
+            return book
+
