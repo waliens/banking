@@ -93,6 +93,9 @@ class Transaction(object):
 
 class TransactionBook(object):
     def __init__(self):
+        """Represent a searchable set of transactions (identifier by their identifier).
+        Provide also efficient filtering by date.
+        """
         self._transaction_index = dict()
         self._data = list()  # stores the transaction (sorted by (when, identifier))
         self._t_key_fn = lambda tr: (tr.when, tr.identifier)
@@ -119,6 +122,21 @@ class TransactionBook(object):
         return self._transaction_index[identifier]
 
     def search_by(self, **query):
+        """Search transactions with a query.
+
+        Params:
+        -------
+        query: dict
+            A dictionary mapping key and value to match transactions by. If key is one of the properties of the
+            Transaction class i.e. {'identifier', 'source', 'dest', 'amount', 'currency', 'when'} value is matched
+            with said property. Otherwise, if key is not one the properties, the key is sought for in the metadata
+            and value is matched there. Value are check by exact equality (i.e. ==)
+
+        Returns
+        -------
+        matching: List[Transaction]
+            List of transactions
+        """
         attr_query = {
             k: query.pop(k) for k in ["identifier", "source", "dest", "amount", "currency", "when"] if k in query}
         meta_query = query
@@ -136,6 +154,7 @@ class TransactionBook(object):
         return matching
 
     def between(self, start=None, end=None):
+        """Return all transactions for which .when is between start and end (both included in the interval)"""
         if start is not None and end is not None and start > end:
             raise ValueError("incorrect date range ('{}' > '{}')".format(start, end))
         index_l, index_r = 0, len(self)
@@ -149,6 +168,7 @@ class TransactionBook(object):
         return len(self._data)
 
     def __getitem__(self, item):
+        """item: integer index between [0, len(self)["""
         return self._data[item]
 
     def __iter__(self):
@@ -156,7 +176,7 @@ class TransactionBook(object):
             yield t
 
     def merge(self, tbook: TransactionBook, in_place=False):
-        """merge current transac book with other book (in place if requested) -> within the current book)"""
+        """merge current transac book with another book (in place if requested -> within the current book)"""
         #TODO make this O(n) instead of O(n log n)
         new_book = self if in_place else TransactionBook()
         for t in (tbook if in_place else [*tbook, *self]):
