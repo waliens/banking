@@ -1,9 +1,6 @@
-import abc
 import json
 import os
 from collections import defaultdict
-
-from transaction import Transaction
 
 
 class Tag(object):
