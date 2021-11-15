@@ -6,10 +6,9 @@ from collections import defaultdict
 from datetime import datetime
 from decimal import Decimal
 
-from account import AccountGroup, Account, AccountBook, is_iban_be, unibanize_be
-from data_parser import ParserOrchestrator, check_add_to_env_group
-from transaction import Transaction, Currency
-from util import UnionFind
+from model import AccountGroup, Account, AccountBook, Currency, ParserOrchestrator, Transaction, UnionFind
+from model.account import unibanize_be, is_iban_be
+from model.data_parser import check_add_to_env_group
 
 
 def sanitize(e):

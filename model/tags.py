@@ -41,7 +41,7 @@ class Tag(object):
 
 
 class TagTree(object):
-    def __init__(self, path):
+    def __init__(self, path="."):
         self._tags, self._roots, self._tree = self.load_tree(path)
 
     def __getitem__(self, item):
@@ -102,5 +102,5 @@ class TagTree(object):
 
 
 if __name__ == "__main__":
-    tree = TagTree("./data")
+    tree = TagTree()
     tree.pprint()
