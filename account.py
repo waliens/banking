@@ -286,6 +286,11 @@ class AccountGroup(Transactionable):
             self[t.dest.identifier].submit_transaction(t)
         return True
 
+    @property
+    def account_book(self):
+        return self._book
+
+    @property
     def transaction_book(self):
         from transaction import TransactionBook
         tbook = TransactionBook()

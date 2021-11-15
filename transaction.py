@@ -214,7 +214,7 @@ class TaggedTransactionBook(object):
         self._tagged_transac[transac_id] = tag_id
 
     @property
-    def book(self):
+    def base_book(self):
         return self._book
 
     @staticmethod
