@@ -2,7 +2,7 @@ import abc
 import re
 from decimal import Decimal
 
-from util import UnionFind
+from .util import UnionFind, JsonSerializable
 
 
 def is_iban(s):
@@ -45,10 +45,10 @@ class Transactionable(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class Account(Transactionable):
+class Account(Transactionable, JsonSerializable):
     def __init__(self, number: str = None,  name: str = None, initial: str = None):
         """"""
-        from transaction import TransactionBook
+        from .transaction import TransactionBook
         self._history = TransactionBook()
         self._balance = Decimal()
         self._initial = Decimal() if initial is None else Decimal(initial)

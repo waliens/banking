@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 
-from account import AccountGroup
-from transaction import Transaction
+from .account import AccountGroup
+from .transaction import Transaction
 
 
 def check_add_to_env_group(env_group: AccountGroup, t: Transaction, excluded_identifiers: set):

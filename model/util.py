@@ -1,3 +1,4 @@
+import abc
 import json
 
 
@@ -103,3 +104,17 @@ class UnionFind(dict):
                 "val": (list(v) if isinstance(v, set) else v),
                 "type": ("set" if isinstance(v, set) else "key")
             } for k, v in self.items()], file)
+
+
+class JsonSerializable(metaclass=abc.ABCMeta):
+    def json(self):
+        """Returns a dictionary that be converted into a json string without further work."""
+        obj_data = vars(self)
+
+
+
+class JsonDeserializable(metaclass=abc.ABCMeta):
+    @staticmethod
+    @abc.abstractmethod
+    def from_json(self, **data):
+        raise NotImplementedError(".from_json(...) not implemented")

@@ -5,8 +5,8 @@ from datetime import date
 from decimal import Decimal
 from enum import Enum
 
-from account import Account
-from tags import Tag, TagTree
+from .account import Account
+from .tags import Tag, TagTree
 
 
 class Currency(Enum):

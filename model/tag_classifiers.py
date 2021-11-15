@@ -1,6 +1,6 @@
 import abc
 
-from transaction import Transaction
+from .transaction import Transaction
 
 
 class BaseTagClassifier(metaclass=abc.ABCMeta):
