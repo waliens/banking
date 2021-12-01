@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
-from base import Base, Category, Session, Account, AccountGroup, Group, Transaction, Currency
+from base import Base, Category, Session, Account, AccountGroup, Group, Transaction, Currency, AccountEquivalence
 from impl.belfius import BelfiusParserOrchestrator
 from parsing import TagTree
 
@@ -47,14 +47,14 @@ def add_accounts_and_transactions():
     for group in groups:
         for account in group.accounts:
             print(account.identifier)
-            base_account = Account(number=account.number, name=account.name, initial=account.initial, id_reference=None)
+            base_account = Account(number=account.number, name=account.name, initial=account.initial)
             save(base_account, sess=session)
             model_map[account.identifier] = base_account
 
             for alternate in group.account_book._uf_match.find_comp(account.identifier):
                 if alternate == account.identifier:
                     continue
-                accounts.append(Account(number=alternate[0], name=alternate[1], initial=None, id_reference=base_account.id))
+                accounts.append(AccountEquivalence(number=alternate[0], name=alternate[1], id_account=base_account.id))
     save(accounts, sess=session)
 
     group_model = Group(name=groups[0].name, description="")
@@ -81,7 +81,6 @@ def add_accounts_and_transactions():
     save(transacs, sess=session)
 
 
-
 def main():
     load_dotenv()
     engine = create_engine("sqlite:///" + os.getenv("DB_FILE"))
@@ -94,7 +93,6 @@ def main():
     add_tags()
     add_currencies()
     add_accounts_and_transactions()
-
 
 
 if __name__ == "__main__":
