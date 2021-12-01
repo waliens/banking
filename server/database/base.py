@@ -1,0 +1,119 @@
+from decimal import Decimal
+
+from sqlalchemy import Column, JSON, Boolean, Integer, Date, String, ForeignKey, TypeDecorator, UniqueConstraint
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship
+
+Base = declarative_base()
+Session = sessionmaker()
+
+
+class MyNumeric(TypeDecorator):
+    impl = String
+
+    def __init__(self, length=None, **kwargs):
+        super().__init__(length, **kwargs)
+
+    def process_literal_param(self, value: Decimal, dialect):
+        return str(value) if value is not None else None
+
+    process_bind_param = process_literal_param
+
+    def process_result_value(self, value, dialect):
+        # convert sql string to python time
+        return Decimal(value) if value is not None else None
+
+
+# class MyDate(TypeDecorator):
+#     impl = Date
+#
+#     def __init__(self, length=None, format="%d/%m/%Y", **kwargs):
+#         super().__init__(length, **kwargs)
+#         self.format = format
+#
+#     def process_literal_param(self, value, dialect):
+#         return date.strftime(self.format) if value is not None else None
+#
+#     process_bind_param = process_literal_param
+#
+#     def process_result_value(self, value, dialect):
+#         # convert sql string to python time
+#         return datetime.strptime(value, self.format).date() if value is not None else None
+
+
+class Category(Base):
+    __tablename__ = 'category'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    id_parent = Column(Integer, ForeignKey('category.id'), nullable=True)
+    color = Column(String(255))
+    income = Column(Boolean)
+    default = Column(Boolean)
+
+    def __repr__(self):
+        return "<Account(id='%d', name='%s', parent='%d', color='%s')>" % (
+                             self.id, self.name, self.parent_category, self.color)
+
+
+class Currency(Base):
+    __tablename__ = "currency"
+
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String(15))
+    short_name = Column(String(255))
+    long_name = Column(String(255))
+
+    def __repr__(self):
+        return "<Currency(id='%d', symbol='%s', short_name='%s', short_name='%s')>" % (
+                             self.id, self.symbol, self.short_name, self.long_name)
+
+
+class Account(Base):
+    __tablename__ = "account"
+
+    id = Column(Integer, primary_key=True)
+    number = Column(String(63), nullable=True)
+    name = Column(String(255), nullable=True)
+    initial = Column(MyNumeric, nullable=True)
+    id_reference = Column(Integer, ForeignKey('account.id'), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint('number', 'name', name='account_name_number_unique_constraint'),
+    )
+
+    def __repr__(self):
+        return "<Account(id='{}', number='{}', name='{}')>".format(
+                             self.id, self.number, self.name)
+
+
+class Transaction(Base):
+    __tablename__ = 'transaction'
+
+    id = Column(String(255), primary_key=True)
+    id_source = Column(Integer, ForeignKey('account.id'))
+    id_dest = Column(Integer, ForeignKey('account.id'))
+    when = Column(Date)
+    metadata_ = Column("metadata", JSON)
+    amount = Column(MyNumeric)
+    id_currency = Column(Integer, ForeignKey('currency.id'))
+    id_category = Column(Integer, ForeignKey('category.id'), nullable=True)
+
+    def __repr__(self):
+        return "<Account(id='{}')>".format(self.id)
+
+
+class Group(Base):
+    __tablename__ = "group"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    description = Column(String(1024))
+
+
+class AccountGroup(Base):
+    __tablename__ = "account_group"
+    id_group = Column(Integer, ForeignKey('group.id'), primary_key=True)
+    id_account = Column(Integer, ForeignKey('account.id'), primary_key=True)
+
+
