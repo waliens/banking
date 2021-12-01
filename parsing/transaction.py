@@ -1,5 +1,5 @@
 from __future__ import annotations
-import bisect
+
 import json
 from datetime import date
 from decimal import Decimal
@@ -7,6 +7,72 @@ from enum import Enum
 
 from .account import Account
 from .tags import Tag, TagTree
+
+
+def bisect_right(a, x, lo=0, hi=None, *, key=None):
+    """Return the index where to insert item x in list a, assuming a is sorted.
+    The return value i is such that all e in a[:i] have e <= x, and all e in
+    a[i:] have e > x.  So if x already appears in the list, a.insert(i, x) will
+    insert just after the rightmost x already there.
+    Optional args lo (default 0) and hi (default len(a)) bound the
+    slice of a to be searched.
+    """
+
+    if lo < 0:
+        raise ValueError('lo must be non-negative')
+    if hi is None:
+        hi = len(a)
+    # Note, the comparison uses "<" to match the
+    # __lt__() logic in list.sort() and in heapq.
+    if key is None:
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if x < a[mid]:
+                hi = mid
+            else:
+                lo = mid + 1
+    else:
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if x < key(a[mid]):
+                hi = mid
+            else:
+                lo = mid + 1
+    return lo
+
+
+def bisect_left(a, x, lo=0, hi=None, *, key=None):
+    """Return the index where to insert item x in list a, assuming a is sorted.
+
+    The return value i is such that all e in a[:i] have e < x, and all e in
+    a[i:] have e >= x.  So if x already appears in the list, a.insert(i, x) will
+    insert just before the leftmost x already there.
+
+    Optional args lo (default 0) and hi (default len(a)) bound the
+    slice of a to be searched.
+    """
+
+    if lo < 0:
+        raise ValueError('lo must be non-negative')
+    if hi is None:
+        hi = len(a)
+    # Note, the comparison uses "<" to match the
+    # __lt__() logic in list.sort() and in heapq.
+    if key is None:
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if a[mid] < x:
+                lo = mid + 1
+            else:
+                hi = mid
+    else:
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if key(a[mid]) < x:
+                lo = mid + 1
+            else:
+                hi = mid
+    return lo
 
 
 class Currency(Enum):
@@ -109,14 +175,14 @@ class TransactionBook(object):
             else:
                 return
         self._transaction_index[t.identifier] = t
-        index = bisect.bisect_left(self._data, self._t_key_fn(t), key=self._t_key_fn)
+        index = bisect_left(self._data, self._t_key_fn(t), key=self._t_key_fn)
         self._data.insert(index, t)
 
     def delete_by_id(self, identifier):
         t = self._transaction_index.get(identifier)
         if t is None:
             return
-        index = bisect.bisect_left(self._data, self._t_key_fn(t), key=self._t_key_fn)
+        index = bisect_left(self._data, self._t_key_fn(t), key=self._t_key_fn)
         self._data.pop(index)
         self._transaction_index.pop(identifier)
 
@@ -167,9 +233,9 @@ class TransactionBook(object):
             raise ValueError("incorrect date range ('{}' > '{}')".format(start, end))
         index_l, index_r = 0, len(self)
         if start is not None:
-            index_l = bisect.bisect_left(self._data, start.when, key=lambda t: t.when)
+            index_l = bisect_left(self._data, start.when, key=lambda t: t.when)
         if end is not None:
-            index_r = bisect.bisect_right(self._data, end.when, key=lambda t: t.when)
+            index_r = bisect_right(self._data, end.when, key=lambda t: t.when)
         return [self._data[i] for i in range(index_l, index_r)]
 
     def __len__(self):

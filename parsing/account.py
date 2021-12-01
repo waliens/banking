@@ -292,9 +292,12 @@ class AccountGroup(Transactionable):
 
     @property
     def transaction_book(self):
-        from transaction import TransactionBook
+        from .transaction import TransactionBook
         tbook = TransactionBook()
         for account in self:
             tbook.merge(account.history, in_place=True)
         return tbook
 
+    @property
+    def name(self):
+        return self._name
