@@ -76,7 +76,6 @@ class Account(Base):
     number = Column(String(63), nullable=True)
     name = Column(String(255), nullable=True)
     initial = Column(MyNumeric, nullable=True)
-    id_reference = Column(Integer, ForeignKey('account.id'), nullable=True)
 
     __table_args__ = (
         UniqueConstraint('number', 'name', name='account_name_number_unique_constraint'),
@@ -85,6 +84,15 @@ class Account(Base):
     def __repr__(self):
         return "<Account(id='{}', number='{}', name='{}')>".format(
                              self.id, self.number, self.name)
+
+
+class AccountEquivalence(Base):
+    __tablename__ = "account_equivalence"
+
+    id = Column(Integer, primary_key=True)
+    number = Column(String(63), nullable=True)
+    name = Column(String(255), nullable=True)
+    id_account = Column(Integer, ForeignKey('account.id'))
 
 
 class Transaction(Base):
