@@ -3,10 +3,14 @@ import os
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database
-from base import Base, Category, Session, Account, AccountGroup, Group, Transaction, Currency, AccountEquivalence
+from models import Base, Category, Account, AccountGroup, Group, Transaction, Currency, AccountEquivalence
 from impl.belfius import BelfiusParserOrchestrator
 from parsing import TagTree
+
+
+Session = sessionmaker()
 
 
 def save(o, sess=None):

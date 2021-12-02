@@ -2,10 +2,29 @@ from decimal import Decimal
 
 from sqlalchemy import Column, JSON, Boolean, Integer, Date, String, ForeignKey, TypeDecorator, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
-Session = sessionmaker()
+
+
+class AsDictSerializer(object):
+    def __init__(self, *fields, **mapping):
+        self._fields = fields
+        self._mapping = mapping
+
+    def serialize(self, obj):
+        out = dict()
+        for k in self._fields:
+            out[k] = getattr(obj, k)
+        for k, cvt in self._mapping.items():
+            raw = getattr(obj, k)
+            if raw is not None:
+                out[k] = cvt(raw)
+        return out
+
+    @staticmethod
+    def as_dict_fn():
+        return lambda v: v.as_dict()
 
 
 class MyNumeric(TypeDecorator):
@@ -24,23 +43,6 @@ class MyNumeric(TypeDecorator):
         return Decimal(value) if value is not None else None
 
 
-# class MyDate(TypeDecorator):
-#     impl = Date
-#
-#     def __init__(self, length=None, format="%d/%m/%Y", **kwargs):
-#         super().__init__(length, **kwargs)
-#         self.format = format
-#
-#     def process_literal_param(self, value, dialect):
-#         return date.strftime(self.format) if value is not None else None
-#
-#     process_bind_param = process_literal_param
-#
-#     def process_result_value(self, value, dialect):
-#         # convert sql string to python time
-#         return datetime.strptime(value, self.format).date() if value is not None else None
-
-
 class Category(Base):
     __tablename__ = 'category'
 
@@ -55,6 +57,9 @@ class Category(Base):
         return "<Account(id='%d', name='%s', parent='%d', color='%s')>" % (
                              self.id, self.name, self.parent_category, self.color)
 
+    def as_dict(self):
+        return AsDictSerializer("id", "name", "id_parent", "color", "income", "default").serialize(self)
+
 
 class Currency(Base):
     __tablename__ = "currency"
@@ -67,6 +72,9 @@ class Currency(Base):
     def __repr__(self):
         return "<Currency(id='%d', symbol='%s', short_name='%s', short_name='%s')>" % (
                              self.id, self.symbol, self.short_name, self.long_name)
+
+    def as_dict(self):
+        return AsDictSerializer("id", "symbol", "short_name", "long_name").serialize(self)
 
 
 class Account(Base):
@@ -85,6 +93,9 @@ class Account(Base):
         return "<Account(id='{}', number='{}', name='{}')>".format(
                              self.id, self.number, self.name)
 
+    def as_dict(self):
+        return AsDictSerializer("id", "number", "name", "initial").serialize(self)
+
 
 class AccountEquivalence(Base):
     __tablename__ = "account_equivalence"
@@ -93,6 +104,9 @@ class AccountEquivalence(Base):
     number = Column(String(63), nullable=True)
     name = Column(String(255), nullable=True)
     id_account = Column(Integer, ForeignKey('account.id'))
+
+    def as_dict(self):
+        return AsDictSerializer("id", "number", "name", "id_account").serialize(self)
 
 
 class Transaction(Base):
@@ -106,6 +120,18 @@ class Transaction(Base):
     amount = Column(MyNumeric)
     id_currency = Column(Integer, ForeignKey('currency.id'))
     id_category = Column(Integer, ForeignKey('category.id'), nullable=True)
+
+    source = relationship("Account", foreign_keys=[id_source], lazy="joined")
+    dest = relationship("Account", foreign_keys=[id_dest], lazy="joined")
+    currency = relationship("Currency", lazy="joined")
+    category = relationship("Category", lazy="joined")
+
+    def as_dict(self):
+        return AsDictSerializer("id", "id_source", "id_dest", "when",
+                                "metadata_", "amount", "id_currency", "id_category",
+                                when=lambda v: v.isoformat(), amount=str,
+                                **{k: AsDictSerializer.as_dict_fn()
+                                   for k in ["source", "dest", "currency", "category"]}).serialize(self)
 
     def __repr__(self):
         return "<Account(id='{}')>".format(self.id)
