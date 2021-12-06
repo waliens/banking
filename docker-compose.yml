@@ -1,0 +1,16 @@
+services:
+  server:
+    build:
+      context: server/
+      dockerfile: "Dockerfile"
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=banking
+      - FLASK_RUN_HOST=0.0.0.0
+      - DB_FILE=/data/bank.db
+
+    volumes:
+      - ${DB_DIR}:/data
+  # client:
+  #   build:

@@ -10,4 +10,6 @@ ADD db /app/db
 ADD parsing /app/parsing
 ADD banking.py /app/banking.py
 
+EXPOSE 5000
+
 ENTRYPOINT ["flask", "run"]
