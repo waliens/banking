@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database
-from models import Base, Category, Account, Group, Transaction, Currency, AccountEquivalence
+from models import Base, Category, Account, Group, Transaction, Currency, AccountEquivalence, AccountGroup
 from impl.belfius import BelfiusParserOrchestrator
 from parsing import TagTree
 

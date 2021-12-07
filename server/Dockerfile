@@ -7,9 +7,9 @@ RUN pip install flask flask-cors
 
 WORKDIR /app
 
-ADD db /app/db
-ADD parsing /app/parsing
-ADD banking.py /app/banking.py
+ADD db ./db
+ADD parsing ./parsing
+ADD banking.py ./banking.py
 
 EXPOSE 5000
 
