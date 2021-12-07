@@ -1,3 +1,5 @@
 /personal/
 /old/
 server/.env
+
+*.pyc
