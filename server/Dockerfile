@@ -9,6 +9,7 @@ WORKDIR /app
 
 ADD db ./db
 ADD parsing ./parsing
+ADD impl ./impl
 ADD banking.py ./banking.py
 
 EXPOSE 5000
