@@ -2,8 +2,8 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 Vue.use(Vuex);
 
-import axios from 'axios';
-import AccountGroup from '@/utils/api/AccountGroup';
+// import axios from 'axios';
+// import AccountGroup from '@/utils/api/AccountGroup';
 
 const state = {
   currentGroup: null,
@@ -22,7 +22,7 @@ const mutations = {
 };
 
 const actions = {
-  async initializeStore({state, commit, dispatch}) {
+  async initializeStore({state, commit}) {
     if(state.initialized) {
       return;
     }

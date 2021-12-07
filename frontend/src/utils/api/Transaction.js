@@ -1,5 +1,4 @@
 import Model from './Model';
-import axios from 'axios';
 
 export default class Transaction extends Model {
   /** @inheritdoc */

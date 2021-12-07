@@ -1,17 +1,32 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app" class="page-container">
+    <layout-navbar></layout-navbar>
+
+    <div class="app-content">
+      <router-view v-if="initialized"></router-view>
+    </div>
+
+    <layout-footer></layout-footer>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import LayoutNavbar from './components/layout/LayoutNavbar';
+import LayoutFooter from './components/layout/LayoutFooter';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    LayoutNavbar, 
+    LayoutFooter
+  },
+  computed: {
+    initialized() {
+      return this.$store.state.initialized;
+    }
+  },
+  created() {
+    this.$store.dispatch('initializeStore');
   }
 }
 </script>

@@ -16,12 +16,12 @@ const routes = [
     name: 'home',
     path: '/',
     component: require('./pages/HomePage.vue').default,
-
+    beforeEnter: groupSelectedOnly
   },
   {
     name: 'group_select',
     path: '/select_group',
-    component: require('./pages/AccountGroupSelectionpage.vue').default
+    component: require('./pages/AccountGroupSelectionPage.vue').default
   },
   {
     name: 'not-found',
