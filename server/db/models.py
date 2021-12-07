@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import Column, JSON, Boolean, Integer, Date, String, ForeignKey, TypeDecorator, UniqueConstraint
+from sqlalchemy import Column, JSON, Boolean, Integer, Date, String, ForeignKey, TypeDecorator, UniqueConstraint, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -25,6 +25,10 @@ class AsDictSerializer(object):
     @staticmethod
     def as_dict_fn():
         return lambda v: v.as_dict()
+
+    @staticmethod
+    def iter_as_dict_fn():
+        return lambda iterable: [AsDictSerializer.as_dict_fn()(v) for v in iterable]
 
 
 class MyNumeric(TypeDecorator):
@@ -55,7 +59,7 @@ class Category(Base):
 
     def __repr__(self):
         return "<Account(id='%d', name='%s', parent='%d', color='%s')>" % (
-                             self.id, self.name, self.parent_category, self.color)
+            self.id, self.name, self.parent_category, self.color)
 
     def as_dict(self):
         return AsDictSerializer("id", "name", "id_parent", "color", "income", "default").serialize(self)
@@ -71,7 +75,7 @@ class Currency(Base):
 
     def __repr__(self):
         return "<Currency(id='%d', symbol='%s', short_name='%s', short_name='%s')>" % (
-                             self.id, self.symbol, self.short_name, self.long_name)
+            self.id, self.symbol, self.short_name, self.long_name)
 
     def as_dict(self):
         return AsDictSerializer("id", "symbol", "short_name", "long_name").serialize(self)
@@ -91,7 +95,7 @@ class Account(Base):
 
     def __repr__(self):
         return "<Account(id='{}', number='{}', name='{}')>".format(
-                             self.id, self.number, self.name)
+            self.id, self.number, self.name)
 
     def as_dict(self):
         return AsDictSerializer("id", "number", "name", "initial").serialize(self)
@@ -137,17 +141,19 @@ class Transaction(Base):
         return "<Account(id='{}')>".format(self.id)
 
 
+AccountGroup = Table('account_group', Base.metadata,
+                     Column('id_group', ForeignKey('group.id')),
+                     Column('id_account', ForeignKey('account.id')))
+
+
 class Group(Base):
     __tablename__ = "group"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     description = Column(String(1024))
+    accounts = relationship("Account", secondary=AccountGroup, lazy="joined")
 
-
-class AccountGroup(Base):
-    __tablename__ = "account_group"
-    id_group = Column(Integer, ForeignKey('group.id'), primary_key=True)
-    id_account = Column(Integer, ForeignKey('account.id'), primary_key=True)
-
-
+    def as_dict(self):
+        return AsDictSerializer(
+            "id", "name", "description", accounts=AsDictSerializer.iter_as_dict_fn()).serialize(self)

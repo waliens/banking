@@ -2,7 +2,8 @@ FROM python:3.9.9-slim-bullseye
 
 RUN pip install python-dotenv
 RUN pip install sqlalchemy sqlalchemy-utils
-RUN pip install flask 
+RUN pip install flask flask-cors
+
 
 WORKDIR /app
 
