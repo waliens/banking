@@ -1,0 +1,15 @@
+FROM node:lts-alpine
+
+# définit le dossier 'app' comme dossier de travail
+WORKDIR /app
+
+# copie 'package.json' et 'package-lock.json' (si disponible)
+#ADD frontend/package*.json ./
+
+# installe les dépendances du projet
+#RUN npm install
+RUN apk add --no-cache bash
+
+RUN npm install -g @vue/cli
+
+ENTRYPOINT [ "/bin/bash" ]
