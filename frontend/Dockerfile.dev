@@ -1,15 +1,21 @@
 FROM node:lts-alpine
 
+# from banking root: docker build -t nodedev - < Dockerfile.dev
+# from banking root: docker run -v ~/repos/banking/frontend:/app -p 8080:8080 -it nodedev
 # définit le dossier 'app' comme dossier de travail
 WORKDIR /app
 
-# copie 'package.json' et 'package-lock.json' (si disponible)
-#ADD frontend/package*.json ./
-
-# installe les dépendances du projet
-#RUN npm install
+#
 RUN apk add --no-cache bash
 
-RUN npm install -g @vue/cli
+# copie 'package.json' et 'package-lock.json' (si disponible)
+COPY . ./
 
-ENTRYPOINT [ "/bin/bash" ]
+# installe les dépendances du projet
+RUN yarn install
+
+# COPY public ./public
+# COPY src ./src
+# COPY babel.config.js ./ 
+ 
+ENTRYPOINT [ "yarn", "serve" ]
