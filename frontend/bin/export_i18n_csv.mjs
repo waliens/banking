@@ -2,22 +2,19 @@ import { readFile, writeFile } from 'fs';
 import { join } from 'path';
 
 
-function CSVToArray( strData, str_delim=','){
+function CSVToArray( strData, str_delim=',') {
   // https://stackoverflow.com/questions/1293147/example-javascript-code-to-parse-csv-data
   // Create a regular expression to parse the CSV values.
-  let objPattern = new RegExp((
-      // Delimiters.
-      "(\\" + str_delim + "|\\r?\\n|\\r|^)" +
-      // Quoted fields.
-      "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-      // Standard fields.
-      "([^\"\\" + str_delim + "\\r\\n]*))"
-  ),
-  "gi"
-  );
-
-  let arrData = [[]];
-  let arrMatches = null;
+  var objPattern = new RegExp((
+        // Delimiters.
+        "(\\" + str_delim + "|\\r?\\n|\\r|^)" +
+        // Quoted fields.
+        "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+        // Standard fields.
+        "([^\"\\" + str_delim + "\\r\\n]*))"
+    ), "gi" );
+  var arrData = [[]];
+  var arrMatches = null;
 
   while (arrMatches = objPattern.exec( strData )){
     // Get the delimiter that was found.
@@ -73,8 +70,7 @@ export function make_i18n_jsons (csv_path, dest_path) {
       throw err;
     }
     
-    let csv_content = CSVToArray(content, ',')
-
+    let csv_content = CSVToArray(content, ',');
     let headers = csv_content[0];
     let data = csv_content.slice(1);
     let languages = headers.slice(1);
@@ -83,6 +79,7 @@ export function make_i18n_jsons (csv_path, dest_path) {
       i18n[languages[lang_index]] = {};
     }
 
+    console.log(`Found ` + data.length + ` translations in ` + languages.length + ` language(s): ` + JSON.stringify(languages));
 
     for (let row_index in data) {
       let row = data[row_index];
@@ -94,11 +91,17 @@ export function make_i18n_jsons (csv_path, dest_path) {
 
     for (let lang_index in languages) {
       let lang = languages[lang_index];
-      writeFile(join(dest_path, lang + ".json"), JSON.stringify(i18n[lang]), (err, f) => {
+      writeFile(join(dest_path, lang + ".json"), JSON.stringify(i18n[lang]), (err) => {
         if (err) {
           throw err;
         }
       });
     }
   })
+}
+
+
+if (process.argv.length == 4) {
+  console.log("generate translations files for " + JSON.stringify(process.argv));
+  make_i18n_jsons(process.argv[2], process.argv[3]);
 }

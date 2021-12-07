@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "translations": "node ./bin/export_i18n_csv.mjs ./src/locales/translations.csv ./src/locales/json",
+    "serve": "yarn translations && vue-cli-service serve",
+    "build": "yarn translations && vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -16,7 +17,7 @@
     "core-js": "^3.6.5",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.34",
-    "node-sass": "^7.0.0",
+    "node-sass": "^6.0.0",
     "sass-loader": "^10",
     "vue": "^2.6.11",
     "vue-i18n": "^8.26.7",
