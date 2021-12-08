@@ -8,6 +8,8 @@ from db.models import Transaction, Group
 # load environment
 load_dotenv()
 
+
+
 # create app
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False

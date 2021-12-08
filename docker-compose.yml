@@ -11,6 +11,9 @@ services:
       - DB_FILE=/data/bank.db
 
     volumes:
-      - ${DB_DIR}:/data
+      - db_volume:/data
   # client:
   #   build:
+
+volumes:
+  db_volume:
