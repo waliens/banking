@@ -1,12 +1,12 @@
 @import "~bulma/sass/utilities/_all";
 
 // Set your colors
-$primary: #E66E50;
+$primary: #0476D0;
 $primary-invert: findColorInvert($primary);
 
-$secondary: #27475B;
-$dark-secondary: #1F3949;
-$secondary-invert: findColorInvert($primary);
+$secondary: #C7466B;
+$light-secondary: #FF7D9E;
+$secondary-invert: findColorInvert($secondary);
 
 // Links
 $link: $secondary;
@@ -16,7 +16,7 @@ $link-focus-border: $link;
 $custom_colors: (
     "primary": ($primary, $primary-invert),
     "secondary": ($secondary, $secondary-invert),
-    "dark-secondary": ($dark-secondary, $secondary-invert),
+    "light-secondary": ($light-secondary, $secondary-invert),
     "link": ($link, $link-invert)
 );
 
