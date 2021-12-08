@@ -35,4 +35,8 @@ export default {
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
 }
+
+.app-content {
+  margin: 10px;
+}
 </style>

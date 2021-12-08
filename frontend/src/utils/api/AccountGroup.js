@@ -1,4 +1,6 @@
+//import Account from './Account';
 import Model from './Model';
+import axios from 'axios';
 
 export default class AccountGroup extends Model {
   /** @inheritdoc */
@@ -14,4 +16,10 @@ export default class AccountGroup extends Model {
     this.description = null;
     this.accounts = null;
   }
+
+  static async fetchGroups() {
+    let {data} = await axios.get(`account/groups`);
+    return data;
+  }
+
 }
