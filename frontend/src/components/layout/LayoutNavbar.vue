@@ -1,5 +1,5 @@
 <template>
-  <b-navbar :fixed-top="true" :transparent="false" class="is-primary">
+  <b-navbar class="is-primary">
     <template #brand>
       <b-navbar-item tag="router-link" :to="{ path: '/' }">
         {{$t("app_name")}}
