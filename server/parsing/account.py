@@ -133,7 +133,7 @@ class Account(Transactionable, JsonSerializable):
         elif is_dest:
             self._balance += t.amount
         if is_source or is_dest:
-            self._history.insert(t, do_raise=True)
+            self._history.insert(t, do_raise=False)
             return True
         else:
             return False
@@ -168,10 +168,13 @@ class AccountBook(object):
         return self._accounts.values()
 
     def add_account(self, account, duplicates=None):
-        self._accounts[account.identifier] = account
-        self._uf_match.add_repres(account.identifier)
-        self._numbers_index[account.number] = account
-        for a in duplicates:
+        acc_repr = self._uf_match.find_repr(account.identifier)
+        if acc_repr is None:
+            self._accounts[account.identifier] = account
+            self._uf_match.add_repres(account.identifier)
+            self._numbers_index[account.number] = account
+        duplicates_diff = set(duplicates).difference(self._uf_match.find_comp(account.identifier))
+        for a in duplicates_diff:
             if a == account.identifier:
                 continue
             self._uf_match.add_elem(a, account.identifier)

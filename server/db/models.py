@@ -89,6 +89,8 @@ class Account(Base):
     name = Column(String(255), nullable=True)
     initial = Column(MyNumeric, nullable=True)
 
+    equivalences = relationship("AccountEquivalence", lazy="joined")
+
     __table_args__ = (
         UniqueConstraint('number', 'name', name='account_name_number_unique_constraint'),
     )

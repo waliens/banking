@@ -119,7 +119,9 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
         accounts = set()
         for filename in cls.transac_files(path):
             filepath = os.path.join(path, filename)
-            for row in parse_belfius_csv_file(filepath):
+            for i, row in enumerate(parse_belfius_csv_file(filepath)):
+                if i == 0:
+                    accounts.add((sanitize(row[0]), None))
                 accounts.add(Account(sanitize(row[4]), sanitize(row[5])).identifier)
 
         # extract existing representatives
@@ -181,14 +183,13 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
 
     @classmethod
     def transac_files(cls, path):
-        return filter(lambda v: v.endswith(".csv"), os.listdir(path))
+        return [f for f in  os.listdir(path) if not f.endswith(".json")]
 
     @classmethod
     def _read_transactions_file(cls, filepath, account_book: AccountBook):
         """Update account db as well"""
-        fname = os.path.basename(filepath)
-        number = fname[:19]
         transactions = list()
+        number = None
 
         for i, row in enumerate(parse_belfius_csv_file(filepath)):
             """
@@ -211,6 +212,7 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
             """
 
             my_account = account_book.get_by_number(sanitize(row[0]))
+            number = my_account.number
             other_acc_nb = sanitize(row[4])
             other_acc_name = sanitize(row[5])
             other_account = account_book[Account(other_acc_nb, other_acc_name).identifier]

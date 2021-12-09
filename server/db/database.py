@@ -13,7 +13,6 @@ def init_db():
     engine = create_engine("sqlite:///" + os.getenv("DB_FILE"))
     db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
     Base.query = db_session.query_property()
-    print(Account.__tablename__)
     if not inspect(engine).has_table(Account.__tablename__):
         print("/!\\ Database does not seem to exist. Create an new one /!\\")
         Base.metadata.create_all(bind=engine)
