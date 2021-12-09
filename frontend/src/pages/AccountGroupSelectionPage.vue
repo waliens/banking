@@ -29,17 +29,16 @@
       </b-message>
       <div class="field is-grouped">
         <div class="control">
-          <button class="button is-link">{{$t('account_group.create_account_group')}}</button>
+          <button v-on:click="gotoCreateGroup" class="button is-link">{{$t('account_group.create_account_group')}}</button>
         </div>
         <div class="control">
-          <button class="button is-link is-light">{{$t('transaction.upload_data')}}</button>
+          <button v-on:click="goToUpload" class="button is-link is-light">{{$t('transaction.upload_data')}}</button>
         </div>
       </div>
     </section>
 
     <!-- Group selected display accounts -->
     <section v-if="selectedGroup">
-      
       <account-table :accounts="selectedGroup.accounts"></account-table>
       <div class="control">
         <button class="button is-link">{{$t('select')}}</button>
@@ -70,6 +69,15 @@ export default defineComponent({
   methods: {
     async fetchGroups() {
       await AccountGroup.fetchGroups().then(groups => { this.groups = groups; });
+    },
+    selectGroup() {
+      // TODO
+    },
+    goToUpload() {
+      this.$router.push({ name: 'upload_data' });
+    },
+    gotoCreateGroup() {
+      this.$route.push({ name: 'update_account_group' });
     }
   }
 })

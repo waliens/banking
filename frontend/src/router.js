@@ -24,6 +24,11 @@ const routes = [
     component: require('./pages/AccountGroupSelectionPage.vue').default
   },
   {
+    name: 'upload_data',
+    path: '/upload_data',
+    component: require('./pages/UploadDataPage.vue').default
+  },
+  {
     name: 'not-found',
     path: '*',
     component: require('./pages/NotFoundPage.vue').default,

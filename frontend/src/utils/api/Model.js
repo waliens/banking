@@ -199,5 +199,13 @@ export default class Model {
     return this.className + 's';
   }
 
-
+  static async uploadFiles(files, path, query={}) {
+    let formData = new FormData();
+    for( var i = 0; i < files.length; i++ ){
+      let file = files[i];
+      formData.append('files[' + i + ']', file);
+    }
+    let headers = { headers: { 'Content-Type': 'multipart/form-data' }, params: query };
+    return await axios.post(path, formData, headers);
+  }
 }

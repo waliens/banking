@@ -3,6 +3,8 @@ select,Select,Sélectionner
 create,Create,Créer
 new,New,Nouveau
 search,Search,Chercher
+upload,Upload,Envoyer
+drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
 app_name,Banking,Banking
 account_group.not_selected,group not selected,Aucun groupe sélectionné
 account_group.tag,Account group,Group de comptes
