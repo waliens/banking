@@ -8,19 +8,10 @@ from sqlalchemy_utils import database_exists, create_database
 from .models import Base, Category, Account, Group, Transaction, Currency, AccountEquivalence, AccountGroup
 from impl.belfius import BelfiusParserOrchestrator
 from parsing import TagTree
+from .util import save, make_metadata_serializable
 
 
 Session = sessionmaker()
-
-
-def save(o, sess=None):
-    if sess is None:
-        sess = Session()
-    if hasattr(o, "__len__"):
-        sess.bulk_save_objects(o)
-    else:
-        sess.add(o)
-    sess.commit()
 
 
 def add_currencies(sess=None):
@@ -33,12 +24,6 @@ def add_currencies(sess=None):
 def add_tags(sess=None):
     tree = TagTree("parsing")
     save([Category(id=t.identifier, name=t.name, id_parent=t.parent_id, color=t.color, income=t.income, default=t.default) for k, t in tree._tags.items()], sess=sess)
-
-
-def make_metadata_serializable(o):
-    cpy = {k: v for k, v in o.items()}
-    cpy["valued_at"] = cpy["valued_at"].strftime("%d/%m/%Y")
-    return cpy
 
 
 def add_accounts_and_transactions():

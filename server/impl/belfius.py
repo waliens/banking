@@ -7,7 +7,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from parsing import AccountGroup, Account, AccountBook, Currency, ParserOrchestrator, Transaction, UnionFind
-from parsing.account import unibanize_be, is_iban_be
+from parsing.account import is_iban, is_noniban_be, unibanize_be, is_iban_be
 from parsing.data_parser import check_add_to_env_group
 
 
@@ -140,27 +140,78 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
             if a[0] is not None:
                 by_numbers[a[0]].append(a)
 
+        # create first uf by matching representatives by numbers
+        uf_number = UnionFind()
+        for number, accs in by_numbers.items():
+            acc_repr, acc_dupl = accs[0], accs[1:]
+            if is_iban_be(number) and unibanize_be(number) in by_numbers:
+                non_iban = unibanize_be(number)
+                non_iban_account = by_numbers[non_iban][0]
+                non_iban_repr = uf_number.find_repr(non_iban_account)
+                if non_iban_repr is not None:  # non iban has been added already, change repr to iban
+                    uf_number.update_repr(non_iban_repr, acc_repr)
+                else:
+                    uf_number.add_repres(acc_repr)
+            else:
+                uf_number.add_repres(acc_repr)
+            for dupl in acc_dupl:
+                uf_number.add_elem(dupl, acc_repr)
+            
+        # merge uf number with json uf
+        for nb_repr in uf_number.representatives():
+            # find the final representative
+            repr = None
+            uf_repr = uf.find_repr(nb_repr)
+            if uf_repr is not None:
+                repr = uf_repr
+            else:
+                nb_comp = uf_number.find_comp(nb_repr)
+                reprs_from_comp = {uf.find_repr(c) for c in nb_comp if uf.find_repr(c) is not None}
+                if len(reprs_from_comp) > 1:
+                    raise ValueError("match several different accounts: {}".format(reprs_from_comp))
+                elif len(reprs_from_comp) == 1:
+                    repr = list(reprs_from_comp)[0]
+            if repr is None:  # missing from json uf
+                # try matching by the account numbers
+                number = nb_repr[0]
+                exact_match_repr = {uf.find_repr(r) for r in uf.keys() if r[0] == number}
+                non_iban_in_json_repr = {uf.find_repr(r) for r in uf.keys() if (is_iban_be(number) and unibanize_be(number) == r[0])}
+                iban_in_json_repr = {uf.find_repr(r) for r in uf.keys() if (r[0] is not None and is_noniban_be(number) and is_iban_be(r[0]) and unibanize_be(r[0]) == number)}
+                if len(exact_match_repr) == 1:
+                    repr = list(exact_match_repr)[0]
+                elif len(non_iban_in_json_repr) == 1:
+                    uf.update_repr(list(non_iban_in_json_repr)[0], nb_repr)
+                    repr = nb_repr
+                elif len(iban_in_json_repr) == 1:
+                    repr = list(iban_in_json_repr)[0]
+                elif len(exact_match_repr) > 1 or len(non_iban_in_json_repr) > 1 or len(iban_in_json_repr) > 1:
+                    raise ValueError("several match for: {}".format(nb_repr))
+            if repr is None:
+                repr = nb_repr
+            
+            # final duplicates
+            duplicates = {repr, nb_repr}
+            duplicates = duplicates.union(uf_number.find_comp(nb_repr))
+            if repr in uf: 
+                duplicates = duplicates.union(uf.find_comp(repr))
+            
+            if repr != nb_repr:
+                uf.add_elem(nb_repr, repr)
+            elif repr not in uf:
+                uf.add_repres(repr)
+            
+            for dupl in duplicates:
+                if dupl not in uf.find_comp(repr):
+                    uf.add_elem(dupl, repr)
+
         # iterate over saved matches and update match if necessary with number matching.
         for repr in uf.representatives():
             duplicates = uf.find_comp(repr)
-            number = repr[0]
-            if number in by_numbers:
-                if is_iban_be(number):
-                    non_iban = unibanize_be(number)
-                    duplicates = duplicates.union(by_numbers[non_iban])
-                    by_numbers.pop(non_iban)
-                duplicates = duplicates.union(by_numbers[number])
-                by_numbers.pop(number)
-
             accounts_duplicates.append((
                 Account(*Account.number_name(repr)),
                 duplicates
             ))
-
             accounts = accounts.difference(duplicates)
-
-        for number, others in by_numbers.items():
-            accounts_duplicates.append((Account(*others[0]), set(others)))
 
         for a in accounts:
             accounts_duplicates.append((Account(*a), {}))

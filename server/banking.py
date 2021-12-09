@@ -9,8 +9,7 @@ from flask_cors import CORS
 
 from db.database import init_db
 from db.models import Group, Transaction
-from db.util import load_account_uf_from_database
-from impl.belfius import BelfiusParserOrchestrator
+from data_import import import_beflius_csv
 
 # load environment
 load_dotenv()
@@ -26,6 +25,10 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # initialize database
 Session = init_db()
+
+import logging
+logging.basicConfig()
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 
 @app.route("/account/<int:id_account>/transactions", methods=["GET"])
@@ -66,13 +69,8 @@ def upload_data():
         if format == "belfius":
             with open(os.path.join(dirname, "accounts.json"), "w+", encoding="utf8") as jsonfile:
                 json.dump({}, jsonfile)
-            db_accounts, uf = load_account_uf_from_database()
-            uf.save_to_json(os.path.join(dirname, "account_match.json"))
-            parser = BelfiusParserOrchestrator()
-            groups = parser.read(dirname, add_env_group=True)
-            print(groups)
+            import_beflius_csv(dirname, Session)
         else:
             return Response({"error": "unsupported format", "status": 401})
-
 
     return jsonify({"status": "ok"})

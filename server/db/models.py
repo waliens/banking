@@ -109,7 +109,7 @@ class AccountEquivalence(Base):
     id = Column(Integer, primary_key=True)
     number = Column(String(63), nullable=True)
     name = Column(String(255), nullable=True)
-    id_account = Column(Integer, ForeignKey('account.id'))
+    id_account = Column(Integer, ForeignKey('account.id', ondelete="CASCADE"))
 
     def as_dict(self):
         return AsDictSerializer("id", "number", "name", "id_account").serialize(self)

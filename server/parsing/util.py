@@ -1,5 +1,6 @@
 import abc
 import json
+from collections import defaultdict
 
 
 class UnionFind(dict):
@@ -51,14 +52,17 @@ class UnionFind(dict):
         return None
 
     def update_repr(self, k_rep, k_new):
+        """add a new key as a representative for k_rep group"""
         if k_rep == k_new:
             return
+        if not isinstance(self[k_rep], set):
+            raise ValueError("'{}' is not a representative".format(k_rep))
         key_updates = [k for k, v in self.items() if not isinstance(v, set) and v == k_rep]
         for key_u in key_updates:
             self[key_u] = k_new
         self[k_new] = self[k_rep]
         self[k_rep] = k_new
-        self[k_new].add(k_rep)
+        self[k_new].add(k_new)
 
     def representatives(self):
         return {k for k, v in self.items() if isinstance(v, set)}
@@ -112,9 +116,15 @@ class JsonSerializable(metaclass=abc.ABCMeta):
         obj_data = vars(self)
 
 
-
 class JsonDeserializable(metaclass=abc.ABCMeta):
     @staticmethod
     @abc.abstractmethod
     def from_json(self, **data):
         raise NotImplementedError(".from_json(...) not implemented")
+
+
+def group_by(data, key=None):
+    acc = defaultdict(list)
+    for d in data:
+        acc[key(d)].append(d)
+    return acc
