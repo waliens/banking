@@ -8,13 +8,11 @@ from flask.wrappers import Response
 from flask_cors import CORS
 
 from db.database import init_db
-from db.models import Group, Transaction
+from db.models import Group, Transaction, Account
 from data_import import import_beflius_csv
 
 # load environment
 load_dotenv()
-
-
 
 # create app
 app = Flask(__name__)
@@ -45,6 +43,10 @@ def account_groups():
     groups = Group.query.all()
     return jsonify([g.as_dict() for g in groups])
 
+@app.route("/accounts", methods=["GET"])
+def accounts():
+    accounts = Account.query.all()
+    return jsonify([a.as_dict() for a in accounts])
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
