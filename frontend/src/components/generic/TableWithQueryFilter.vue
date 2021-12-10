@@ -2,15 +2,18 @@
   <div>
     <section>
       <div class="field is-grouped">
-        <div class="control">
-          <b-field :label="$t('search')">
-            <b-input v-model="query"></b-input>
-          </b-field>
-        </div>
+        <b-field :label="$t('search')" label-position="on-border">
+          <b-input v-model="query"></b-input>
+        </b-field>
       </div>
     </section>
     <section>
-      <b-table :data="filtered" :columns="columns"></b-table>
+      <b-table 
+        :data="filtered" 
+        :columns="columns" 
+        :checkable="selectable" 
+        :checked-rows.sync="selected"
+        :is-row-checkable="isItemSelectable"></b-table>
     </section>
   </div>
 </template>
@@ -20,9 +23,12 @@ import { defineComponent } from '@vue/composition-api'
 
 export default defineComponent({
   props: { 
-    'data': Array, 
-    'filter_from_query': Function, 
-    'columns': Object
+    'data': { type: Array, default: [] },  
+    'columns': Array,
+    'filterFromQuery': { type: Function, default: () => true }, 
+    'isItemSelectable': { type: Function, default: () => true },
+    'selectable': { type: Boolean, default: false },
+    'selected': { type: Array, default: [] }
   },
   data() {
     return {
@@ -34,7 +40,7 @@ export default defineComponent({
       if (!this.query || this.query.length == 0) {
         return this.data;
       }
-      return this.filter_from_query(this.query, this.data);
+      return this.filterFromQuery(this.query, this.data);
     }
   }
 })

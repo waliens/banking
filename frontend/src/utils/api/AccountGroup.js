@@ -14,7 +14,7 @@ export default class AccountGroup extends Model {
 
     this.name = null;
     this.description = null;
-    this.accounts = null;
+    this.accounts = [];
   }
 
   static async fetchGroups() {

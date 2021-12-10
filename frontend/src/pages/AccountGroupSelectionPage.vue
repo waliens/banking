@@ -1,13 +1,13 @@
 <template>
   <div>
     <!-- Existing groups -->
-    <section v-if="groups && groups.length > 0">
+    <section v-if="accountGroups && accountGroups.length > 0">
       <div class="field is-grouped">
         <div class="control">
           <b-field :label="$t('account_group.tag')">
-            <b-select v-model="selectedGroup" :placeholder="$t('account_group.select_one')">
+            <b-select v-model="selectedAccountGroup" :placeholder="$t('account_group.select_one')">
               <option
-                v-for="grp in groups"
+                v-for="grp in accountGroups"
                 :value="grp"
                 :key="grp.id">
                 {{ grp.name }}
@@ -29,7 +29,7 @@
       </b-message>
       <div class="field is-grouped">
         <div class="control">
-          <button v-on:click="gotoCreateGroup" class="button is-link">{{$t('account_group.create_account_group')}}</button>
+          <button v-on:click="goToCreateGroup" class="button is-link">{{$t('account_group.create_account_group')}}</button>
         </div>
         <div class="control">
           <button v-on:click="goToUpload" class="button is-link is-light">{{$t('transaction.upload_data')}}</button>
@@ -38,8 +38,8 @@
     </section>
 
     <!-- Group selected display accounts -->
-    <section v-if="selectedGroup">
-      <account-table :accounts="selectedGroup.accounts"></account-table>
+    <section v-if="selectedAccountGroup">
+      <account-table :accounts="selectedAccountGroup.accounts"></account-table>
       <div class="control">
         <button class="button is-link">{{$t('select')}}</button>
       </div>
@@ -57,27 +57,27 @@ export default defineComponent({
 
   data() {
     return {
-      groups: null,
-      selectedGroup: null
+      accountGroups: null,
+      selectedAccountGroup: null
     }
   },
 
   async created() {
-    await this.fetchGroups()
+    await this.fetchAccountGroups()
   },
 
   methods: {
-    async fetchGroups() {
-      await AccountGroup.fetchGroups().then(groups => { this.groups = groups; });
+    async fetchAccountGroups() {
+      await AccountGroup.fetchGroups().then(groups => { this.accountGroups = groups; });
     },
     selectGroup() {
       // TODO
     },
     goToUpload() {
-      this.$router.push({ name: 'upload_data' });
+      this.$router.push({ name: 'upload-data' });
     },
-    gotoCreateGroup() {
-      this.$route.push({ name: 'update_account_group' });
+    goToCreateGroup() {
+      this.$router.push({ name: 'create-account-group' });
     }
   }
 })

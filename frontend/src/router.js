@@ -8,7 +8,7 @@ const groupSelectedOnly = async (to, from, next) => {
     next();
     return;
   }
-  next({name: 'group_select'});
+  next({name: 'select-account-group'});
 };
 
 const routes = [
@@ -19,14 +19,24 @@ const routes = [
     beforeEnter: groupSelectedOnly
   },
   {
-    name: 'group_select',
-    path: '/select_group',
+    name: 'upload-data',
+    path: '/upload',
+    component: require('./pages/UploadDataPage.vue').default
+  },
+  {
+    name: 'select-account-group',
+    path: '/group/select',
     component: require('./pages/AccountGroupSelectionPage.vue').default
   },
   {
-    name: 'upload_data',
-    path: '/upload_data',
-    component: require('./pages/UploadDataPage.vue').default
+    name: 'create-account-group',
+    path: '/group/create',
+    component: require('./pages/CreateUpdateAccountGroupPage.vue').default
+  },
+  {
+    name: 'edit-account-group',
+    path: '/group/:groupid/edit',
+    component: require('./pages/CreateUpdateAccountGroupPage.vue').default
   },
   {
     name: 'not-found',
