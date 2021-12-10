@@ -17,10 +17,12 @@
     </section>
     <section>
       <double-table-select
+        :data="accounts"
         :columns="tableColumns"
         :notSelected="notSelectedAccounts"
-        :selected="accountGroup.accounts"
+        :selected.sync="accountGroup.accounts"
         :filterFromQuery="queryFilter"
+        :keyFn="(e) => e.id"
         ></double-table-select>
     </section>
   </div>
@@ -62,9 +64,6 @@ export default defineComponent({
         let selectedIdSet = new Set(this.accountGroup.accounts.map(a => a.id))
         this.notSelectedAccounts = this.accounts.filter(a => !selectedIdSet.has(a.id));
       }
-    },
-    async () {
-
     }
   }
 })

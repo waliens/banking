@@ -2,11 +2,11 @@
   <div class="columns">
     <div class="column is-one-tenth">
       <table-with-query-filter
-        :data="selected"
+        :checked.sync="leftChecked"
+        :data="left"
         :filter-from-query="filterFromQuery"
         :columns="columns"
         :selectable="true"
-        :selected="leftSelected"
         ></table-with-query-filter>
     </div>
     <div class="buttons column is-narrow">
@@ -15,11 +15,11 @@
     </div>
     <div class="column">
       <table-with-query-filter
-        :data="notSelected"
+        :checked.sync="rightChecked"
+        :data="right"
         :filter-from-query="filterFromQuery"
         :columns="columns"
         :selectable="true"
-        :selected="rightSelected"
         ></table-with-query-filter>
     </div>
   </div>
@@ -32,23 +32,48 @@ import TableWithQueryFilter from '@/components/generic/TableWithQueryFilter';
 export default defineComponent({
   components: { TableWithQueryFilter },
   props: {
-    'notSelected': Array,
-    'selected': Array,
+    'data': Array,
+    'selected': Array,  // of identifiers
+    'keyFn': Function,  // function to apply to items of data to extract an identifier
     'filterFromQuery': Function,
     'columns': Array 
   },
   data() {
     return {
-      leftSelected: [],
-      rightSelected: []
+      leftChecked: [],
+      rightChecked: []
     };
+  },
+  computed: {
+    left() {
+      return this.data.filter(e => this.selectedSet.has(this.keyFn(e)));
+    },
+    right() {
+      return this.data.filter(e => !this.selectedSet.has(this.keyFn(e)));
+    },
+    selectedSet() {
+      return new Set(this.selected.map(this.keyFn));
+    }
   },
   methods: {
     toRight() {
-
+      let newSelected = new Array();
+      let removeSet = new Set(this.leftChecked.map(e => this.keyFn(e)));
+      newSelected.push(...this.selected.filter(e => !removeSet.has(this.keyFn(e))));
+      this.resetChecks();
+      this.$emit('update:selected', newSelected);
     },
     toLeft() {
-
+      let newSelected = new Array();
+      let selectedSet = this.selectedSet;
+      newSelected.push(...this.selected);
+      newSelected.push(...this.rightChecked.filter(e => !selectedSet.has(this.keyFn(e))));
+      this.resetChecks();
+      this.$emit('update:selected', newSelected);
+    },
+    resetChecks() {
+      this.rightChecked.length = 0;
+      this.leftChecked.length = 0;
     }
   }
 })

@@ -12,7 +12,7 @@
         :data="filtered" 
         :columns="columns" 
         :checkable="selectable" 
-        :checked-rows.sync="selected"
+        :checked-rows.sync="checked"
         :is-row-checkable="isItemSelectable"></b-table>
     </section>
   </div>
@@ -28,11 +28,11 @@ export default defineComponent({
     'filterFromQuery': { type: Function, default: () => true }, 
     'isItemSelectable': { type: Function, default: () => true },
     'selectable': { type: Boolean, default: false },
-    'selected': { type: Array, default: [] }
   },
   data() {
     return {
-      query: ""
+      query: "",
+      checked: []
     }
   },
   computed: {
@@ -41,6 +41,11 @@ export default defineComponent({
         return this.data;
       }
       return this.filterFromQuery(this.query, this.data);
+    }
+  },
+  watch: {
+    checked: function(newChecked) {
+      this.$emit('update:checked', newChecked);
     }
   }
 })
