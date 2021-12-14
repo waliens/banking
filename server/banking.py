@@ -9,7 +9,7 @@ from flask_cors import CORS
 
 from db.database import init_db
 from db.models import Group, Transaction, Account
-from data_import import import_beflius_csv
+from db.data_import import import_belfius_csv
 
 # load environment
 load_dotenv()
@@ -71,7 +71,7 @@ def upload_data():
         if format == "belfius":
             with open(os.path.join(dirname, "accounts.json"), "w+", encoding="utf8") as jsonfile:
                 json.dump({}, jsonfile)
-            import_beflius_csv(dirname, Session)
+            import_belfius_csv(dirname, Session)
         else:
             return Response({"error": "unsupported format", "status": 401})
 

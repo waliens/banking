@@ -8,7 +8,7 @@ from db.models import Account, AccountEquivalence, AccountGroup, Currency, Trans
 from db.util import load_account_uf_from_database, make_metadata_serializable, save, refresh_all
 from impl.belfius import BelfiusParserOrchestrator
 from parsing.util import group_by
-from server.parsing.account import AccountBook
+from parsing.account import AccountBook
 
 
 def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
@@ -60,7 +60,7 @@ def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
   return all_db_accounts
 
 
-def import_beflius_csv(dirname, sess):
+def import_belfius_csv(dirname, sess):
   db_accounts, uf = load_account_uf_from_database()
   db_accounts = {(a.number, a.name): a for a in db_accounts}
   uf.save_to_json(os.path.join(dirname, "account_match.json"))
