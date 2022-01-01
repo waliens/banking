@@ -14,9 +14,17 @@
               </option>
             </b-select>
             <div class="control">
-              <button class="button is-link">{{$t('new')}}</button>
+              <button class="button is-link" v-on:click="goToCreateGroup">{{$t('new')}}</button>
             </div>
           </b-field>
+        </div>
+      </div>
+
+      <!-- Group selected display accounts -->
+      <div v-if="selectedAccountGroup">
+        <account-table :accounts="selectedAccountGroup.accounts"></account-table>
+        <div class="control">
+          <button class="button is-link">{{$t('select')}}</button>
         </div>
       </div>
     </section>
@@ -37,13 +45,7 @@
       </div>
     </section>
 
-    <!-- Group selected display accounts -->
-    <section v-if="selectedAccountGroup">
-      <account-table :accounts="selectedAccountGroup.accounts"></account-table>
-      <div class="control">
-        <button class="button is-link">{{$t('select')}}</button>
-      </div>
-    </section>
+
   </div>
 </template>
 
