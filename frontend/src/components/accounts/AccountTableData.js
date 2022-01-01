@@ -21,9 +21,8 @@ export function getColumns(ctx) {
 }
 
 export function queryFilter(query, data) {
+  let q = new RegExp('.*' + query + '.*', "gi");
   return data.filter(account => {
-    let q = '/.*' + query + ' .*/g';
-    return !!((account.number && account.number.match(q)
-                || account.name && account.name.match(q)))
+    return (account.number && account.number.match(q)) || (account.name && account.name.match(q));
   });
 }

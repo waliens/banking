@@ -3,7 +3,7 @@
     <h3 class="title" v-if="!accountGroupId">{{$t('account_group.creation')}}</h3>
     <h3 class="title" v-if="accountGroupId">{{$t('account_group.update')}}</h3>
 
-    <section>
+    <section class="submit-section">
       <div class="control">
         <b-field :label="$t('name')" label-position="on-border">
           <b-input v-model="accountGroup.name" ></b-input>
@@ -14,17 +14,21 @@
           <b-input v-model="accountGroup.description" maxlength="200" type="textarea"></b-input>
         </b-field>
       </div>
+      <div class="control">
+        <b-button v-on:click="send" type="is-primary">{{$t('create')}}</b-button>
+      </div>
+      <div class="control">
+        <double-table-select
+          :data="accounts"
+          :columns="tableColumns"
+          :notSelected="notSelectedAccounts"
+          :selected.sync="accountGroup.accounts"
+          :filterFromQuery="queryFilter"
+          :keyFn="(e) => e.id"
+          ></double-table-select>
+      </div>
     </section>
-    <section>
-      <double-table-select
-        :data="accounts"
-        :columns="tableColumns"
-        :notSelected="notSelectedAccounts"
-        :selected.sync="accountGroup.accounts"
-        :filterFromQuery="queryFilter"
-        :keyFn="(e) => e.id"
-        ></double-table-select>
-    </section>
+
   </div>
 </template>
 
@@ -64,7 +68,14 @@ export default defineComponent({
         let selectedIdSet = new Set(this.accountGroup.accounts.map(a => a.id))
         this.notSelectedAccounts = this.accounts.filter(a => !selectedIdSet.has(a.id));
       }
+    },
+
+    async send() {
+      this.accountGroup.save().then(() => {
+        this.$router.push({ name: 'home' });
+      });
     }
+
   }
 })
 </script>
@@ -76,5 +87,9 @@ export default defineComponent({
 
 .title {
   margin: 10px;
+}
+
+.submit-section {
+  margin-bottom: 10px;
 }
 </style>
