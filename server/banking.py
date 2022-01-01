@@ -55,14 +55,14 @@ def create_group():
     session = session_instance()
     name = request.json.get("name", "").strip()
     desc = request.json.get("description", "")
-    account_ids = request.json.get("accounts", [])
-    if len(name) == 0 or len(account_ids) == 0:
+    accounts = request.json.get("accounts", [])
+    if len(name) == 0 or len(accounts) == 0:
         raise ValueError("empty name or accounts")
 
     grp = Group(name=name, description=desc)
     session.add(grp)
     session.commit()
-    accounts = [AccountGroup(id_account=_id, id_group=grp.id) for _id in account_ids]
+    accounts = [AccountGroup(id_account=acc["id"], id_group=grp.id) for acc in accounts]
     session.bulk_save_objects(accounts)
     session.commit()
 
