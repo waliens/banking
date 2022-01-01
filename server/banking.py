@@ -6,9 +6,12 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask.wrappers import Response
 from flask_cors import CORS
+from sqlalchemy.orm import session
+from sqlalchemy.orm.scoping import scoped_session
+from sqlalchemy.orm.session import sessionmaker
 
 from db.database import init_db
-from db.models import Group, Transaction, Account
+from db.models import AccountGroup, Group, Transaction, Account
 from db.data_import import import_belfius_csv
 
 # load environment
@@ -22,7 +25,10 @@ app.config['JSON_AS_ASCII'] = False
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # initialize database
-Session = init_db()
+Session, engine = init_db()
+
+def session_instance():
+    return scoped_session(Session)
 
 import logging
 logging.basicConfig()
@@ -43,14 +49,35 @@ def account_groups():
     groups = Group.query.all()
     return jsonify([g.as_dict() for g in groups])
 
+
+@app.route("/account_group", methods=["POST"])
+def create_group():
+    session = session_instance()
+    name = request.json.get("name", "").strip()
+    desc = request.json.get("description", "")
+    account_ids = request.json.get("accounts", [])
+    if len(name) == 0 or len(account_ids) == 0:
+        raise ValueError("empty name or accounts")
+
+    grp = Group(name=name, description=desc)
+    session.add(grp)
+    session.commit()
+    accounts = [AccountGroup(id_account=_id, id_group=grp.id) for _id in account_ids]
+    session.bulk_save_objects(accounts)
+    session.commit()
+
+    return jsonify(grp)
+
+
 @app.route("/accounts", methods=["GET"])
 def accounts():
     accounts = Account.query.all()
     return jsonify([a.as_dict() for a in accounts])
 
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
-    Session.remove()
+    session_instance().remove()
 
 
 @app.route("/", methods=["GET"])
@@ -71,7 +98,7 @@ def upload_data():
         if format == "belfius":
             with open(os.path.join(dirname, "accounts.json"), "w+", encoding="utf8") as jsonfile:
                 json.dump({}, jsonfile)
-            import_belfius_csv(dirname, Session)
+            import_belfius_csv(dirname, session_instance())
         else:
             return Response({"error": "unsupported format", "status": 401})
 

@@ -143,9 +143,10 @@ class Transaction(Base):
         return "<Account(id='{}')>".format(self.id)
 
 
-AccountGroup = Table('account_group', Base.metadata,
-                     Column('id_group', ForeignKey('group.id')),
-                     Column('id_account', ForeignKey('account.id')))
+class AccountGroup(Base):
+    __tablename__ = 'account_group'
+    id_group = Column(Integer, ForeignKey('group.id'), primary_key=True)
+    id_account = Column(Integer, ForeignKey('account.id'), primary_key=True)
 
 
 class Group(Base):
@@ -154,7 +155,7 @@ class Group(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     description = Column(String(1024))
-    accounts = relationship("Account", secondary=AccountGroup, lazy="joined")
+    accounts = relationship("Account", secondary='account_group', lazy="joined")
 
     def as_dict(self):
         return AsDictSerializer(
