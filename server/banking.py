@@ -9,6 +9,7 @@ from flask_cors import CORS
 from sqlalchemy.orm.scoping import scoped_session
 
 from sqlalchemy.sql.expression import select, func, cast, column, table
+from sqlalchemy.sql.operators import json_getitem_op
 from db.database import init_db
 from db.models import AccountGroup, Group, Transaction, Account
 from db.data_import import import_belfius_csv
@@ -74,6 +75,14 @@ def create_group():
     session.commit()
 
     return jsonify(grp.as_dict())
+
+
+@app.route("/account_group/<int:id_group>", methods=["GET"])
+def get_account_group(id_group):
+    group = Group.query.get(id_group)
+    if group is None:
+        abort(404)
+    return jsonify(group.as_dict())    
 
 
 @app.route("/accounts", methods=["GET"])
