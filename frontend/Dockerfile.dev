@@ -1,21 +1,18 @@
-FROM node:lts-alpine
+FROM node:12.22-alpine3.14
 
-# from banking root: docker build -t nodedev - < Dockerfile.dev
-# from banking root: docker run -v ~/repos/banking/frontend:/app -p 8080:8080 -it nodedev
+# from frontend root: docker build -f Dockerfile.dev -t nodedev .
+# from frontend root: docker run -v ~/repos/banking/frontend/src:/app/src -p 8080:8080 -it nodedev
 # définit le dossier 'app' comme dossier de travail
 WORKDIR /app
 
-#
 RUN apk add --no-cache bash
 
-# copie 'package.json' et 'package-lock.json' (si disponible)
-COPY . ./
-
+COPY ./yarn.lock ./package.json /app/
+ADD ./src /app/src
+ADD ./public /app/public
+ADD ./bin /app/bin 
+  
 # installe les dépendances du projet
 RUN yarn install
 
-# COPY public ./public
-# COPY src ./src
-# COPY babel.config.js ./ 
- 
 ENTRYPOINT [ "yarn", "serve" ]
