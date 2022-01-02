@@ -1,8 +1,10 @@
 from decimal import Decimal
 
-from sqlalchemy import Column, JSON, Boolean, Integer, Date, String, ForeignKey, TypeDecorator, UniqueConstraint, Table
+from sqlalchemy import Column, JSON, Boolean, Integer, Date, Float, String, ForeignKey, TypeDecorator, UniqueConstraint, Table
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import column_property, relationship, foreign, remote
+from sqlalchemy.sql.expression import select, func, cast, column, table
+from sqlalchemy.ext.hybrid import hybrid_property
 
 Base = declarative_base()
 
@@ -89,7 +91,37 @@ class Account(Base):
     name = Column(String(255), nullable=True)
     initial = Column(MyNumeric, nullable=True)
 
+    as_source = relationship(lambda: Transaction, foreign_keys=lambda: Transaction.id_source, back_populates="source")
+    as_dest = relationship(lambda: Transaction, foreign_keys=lambda: Transaction.id_dest, back_populates="dest")
     equivalences = relationship("AccountEquivalence", lazy="joined")
+
+    @hybrid_property
+    def balance_pos(self):
+        return self._balance_generic_instance(self.as_dest)
+    
+    @balance_pos.expression
+    def balance_pos(cls):
+        return cls._balance_generic_expr(Transaction.id_dest)
+
+    @hybrid_property
+    def balance_neg(self):
+        return self._balance_generic_instance(self.as_source)
+
+    @balance_neg.expression
+    def balance_neg(cls):
+        return cls._balance_generic_expr(Transaction.id_source)
+
+    @hybrid_property
+    def balance(self):
+        return self.initial - Decimal(str(self.balance_neg)) + Decimal(str(self.balance_pos))
+    
+    @staticmethod
+    def _balance_generic_instance(transacs):
+        return sum([t.amount for t in transacs])
+
+    def _balance_generic_expr(cls, field):
+        return select([func.sum(Transaction.amount.cast(Float))]).where(cls.id == field).correlate_except(Transaction).as_scalar()
+
 
     __table_args__ = (
         UniqueConstraint('number', 'name', name='account_name_number_unique_constraint'),
@@ -100,7 +132,7 @@ class Account(Base):
             self.id, self.number, self.name)
 
     def as_dict(self):
-        return AsDictSerializer("id", "number", "name", "initial").serialize(self)
+        return AsDictSerializer("id", "number", "name", "initial", "balance").serialize(self)
 
 
 class AccountEquivalence(Base):
@@ -127,8 +159,8 @@ class Transaction(Base):
     id_currency = Column(Integer, ForeignKey('currency.id'))
     id_category = Column(Integer, ForeignKey('category.id'), nullable=True)
 
-    source = relationship("Account", foreign_keys=[id_source], lazy="joined")
-    dest = relationship("Account", foreign_keys=[id_dest], lazy="joined")
+    source = relationship("Account", foreign_keys=[id_source], lazy="joined", back_populates="as_source")
+    dest = relationship("Account", foreign_keys=[id_dest], lazy="joined", back_populates="as_dest")
     currency = relationship("Currency", lazy="joined")
     category = relationship("Category", lazy="joined")
 
@@ -140,7 +172,7 @@ class Transaction(Base):
                                    for k in ["source", "dest", "currency", "category"]}).serialize(self)
 
     def __repr__(self):
-        return "<Account(id='{}')>".format(self.id)
+        return "<Transaction(id='{}', amount='{}')>".format(self.id, self.amount)
 
 
 class AccountGroup(Base):

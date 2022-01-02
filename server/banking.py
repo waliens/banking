@@ -3,13 +3,12 @@ import os
 import tempfile
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from flask.wrappers import Response
 from flask_cors import CORS
-from sqlalchemy.orm import session
 from sqlalchemy.orm.scoping import scoped_session
-from sqlalchemy.orm.session import sessionmaker
 
+from sqlalchemy.sql.expression import select, func, cast, column, table
 from db.database import init_db
 from db.models import AccountGroup, Group, Transaction, Account
 from db.data_import import import_belfius_csv
@@ -44,6 +43,14 @@ def account_transactions(id_account):
     return jsonify([t.as_dict() for t in transactions])
 
 
+@app.route("/account/<int:id_account>", methods=["GET"])
+def get_account(id_account):
+    account = Account.query.get(id_account)
+    if account is None:
+        abort(404)
+    return jsonify(account.as_dict())
+
+
 @app.route("/account/groups", methods=["GET"])
 def account_groups():
     groups = Group.query.all()
@@ -66,7 +73,7 @@ def create_group():
     session.bulk_save_objects(accounts)
     session.commit()
 
-    return jsonify(grp)
+    return jsonify(grp.as_dict())
 
 
 @app.route("/accounts", methods=["GET"])
