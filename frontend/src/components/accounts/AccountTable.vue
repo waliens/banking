@@ -1,5 +1,5 @@
 <template>
-  <table-with-query-filter :columns="columns" :data="accounts" :filter_from_query="queryFilter"></table-with-query-filter>
+  <table-with-query-filter :columns="columns" :data="accounts" :filter-from-query="queryFilter"></table-with-query-filter>
 </template>
 
 <script>

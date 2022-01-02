@@ -25,7 +25,7 @@ export default defineComponent({
   props: { 
     'data': { type: Array, default: [] },  
     'columns': Array,
-    'filterFromQuery': { type: Function, default: () => true }, 
+    'filterFromQuery': { type: Function }, 
     'isItemSelectable': { type: Function, default: () => true },
     'selectable': { type: Boolean, default: false },
   },
