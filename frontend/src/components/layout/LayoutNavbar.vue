@@ -8,10 +8,9 @@
     <template #end>
         <b-navbar-item tag="div">
           <div class="group info">
-            <b-tag :type="tag_class">{{group}}</b-tag>
+            <b-tag :type="tag_class">Group: <em>{{!!group ? group.name : $t('account_group.not_selected')}}</em></b-tag>
           </div>
         </b-navbar-item>
-      
     </template>
   </b-navbar>
 </template>
@@ -22,14 +21,10 @@ import { defineComponent } from '@vue/composition-api'
 export default defineComponent({
   computed: {
     group() {
-      if (this.$store.group) {
-        return this.$store.group.name;
-      } else{
-        return this.$t("account_group.not_selected");
-      }
+      return this.$store.state.currentGroup;
     },
     tag_class() {
-      if (this.$store.group) {
+      if (this.group) {
         return "is-success";
       } else{
         return "is-warning";

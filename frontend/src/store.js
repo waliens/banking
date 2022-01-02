@@ -2,13 +2,12 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 Vue.use(Vuex);
 
-// import axios from 'axios';
-// import AccountGroup from '@/utils/api/AccountGroup';
+import AccountGroup from '@/utils/api/AccountGroup';
 
 const state = {
+  currentGroupId: null,
   currentGroup: null,
-  initialized: false,
-  socketInitialized: false
+  initialized: false
 };
 
 const mutations = {
@@ -17,18 +16,55 @@ const mutations = {
   },
 
   setCurrentGroup(state, group) {
+    window.localStorage.currentGroupId = group.id;
+    state.currentGroupId = group.id;
     state.currentGroup = group;
   },
+
+  clearCurrentGroup(state) {
+    window.localStorage.currentGroupId = undefined;
+    state.currentGroupId = null;
+    state.currentGroup = null;
+  }
 };
 
 const actions = {
-  async initializeStore({state, commit}) {
+  async initializeStore({state, commit, dispatch}) {
     if(state.initialized) {
       return;
     }
 
-    state.currentGroup = null;
+    let groupId = window.localStorage.currentGroupId;
+    if(!groupId) {
+      commit('setInitialized');
+      return;
+    }
+
+    await dispatch('fetchGroup', groupId);
     commit('setInitialized');
+  },
+
+  setCurrentGroup({commit}, group) {
+    commit('setCurrentGroup', group);
+  },
+
+  async fetchGroup({commit, dispatch}, groupId) {
+    if (!groupId) {
+      console.log("not set");
+      return;
+    }
+    let group = null;
+
+    try {
+      group = await AccountGroup.fetch(groupId);
+    }
+    catch (e) {
+      console.log('Error while fetching group.');
+      commit('clearCurrentGroup');
+      return;
+    }
+
+    dispatch('setCurrentGroup', group);
   }
 };
 

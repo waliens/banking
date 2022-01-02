@@ -24,7 +24,7 @@
       <div v-if="selectedAccountGroup">
         <account-table :accounts="selectedAccountGroup.accounts"></account-table>
         <div class="control">
-          <button class="button is-link">{{$t('select')}}</button>
+          <button v-on:click="selectGroup" class="button is-link">{{$t('select')}}</button>
         </div>
       </div>
     </section>
@@ -73,7 +73,10 @@ export default defineComponent({
       await AccountGroup.fetchGroups().then(groups => { this.accountGroups = groups; });
     },
     selectGroup() {
-      // TODO
+      if (this.selectedAccountGroup) {
+        this.$store.dispatch('setCurrentGroup', this.selectedAccountGroup);
+        this.$router.push({ name: 'home' });
+      }
     },
     goToUpload() {
       this.$router.push({ name: 'upload-data' });

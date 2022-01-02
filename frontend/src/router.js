@@ -3,7 +3,7 @@ import store from './store';
 
 const groupSelectedOnly = async (to, from, next) => {
   await store.dispatch('initializeStore');
-
+  
   if (store.state.currentGroup) {
     next();
     return;
