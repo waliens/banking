@@ -21,3 +21,6 @@ $custom_colors: (
 );
 
 $colors: map-merge($colors, $custom_colors);
+
+$amount-positive: #63BE7B;
+$amount-negative: #F8696B;
