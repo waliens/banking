@@ -1,14 +1,27 @@
 <template>
-  <table-with-query-filter :columns="columns" :data="accounts" :filter-from-query="queryFilter"></table-with-query-filter>
+  <table-with-query-filter :data="accounts" :columns="columns" :filter-from-query="queryFilter">
+
+    <template slot="balance" slot-scope="props">
+      <currency-display :currency="props.row.currency" :amount="props.row.balance" :color="false"></currency-display>
+    </template>
+
+    <template slot="explore" >
+      <b-field grouped>
+        <button>go</button>
+      </b-field>
+    </template>
+
+  </table-with-query-filter>
 </template>
 
 <script>
 import { defineComponent } from '@vue/composition-api'
 import TableWithQueryFilter from '@/components/generic/TableWithQueryFilter';
+import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import { getColumns, queryFilter } from './AccountTableData.js';
 
 export default defineComponent({
-  components: { TableWithQueryFilter },
+  components: { TableWithQueryFilter, CurrencyDisplay },
   props: { 'accounts': Array },
   data() {
     return {

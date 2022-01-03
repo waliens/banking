@@ -10,10 +10,15 @@
     <section>
       <b-table 
         :data="filtered" 
-        :columns="columns" 
         :checkable="selectable" 
         :checked-rows.sync="checked"
-        :is-row-checkable="isItemSelectable"></b-table>
+        :is-row-checkable="isItemSelectable">
+
+        <b-table-column v-for="col in columns" v-bind:key="col.field" v-slot="props" v-bind="col">
+          <slot :name="col.field" v-bind="props"><span v-if="col.field in props.row">{{props.row[col.field]}}</span></slot>
+        </b-table-column>
+        
+      </b-table>
     </section>
   </div>
 </template>

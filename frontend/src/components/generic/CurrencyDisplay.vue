@@ -9,12 +9,20 @@ import currency from "currency.js";
 export default defineComponent({
   props: {
     'currency': Object,
-    'amount': Object,
+    'amount': {},
     'doColor': {type: Boolean, default: false}
   },
   computed: {
     formattedAmount() {
-      let formatObj = { 
+      // parse
+      let parseFmtObj = {
+        decimal: '.',
+        separator: ''
+      };
+      let parsed = currency(this.amount, parseFmtObj);
+
+      // prepare formatting
+      let formatFmtObj = { 
         precision: 2, 
         decimal: ',',
         separator: ' ',
@@ -22,12 +30,12 @@ export default defineComponent({
       };
 
       if (this.currency instanceof String) {
-        formatObj.symbol = this.currency;
+        formatFmtObj.symbol = this.currency;
       } else if ('symbol' in this.currency) {
-        formatObj.symbol = this.currency.symbol;
+        formatFmtObj.symbol = this.currency.symbol;
       }
 
-      return currency(this.amount, formatObj).format();
+      return currency(parsed, formatFmtObj).format();
     },
     colorClass() {
       if (!this.doColor) {

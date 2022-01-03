@@ -16,6 +16,10 @@ export function getColumns(ctx) {
       'field': 'balance',
       'label': ctx.$t('account.balance'),
       'numeric': true
+    },
+    {
+      'field': "explore",
+      'label': ctx.$t('explore')
     }
   ]
 }
