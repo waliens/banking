@@ -1,13 +1,13 @@
+from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 
 from sqlalchemy import Column, JSON, Boolean, Integer, Date, Float, String, ForeignKey, TypeDecorator, UniqueConstraint, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import column_property, relationship, foreign, remote
-from sqlalchemy.sql.expression import select, func, cast, column, table
+from sqlalchemy.sql.expression import and_, select, func, cast, column, table
 from sqlalchemy.ext.hybrid import hybrid_property
 
 Base = declarative_base()
-
 
 class AsDictSerializer(object):
     def __init__(self, *fields, **mapping):
@@ -82,6 +82,12 @@ class Currency(Base):
     def as_dict(self):
         return AsDictSerializer("id", "symbol", "short_name", "long_name").serialize(self)
 
+    @staticmethod
+    def short_name_to_id(default="EUR"):
+        currencies = Currency.query.filter(Currency.short_name == default).all()
+        assert len(currencies) == 1
+        return currencies[0].id
+
 
 class Account(Base):
     __tablename__ = "account"
@@ -90,10 +96,12 @@ class Account(Base):
     number = Column(String(63), nullable=True)
     name = Column(String(255), nullable=True)
     initial = Column(MyNumeric, nullable=True)
+    id_currency = Column(Integer, ForeignKey('currency.id'))
 
     as_source = relationship(lambda: Transaction, foreign_keys=lambda: Transaction.id_source, back_populates="source")
     as_dest = relationship(lambda: Transaction, foreign_keys=lambda: Transaction.id_dest, back_populates="dest")
     equivalences = relationship("AccountEquivalence", lazy="joined")
+    currency = relationship("Currency", lazy="joined")
 
     @hybrid_property
     def balance_pos(self):
@@ -120,8 +128,8 @@ class Account(Base):
         return sum([t.amount for t in transacs])
 
     def _balance_generic_expr(cls, field):
-        return select([func.sum(Transaction.amount.cast(Float))]).where(cls.id == field).correlate_except(Transaction).as_scalar()
-
+        # TODO consider also other currencies
+        return select([func.sum(Transaction.amount.cast(Float))]).where(and_(cls.id == field, cls.id_currency == Transaction.id_currency)).correlate_except(Transaction).as_scalar()
 
     __table_args__ = (
         UniqueConstraint('number', 'name', name='account_name_number_unique_constraint'),
@@ -132,8 +140,9 @@ class Account(Base):
             self.id, self.number, self.name)
 
     def as_dict(self):
-        return AsDictSerializer("id", "number", "name", "initial", "balance").serialize(self)
-
+        return AsDictSerializer("id", "number", "name", "initial", "balance",
+                                currency=AsDictSerializer.as_dict_fn(), 
+                                equivalences=AsDictSerializer.iter_as_dict_fn()).serialize(self)
 
 class AccountEquivalence(Base):
     __tablename__ = "account_equivalence"

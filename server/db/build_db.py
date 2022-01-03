@@ -33,10 +33,12 @@ def add_accounts_and_transactions():
     model_map = dict()
     session = Session()
     accounts = list()
+    id_default_currency = Currency.short_name_to_id("EUR")
     for group in groups:
         for account in group.accounts:
             print(account.identifier)
-            base_account = Account(number=account.number, name=account.name, initial=account.initial)
+            # by default, EUR
+            base_account = Account(number=account.number, name=account.name, initial=account.initial, id_currency=id_default_currency)
             save(base_account, sess=session)
             model_map[account.identifier] = base_account
 
