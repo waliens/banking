@@ -19,7 +19,8 @@ export function getColumns(ctx) {
     },
     {
       'field': "explore",
-      'label': ctx.$t('explore')
+      'label': ctx.$t('explore'),
+      'centered': true
     }
   ]
 }

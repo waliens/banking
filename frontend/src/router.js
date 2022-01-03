@@ -33,16 +33,21 @@ const routes = [
     path: '/group/create',
     component: require('./pages/CreateUpdateAccountGroupPage.vue').default
   },
-  {
-    name: 'edit-account-group',
-    path: '/group/:groupid/edit',
-    component: require('./pages/CreateUpdateAccountGroupPage.vue').default
-  },
+  // {
+  //   name: 'edit-account-group',
+  //   path: '/group/:groupid/edit',
+  //   component: require('./pages/CreateUpdateAccountGroupPage.vue').default
+  // },
   {
     name: 'not-found',
     path: '*',
     component: require('./pages/NotFoundPage.vue').default,
   },
+  {
+    name: 'view-account',
+    path: '/account/:accountid',
+    component: require('./pages/ViewAccountPage.vue').default
+  }
 ];
 
 const router = new VueRouter({

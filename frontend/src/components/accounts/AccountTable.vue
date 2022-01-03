@@ -5,9 +5,9 @@
       <currency-display :currency="props.row.currency" :amount="props.row.balance" :color="false"></currency-display>
     </template>
 
-    <template slot="explore" >
+    <template slot="explore" slot-scope="props">
       <b-field grouped>
-        <button>go</button>
+        <b-button class="is-small is-primary" icon-right="eye" v-on:click="goToAccount(props.row.id)"></b-button>
       </b-field>
     </template>
 
@@ -28,10 +28,15 @@ export default defineComponent({
       columns: getColumns(this),
       queryFilter
     }
+  },
+  methods: {
+    goToAccount(id) {
+      console.log("id");
+      this.$router.push({'name': 'view-account', params: {'accountid': id}});
+    }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-
 </style>
