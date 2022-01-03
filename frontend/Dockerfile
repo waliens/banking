@@ -1,7 +1,8 @@
 FROM node:12.22-alpine3.14
 
-# from frontend root: docker build -f Dockerfile.dev -t nodedev .
-# from frontend root: docker run -v ~/repos/banking/frontend/src:/app/src -p 8080:8080 -it nodedev
+# for dev: 
+#   from frontend root: docker build -f Dockerfile.dev -t nodedev .
+#   from frontend root: docker run -v ~/repos/banking/frontend/src:/app/src -p 8080:8080 --rm -it nodedev
 # définit le dossier 'app' comme dossier de travail
 WORKDIR /app
 

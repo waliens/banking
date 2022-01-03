@@ -4,7 +4,6 @@ RUN pip install python-dotenv
 RUN pip install sqlalchemy sqlalchemy-utils
 RUN pip install flask flask-cors
 
-
 WORKDIR /app
 
 ADD db ./db
