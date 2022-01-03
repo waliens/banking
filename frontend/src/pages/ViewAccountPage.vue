@@ -1,6 +1,7 @@
 <template>
   <div v-if="account">
     <h3 class="title">Account details</h3>
+    
     <section class="level">
       <div class="level-item has-text-centered">
         <div>
@@ -27,12 +28,14 @@
         </div>
       </div>
     </section>
-    <section>
+
+    <section class="equiv-list">
       <span>{{$t("account.alternatives")}}:</span> <span v-for="equiv in account.equivalences" v-bind:key="equiv.id" class="tag is-primary">{{equiv.number}}, {{equiv.name}}</span>
     </section>
-    <!-- <section>
-      <account-table :accounts="group.accounts"></account-table>
-    </section> -->
+
+    <section v-if="transactions && account">
+      <transaction-table :transactions="transactions" :reference-account="account"></transaction-table>
+    </section>
   </div>
 </template>
 
@@ -40,16 +43,19 @@
 import { defineComponent } from '@vue/composition-api'
 import Account from '@/utils/api/Account';
 import CurrencyDisplay from '@/components/generic/CurrencyDisplay.vue';
+import TransactionTable from '@/components/transactions/TransactionTable.vue';
 
 export default defineComponent({
-  components: {CurrencyDisplay},
+  components: {CurrencyDisplay, TransactionTable},
   data() {
     return {
-      account: null
+      account: null,
+      transactions: null
     };
   },
   async created() {
     this.account = await this.fetchAccount();
+    this.transactions = await this.fetchTransactions();
   },
   computed: {
     accountId() {
@@ -59,11 +65,21 @@ export default defineComponent({
   methods: {
     async fetchAccount() {
       return await Account.fetch(this.accountId);
+    },
+    async fetchTransactions() {
+      if (this.account) {
+        return await this.account.transactions();
+      } else {
+        return [];
+      }
+      
     }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-
+.equiv-list {
+  margin-bottom: 10px;
+}
 </style>

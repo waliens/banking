@@ -1,27 +1,34 @@
 key,en,fr
-select,Select,Sélectionner
-create,Create,Créer
-new,New,Nouveau
-search,Search,Chercher
-upload,Upload,Envoyer
-name,Name,Nom,
-explore,Explore,Explorer
-group,Group,Groupe
-description,Description,Déscription
-drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
-app_name,Banking,Banking
-account_group.not_selected,group not selected,Aucun groupe sélectionné
-account_group.tag,Account group,Group de comptes
-account_group.select_one,Select an account group,Sélectionne un groupe de comptes
 account_group.create_account_group,Create a group,Créer un groupe
-account_group.no_account_group_message,"You have no account group currently registered on the app. If you have already added some transactions and accounts, please create an account group. If you have not added any data yet, please upload transactions from your bank and then create account groups.","Tu n'as pas encore ajouté de groupe sur l'application. Si tu as déjà uploadé des transactions et des comptes, crée un group en suivant le lien ci-dessous. Si tu n'as pas encore uploadé des données, ajoutes-en en suivant l'autre lien."
 account_group.creation,Account group creation,Création d'un groupe
-account_group.update,Account group update,Mise à jour d'un groupe
+account_group.no_account_group_message,"You have no account group currently registered on the app. If you have already added some transactions and accounts, please create an account group. If you have not added any data yet, please upload transactions from your bank and then create account groups.","Tu n'as pas encore ajouté de groupe sur l'application. Si tu as déjà uploadé des transactions et des comptes, crée un group en suivant le lien ci-dessous. Si tu n'as pas encore uploadé des données, ajoutes-en en suivant l'autre lien."
+account_group.not_selected,group not selected,Aucun groupe sélectionné
 account_group.number_accounts,Number of accounts,Nombre de comptes
-balance,Balance,Solde
+account_group.select_one,Select an account group,Sélectionne un groupe de comptes
+account_group.tag,Account group,Group de comptes
+account_group.update,Account group update,Mise à jour d'un groupe
+account.alternatives,Alternative name(s),Nom(s) alternatif(s)
+account.balance,Balance,Solde
+account.dest.name,Name (dest),Nom (dest)
+account.dest.number,Number (dest),Numéro de compte (dest)
+account.initial,Initial,Initial
 account.name,Account,Compte
 account.number,Number,Numéro
-account.balance,Balance,Solde
-account.initial,Initial,Initial
-account.alternatives,Alternative name(s),Nom(s) alternatif(s)
+account.source.name,Name (source),Nom (source)
+account.source.number,Number (source),Numéro de compte (source)
+amount,Amount,Montant
+app_name,Banking,Banking
+balance,Balance,Solde
+create,Create,Créer
+date,Date,date
+description,Description,Déscription
+drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
+explore,Explore,Explorer
+group,Group,Groupe
+name,Name,Nom,
+new,New,Nouveau
+search,Search,Chercher
+select,Select,Sélectionner
 transaction.upload_data,Upload data,Upload des données
+upload,Upload,Envoyer
+undefined,N/A,N/D

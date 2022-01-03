@@ -15,7 +15,7 @@
         :is-row-checkable="isItemSelectable">
 
         <b-table-column v-for="col in columns" v-bind:key="col.field" v-slot="props" v-bind="col">
-          <slot :name="col.field" v-bind="props"><span v-if="col.field in props.row">{{props.row[col.field]}}</span></slot>
+          <slot :name="col.field" v-bind="props"><span v-if="props.row.hasOwnProperty(col.field)">{{props.row[col.field]}}</span></slot>
         </b-table-column>
         
       </b-table>

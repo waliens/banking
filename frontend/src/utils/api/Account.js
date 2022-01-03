@@ -1,4 +1,5 @@
 import Model from './Model';
+import axios from 'axios';
 
 export default class Account extends Model {
   /** @inheritdoc */
@@ -13,5 +14,10 @@ export default class Account extends Model {
     this.number = null;
     this.name = null;
     this.initial = null;
+  }
+
+  async transactions() {
+    let result = await axios.get(this.uri + "/transactions");
+    return result.data;
   }
 }

@@ -26,6 +26,7 @@ export default defineComponent({
         precision: 2, 
         decimal: ',',
         separator: ' ',
+        negativePattern: '! -#',
         pattern: '! #'
       };
 
