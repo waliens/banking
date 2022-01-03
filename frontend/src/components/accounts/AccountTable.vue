@@ -31,8 +31,7 @@ export default defineComponent({
   },
   methods: {
     goToAccount(id) {
-      console.log("id");
-      this.$router.push({'name': 'view-account', params: {'accountid': id}});
+      this.$router.push({'name': 'view-account', params: {'accountId': id}});
     }
   }
 })

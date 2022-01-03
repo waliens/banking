@@ -23,4 +23,5 @@ account.name,Account,Compte
 account.number,Number,Numéro
 account.balance,Balance,Solde
 account.initial,Initial,Initial
+account.alternatives,Alternative name(s),Nom(s) alternatif(s)
 transaction.upload_data,Upload data,Upload des données

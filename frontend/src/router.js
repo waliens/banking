@@ -39,14 +39,14 @@ const routes = [
   //   component: require('./pages/CreateUpdateAccountGroupPage.vue').default
   // },
   {
+    name: 'view-account',
+    path: '/account/:accountId',
+    component: require('./pages/ViewAccountPage.vue').default
+  },
+  {
     name: 'not-found',
     path: '*',
     component: require('./pages/NotFoundPage.vue').default,
-  },
-  {
-    name: 'view-account',
-    path: '/account/:accountid',
-    component: require('./pages/ViewAccountPage.vue').default
   }
 ];
 
