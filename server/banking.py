@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 
+from decimal import Decimal
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, abort
 from flask.wrappers import Response
@@ -11,7 +12,7 @@ from sqlalchemy.orm.scoping import scoped_session
 from sqlalchemy.sql.expression import select, func, cast, column, table
 from sqlalchemy.sql.operators import json_getitem_op
 from db.database import init_db
-from db.models import AccountGroup, Group, Transaction, Account
+from db.models import AccountEquivalence, AccountGroup, Group, Transaction, Account
 from db.data_import import import_belfius_csv
 
 # load environment
@@ -27,12 +28,10 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # initialize database
 Session, engine = init_db()
 
-def session_instance():
-    return scoped_session(Session)
 
 import logging
 logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 
 @app.route("/account/<int:id_account>/transactions", methods=["GET"])
@@ -52,6 +51,32 @@ def get_account(id_account):
     return jsonify(account.as_dict())
 
 
+@app.route("/account/<int:id_account>", methods=["PUT"])
+def update_account(id_account):
+    initial = request.json.get("initial")
+    id_representative = request.json.get("id_representative")
+    
+    session = Session()
+    account = Account.query.get(id_account)
+    if account is None:
+        abort(404)
+
+    if initial is not None:
+        account.initial = Decimal(initial)
+
+    if id_representative is not None:   
+        alias = AccountEquivalence.query.get(id_representative)
+        if alias is None:
+            session.rollback()
+            abort(403)
+        alias.name, account.name = account.name, alias.name
+        alias.number, account.number = account.number, alias.number
+    
+    session.commit()
+    return jsonify(account.as_dict())
+
+
+
 @app.route("/account/groups", methods=["GET"])
 def account_groups():
     groups = Group.query.all()
@@ -60,7 +85,7 @@ def account_groups():
 
 @app.route("/account_group", methods=["POST"])
 def create_group():
-    session = session_instance()
+    session = Session()
     name = request.json.get("name", "").strip()
     desc = request.json.get("description", "")
     accounts = request.json.get("accounts", [])
@@ -93,7 +118,7 @@ def accounts():
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
-    session_instance().remove()
+    Session.remove()
 
 
 @app.route("/", methods=["GET"])
@@ -114,7 +139,7 @@ def upload_data():
         if format == "belfius":
             with open(os.path.join(dirname, "accounts.json"), "w+", encoding="utf8") as jsonfile:
                 json.dump({}, jsonfile)
-            import_belfius_csv(dirname, session_instance())
+            import_belfius_csv(dirname, Session())
         else:
             return Response({"error": "unsupported format", "status": 401})
 

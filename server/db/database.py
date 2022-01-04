@@ -11,12 +11,11 @@ def init_db():
     from .models import Category, Transaction, Currency, Group
     from .models import Base
     engine = create_engine("sqlite:///" + os.getenv("DB_FILE"))
-    Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    db_session = scoped_session(Session)
+    db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
     Base.query = db_session.query_property()
     if not inspect(engine).has_table(Account.__tablename__):
         print("/!\\ Database does not seem to exist. Create an new one /!\\")
         Base.metadata.create_all(bind=engine)
         add_tags(sess=db_session)
         add_currencies(sess=db_session)
-    return Session, engine
+    return db_session, engine

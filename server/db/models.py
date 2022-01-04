@@ -136,8 +136,8 @@ class Account(Base):
     )
 
     def __repr__(self):
-        return "<Account(id='{}', number='{}', name='{}')>".format(
-            self.id, self.number, self.name)
+        return "<Account(id='{}', number='{}', name='{}', initial='{}')>".format(
+            self.id, self.number, self.name, self.initial)
 
     def as_dict(self):
         return AsDictSerializer("id", "number", "name", "initial", "balance",

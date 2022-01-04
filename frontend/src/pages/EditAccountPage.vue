@@ -75,7 +75,7 @@ export default defineComponent({
   },
   methods: {
     async fetchAccount() {
-      return await Account.fetch(this.accountId);
+      return await new Account({id: this.accountId}).fetch();
     },
     makeEquivFromAccount(account) {
       return {
@@ -94,8 +94,12 @@ export default defineComponent({
         return (equiv.number && equiv.number.match(q)) || (equiv.name && equiv.name.match(q));
       });
     },
-    save() {
-
+    async save() {
+      await this.account.updateChange({
+        representative: this.selected.length > 0 ? this.selected[0] : undefined,
+        initial: this.initial
+      });
+      this.$router.push({name: 'view-account', params: {accountId: this.accountId}});
     }
   }
 })
