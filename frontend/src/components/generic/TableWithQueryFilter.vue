@@ -1,11 +1,8 @@
 <template>
   <div>
-    <section>
-      <div class="field is-grouped">
-        <b-field :label="$t('search')" label-position="on-border">
-          <b-input v-model="query"></b-input>
-        </b-field>
-      </div>
+    <section class="level">
+      <div class="level-left" v-if="title"><h3 class="subtitle">{{title}}</h3> </div>
+      <div class="level-right"><b-field class="level-item" :label="$t('search')" label-position="on-border"><b-input v-model="query"></b-input></b-field></div>
     </section>
     <section>
       <b-table 
@@ -33,6 +30,7 @@ export default defineComponent({
     'filterFromQuery': { type: Function }, 
     'isItemSelectable': { type: Function, default: () => true },
     'selectable': { type: Boolean, default: false },
+    'title': String
   },
   data() {
     return {
@@ -57,5 +55,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-
+section.level:not(:last-child){
+  margin-bottom: 5px;
+}
 </style>
