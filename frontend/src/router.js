@@ -44,6 +44,11 @@ const routes = [
     component: require('./pages/ViewAccountPage.vue').default
   },
   {
+    name: 'edit-account',
+    path: '/account/:accountId/edit',
+    component: require('./pages/EditAccountPage.vue').default
+  },
+  {
     name: 'not-found',
     path: '*',
     component: require('./pages/NotFoundPage.vue').default,

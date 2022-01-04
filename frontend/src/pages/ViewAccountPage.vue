@@ -1,6 +1,9 @@
 <template>
   <div v-if="account">
-    <h3 class="title">Account details</h3>
+    <section class="level">
+      <div class="level-right"><h3 class="level-item title">{{$t('account.details')}}</h3></div>
+      <div class="level-left"> <b-button v-on:click="goToEditEvent" class="level-item is-small" icon-right="pen">{{$t('edit')}}</b-button></div>
+    </section>
     
     <section class="level">
       <div class="level-item has-text-centered">
@@ -24,7 +27,7 @@
       <div class="level-item has-text-centered">
         <div>
           <p class="heading">{{$t('account.initial')}}</p>
-          <p ><currency-display :currency="account.currency" :amount="account.initial" :do-color="true"></currency-display></p>
+          <p><currency-display :currency="account.currency" :amount="account.initial" :do-color="true"></currency-display></p>
         </div>
       </div>
     </section>
@@ -73,6 +76,9 @@ export default defineComponent({
         return [];
       }
       
+    },
+    goToEditEvent() {
+      this.$router.push({'name': 'edit-account', params: {'accountId': this.accountId}});
     }
   }
 })
@@ -81,5 +87,9 @@ export default defineComponent({
 <style lang="scss" scoped>
 .equiv-list {
   margin-bottom: 10px;
+}
+
+.edit-initial {
+  margin-left: 5px;
 }
 </style>

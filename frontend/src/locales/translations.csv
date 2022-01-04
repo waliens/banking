@@ -11,11 +11,15 @@ account.alternatives,Alternative name(s),Nom(s) alternatif(s)
 account.balance,Balance,Solde
 account.dest.name,Name (dest),Nom (dest)
 account.dest.number,Number (dest),Numéro de compte (dest)
+account.details,Account details,Détails du compte
+account.edit,Account edition,Édition d'un compte
 account.initial,Initial,Initial
 account.name,Account,Compte
 account.number,Number,Numéro
 account.source.name,Name (source),Nom (source)
 account.source.number,Number (source),Numéro de compte (source)
+account.representative,Representative,Représentant
+account.aliases,Aliases,Alias
 amount,Amount,Montant
 app_name,Banking,Banking
 balance,Balance,Solde
@@ -23,10 +27,14 @@ create,Create,Créer
 date,Date,date
 description,Description,Déscription
 drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
+double-table-select.selected-too-many,"Too many elements selected (selected: {selected}, maximum: {max})","Le nombre d'élément(s) sélectionné(s) est trop élevé (sélectionné(s): {selected}, maximum: {max})"
+double-table-select.nothing-selected,"Nothing selected","Pas de sélection"
+edit,Edit,Éditer
 explore,Explore,Explorer
 group,Group,Groupe
 name,Name,Nom,
 new,New,Nouveau
+save,Save,Enregistrer
 search,Search,Chercher
 select,Select,Sélectionner
 transaction.upload_data,Upload data,Upload des données

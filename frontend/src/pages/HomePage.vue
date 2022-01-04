@@ -35,7 +35,6 @@ export default defineComponent({
     },
     overallBalance() {
       let balance = currency(0);
-      console.log(this.group);
       return this.group.accounts.map(a => currency(a.balance)).reduce((o, b) => o.add(b), balance);
     },
     currency() {
