@@ -30,6 +30,7 @@ account.aliases,Aliases,Alias
 string.matching.matches,Possible matches,Correspondances possibles
 string.matching.strategy,Strategy,Stratégie
 string.matching.auto-match,Auto-matching,Matching automatique
+string.matching.match_score,match score,score du match
 transaction.transactions,Transactions,Transactions
 transaction.upload_data,Upload data,Upload des données
 amount,Amount,Montant

@@ -17,6 +17,7 @@
     "core-js": "^3.6.5",
     "currency.js": "^2.0.4",
     "js-levenshtein": "^1.1.6",
+    "longest-common-substring": "^0.0.1",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.34",
     "node-sass": "6.0.0",

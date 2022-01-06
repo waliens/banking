@@ -13,9 +13,9 @@
           <b-select placeholder="Select a name" v-model="matchStrategy" size="is-small" :disabled="!selectedRepr" expanded>
             <option
                 v-for="strategy in matchStrategies"
-                :value="strategy"
-                :key="strategy">
-                {{strategy}}
+                :value="strategy.name"
+                :key="strategy.name">
+                {{strategy.name}}
             </option>
           </b-select>
         </b-field>
@@ -25,7 +25,9 @@
         <b-field class="match-field-level level-item">
           <b-button icon-right="chevron-right" size="is-small" :disabled="!selectedRepr || matchingCurrentIndex >= matchCandidates.length - 1" @click="nextMatch"></b-button>
         </b-field>
-        <p>{{$t('string.matching.matches')}}: <em>{{matchingCurrentIndex+1}} / {{matchCandidates.length}}</em></p>
+        <p>
+          {{$t('string.matching.matches')}}: <em>{{matchingCurrentIndex+1}} / {{matchCandidates.length}}</em> 
+          <span v-if="isValidMatchIndex"> ({{$t('string.matching.match_score')}}: matchCandidates[matchingCurrentIndex].score)</span></p>
       </div>
 
     </section>
@@ -76,7 +78,7 @@ export default defineComponent({
       selectedRepr: null,
       selectedAlias: null,
       matchStrategies: getStrategies(),
-      matchStrategy: getStrategies()[0],
+      matchStrategy: getStrategies()[0].name,
       matchingCurrentIndex: -1,
       matchCandidates: []
     };
@@ -155,7 +157,9 @@ export default defineComponent({
     }
   },
   computed: {
-   
+    isValidMatchIndex() {
+      return this.matchingCurrentIndex >= 0 && this.matchingCurrentIndex < this.matchCandidates.length;
+    }
   },
   watch: {
     matchStrategy: function(newStrategy, oldStrategy) {
