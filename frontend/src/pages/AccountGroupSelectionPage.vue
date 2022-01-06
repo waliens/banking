@@ -1,10 +1,19 @@
 <template>
   <div>
+    <section class="level title-section">
+      <div class="level-left"><h3 class="level-item title">{{$t('account_group.selection')}}</h3></div>
+      <div class="level-left">
+        <b-button v-if="selectedAccountGroup" class="level-item is-small is-secondary" v-on:click="selectGroup">{{$t('select')}}</b-button>
+        <b-button v-on:click="goToCreateGroup" class="level-item is-small" icon-right="plus">{{$t('account_group.create_account_group')}}</b-button>
+        <b-button v-on:click="goToUpload" class="level-item is-small" icon-right="upload">{{$t('transaction.upload_data')}}</b-button>
+      </div>
+    </section>
+    
     <!-- Existing groups -->
     <section v-if="accountGroups && accountGroups.length > 0">
       <div class="field is-grouped">
         <div class="control">
-          <b-field :label="$t('account_group.tag')">
+          <b-field :label="$t('account_group.tag')" label-position="on-border">
             <b-select v-model="selectedAccountGroup" :placeholder="$t('account_group.select_one')">
               <option
                 v-for="grp in accountGroups"
@@ -13,19 +22,13 @@
                 {{ grp.name }}
               </option>
             </b-select>
-            <div class="control">
-              <button class="button is-link" v-on:click="goToCreateGroup">{{$t('new')}}</button>
-            </div>
           </b-field>
         </div>
       </div>
 
       <!-- Group selected display accounts -->
       <div v-if="selectedAccountGroup">
-        <account-table :accounts="selectedAccountGroup.accounts"></account-table>
-        <div class="control">
-          <button v-on:click="selectGroup" class="button is-link">{{$t('select')}}</button>
-        </div>
+        <account-table :accounts="selectedAccountGroup.accounts" :title="$t('account.accounts')"></account-table>
       </div>
     </section>
 
@@ -35,16 +38,7 @@
         type="is-info" has-icon>
         {{$t('account_group.no_account_group_message')}}
       </b-message>
-      <div class="field is-grouped">
-        <div class="control">
-          <button v-on:click="goToCreateGroup" class="button is-link">{{$t('account_group.create_account_group')}}</button>
-        </div>
-        <div class="control">
-          <button v-on:click="goToUpload" class="button is-link is-light">{{$t('transaction.upload_data')}}</button>
-        </div>
-      </div>
     </section>
-
 
   </div>
 </template>

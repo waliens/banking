@@ -1,7 +1,15 @@
 <template>
   <div>
-    <h3 class="title" v-if="!accountGroupId">{{$t('account_group.creation')}}</h3>
-    <h3 class="title" v-if="accountGroupId">{{$t('account_group.update')}}</h3>
+    <section class="level title-section">
+      <div class="level-left">
+        <h3 class="title" v-if="!accountGroupId">{{$t('account_group.creation')}}</h3>
+        <h3 class="title" v-if="accountGroupId">{{$t('account_group.update')}}</h3>
+      </div>
+      <div class="level-left">
+        <b-button v-on:click="send" class="level-item is-small" icon-right="plus">{{$t('create')}}</b-button>
+      </div>
+    </section>
+
 
     <section class="submit-section">
       <div class="control">
@@ -15,7 +23,7 @@
         </b-field>
       </div>
       <div class="control">
-        <b-button v-on:click="send" type="is-primary">{{$t('create')}}</b-button>
+        
       </div>
       <div class="control">
         <double-table-select

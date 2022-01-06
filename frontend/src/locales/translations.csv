@@ -5,9 +5,11 @@ account_group.no_account_group_message,"You have no account group currently regi
 account_group.not_selected,group not selected,Aucun groupe sélectionné
 account_group.number_accounts,Number of accounts,Nombre de comptes
 account_group.select_one,Select an account group,Sélectionne un groupe de comptes
+account_group.selection,Account group selection,Sélection d'un groupe de comptes
 account_group.tag,Account group,Group de comptes
 account_group.update,Account group update,Mise à jour d'un groupe
 account.alternatives,Alternative name(s),Nom(s) alternatif(s)
+account.accounts,Accounts,Comptes
 account.balance,Balance,Solde
 account.dest.name,Name (dest),Nom (dest)
 account.dest.number,Number (dest),Numéro de compte (dest)

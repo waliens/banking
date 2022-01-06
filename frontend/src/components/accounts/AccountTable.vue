@@ -1,5 +1,5 @@
 <template>
-  <table-with-query-filter :data="accounts" :columns="columns" :filter-from-query="queryFilter">
+  <table-with-query-filter :data="accounts" :columns="columns" :filter-from-query="queryFilter" :title="title">
 
     <template slot="balance" slot-scope="props">
       <currency-display :currency="props.row.currency" :amount="props.row.balance" :color="false"></currency-display>
@@ -22,7 +22,7 @@ import { getColumns, queryFilter } from './AccountTableData.js';
 
 export default defineComponent({
   components: { TableWithQueryFilter, CurrencyDisplay },
-  props: { 'accounts': Array },
+  props: { accounts: Array, title: String },
   data() {
     return {
       columns: getColumns(this),
