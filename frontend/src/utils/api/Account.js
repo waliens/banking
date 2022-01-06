@@ -18,6 +18,11 @@ export default class Account extends Model {
     this.initial = null;
   }
 
+  static async merge(id_repr, id_alias) {
+    let result = await axios.put(this.className + "/merge", {id_repr, id_alias});
+    return new Account(result.data);
+  }
+
   async transactions() {
     let result = await axios.get(this.uri + "/transactions");
     return result.data;

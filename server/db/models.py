@@ -100,7 +100,7 @@ class Account(Base):
 
     as_source = relationship(lambda: Transaction, foreign_keys=lambda: Transaction.id_source, back_populates="source")
     as_dest = relationship(lambda: Transaction, foreign_keys=lambda: Transaction.id_dest, back_populates="dest")
-    equivalences = relationship("AccountEquivalence", lazy="joined")
+    aliases = relationship("AccountAlias", lazy="joined")
     currency = relationship("Currency", lazy="joined")
 
     @hybrid_property
@@ -142,10 +142,10 @@ class Account(Base):
     def as_dict(self):
         return AsDictSerializer("id", "number", "name", "initial", "balance",
                                 currency=AsDictSerializer.as_dict_fn(), 
-                                equivalences=AsDictSerializer.iter_as_dict_fn()).serialize(self)
+                                aliases=AsDictSerializer.iter_as_dict_fn()).serialize(self)
 
-class AccountEquivalence(Base):
-    __tablename__ = "account_equivalence"
+class AccountAlias(Base):
+    __tablename__ = "account_alias"
 
     id = Column(Integer, primary_key=True)
     number = Column(String(63), nullable=True)

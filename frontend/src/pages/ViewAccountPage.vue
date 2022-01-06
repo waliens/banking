@@ -32,8 +32,8 @@
       </div>
     </section>
 
-    <section class="equiv-list">
-      <span>{{$t("account.alternatives")}}:</span> <span v-for="equiv in account.equivalences" v-bind:key="equiv.id" class="tag is-primary">{{equiv.number}}, {{equiv.name}}</span>
+    <section class="alias-list">
+      <span>{{$t("account.alternatives")}}:</span> <span v-for="alias in account.aliases" v-bind:key="alias.id" class="tag is-primary">{{alias.number}}, {{alias.name}}</span>
     </section>
 
     <section v-if="transactions && account">
@@ -85,7 +85,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.equiv-list {
+.alias-list {
   margin-bottom: 10px;
 }
 

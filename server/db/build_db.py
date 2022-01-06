@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database
-from .models import Base, Category, Account, Group, Transaction, Currency, AccountEquivalence, AccountGroup
+from .models import Base, Category, Account, Group, Transaction, Currency, AccountAlias, AccountGroup
 from impl.belfius import BelfiusParserOrchestrator
 from parsing import TagTree
 from .util import save, make_metadata_serializable
@@ -45,7 +45,7 @@ def add_accounts_and_transactions():
             for alternate in group.account_book._uf_match.find_comp(account.identifier):
                 if alternate == account.identifier:
                     continue
-                accounts.append(AccountEquivalence(number=alternate[0], name=alternate[1], id_account=base_account.id))
+                accounts.append(AccountAlias(number=alternate[0], name=alternate[1], id_account=base_account.id))
     save(accounts, sess=session)
 
     group_model = Group(name=groups[0].name, description="")

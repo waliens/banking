@@ -64,7 +64,7 @@ export default defineComponent({
       if (!account) {
         return [];
       }
-      return account.equivalences;
+      return account.aliases;
     },
     mergeWarning() {
       if (!this.selectedRepr || !this.selectedAlias) {
@@ -80,11 +80,18 @@ export default defineComponent({
         confirmText: this.$t('confirm'),
         type: 'is-warning',
         hasIcon: true,
-        onConfirm: () => this.merge
+        onConfirm: this.merge
       })
     },
-    merge() {
-      
+    async merge() {
+      if (!this.selectedRepr || !this.selectedAlias) {
+        return;
+      }
+      await Account.merge(this.selectedRepr.id, this.selectedAlias.id).then(a => {
+        console.log(a);
+      }).catch(e => {
+        console.log(e);
+      })
     },
     swapSelected() {
       let tmp = this.selectedRepr;

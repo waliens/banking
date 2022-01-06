@@ -26,8 +26,8 @@ def load_account_uf_from_database():
   for account in accounts:
     key = (account.number, account.name)
     uf.add_repres(key)
-    for equiv in account.equivalences:
-      eq_key = (equiv.number, equiv.name)
+    for alias in account.aliases:
+      eq_key = (alias.number, alias.name)
       uf.add_elem(eq_key, key)
   
   return accounts, uf

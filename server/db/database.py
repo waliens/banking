@@ -7,7 +7,7 @@ from .build_db import add_currencies, add_tags
 
 
 def init_db():
-    from .models import Account, AccountGroup, AccountEquivalence
+    from .models import Account, AccountGroup, AccountAlias
     from .models import Category, Transaction, Currency, Group
     from .models import Base
     engine = create_engine("sqlite:///" + os.getenv("DB_FILE"))

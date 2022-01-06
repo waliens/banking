@@ -9,10 +9,11 @@ from flask.wrappers import Response
 from flask_cors import CORS
 from sqlalchemy.orm.scoping import scoped_session
 
-from sqlalchemy.sql.expression import select, func, cast, column, table
+from sqlalchemy.sql.expression import select, func, cast, column, table, update, or_, and_, delete
 from sqlalchemy.sql.operators import json_getitem_op
+from sqlalchemy.util import immutabledict
 from db.database import init_db
-from db.models import AccountEquivalence, AccountGroup, Group, Transaction, Account
+from db.models import AccountAlias, AccountGroup, Group, Transaction, Account
 from db.data_import import import_belfius_csv
 
 # load environment
@@ -32,6 +33,12 @@ Session, engine = init_db()
 import logging
 logging.basicConfig()
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
+
+def error_response(msg, code=403):
+    response = jsonify({'msg': msg})
+    response.status = code
+    return response
 
 
 @app.route("/account/<int:id_account>/transactions", methods=["GET"])
@@ -65,16 +72,15 @@ def update_account(id_account):
         account.initial = Decimal(initial)
 
     if id_representative is not None:   
-        alias = AccountEquivalence.query.get(id_representative)
+        alias = AccountAlias.query.get(id_representative)
         if alias is None:
             session.rollback()
-            abort(403)
+            abort(error_response("alias does not exist", code=403))
         alias.name, account.name = account.name, alias.name
         alias.number, account.number = account.number, alias.number
     
     session.commit()
     return jsonify(account.as_dict())
-
 
 
 @app.route("/account/groups", methods=["GET"])

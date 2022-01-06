@@ -4,7 +4,7 @@ import os
 from sqlalchemy import update, delete
 from sqlalchemy.sql.expression import bindparam
 
-from db.models import Account, AccountEquivalence, AccountGroup, Currency, Transaction
+from db.models import Account, AccountAlias, AccountGroup, Currency, Transaction
 from db.util import load_account_uf_from_database, make_metadata_serializable, save, refresh_all
 from impl.belfius import BelfiusParserOrchestrator
 from parsing.util import group_by
@@ -46,16 +46,16 @@ def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
   if len(removed) > 0 or len(old_new_ids) > 0:
     sess.commit()
 
-  db_equivalences = group_by(AccountEquivalence.query.all(), key=lambda m: m.id_account)
-  equivalences = list()
+  db_aliases = group_by(AccountAlias.query.all(), key=lambda m: m.id_account)
+  aliases = list()
 
   for acc_key, acc in all_db_accounts.items():
     similar = account_book._uf_match.find_comp(acc_key)
-    db_sim = {(equiv.number, equiv.name) for equiv in db_equivalences.get(acc.id, [])}
+    db_sim = {(alias.number, alias.name) for alias in db_aliases.get(acc.id, [])}
     missing = similar.difference(db_sim).difference({acc_key})
-    equivalences.extend([AccountEquivalence(number=e[0], name=e[1], id_account=acc.id) for e in missing])
+    aliases.extend([AccountAlias(number=e[0], name=e[1], id_account=acc.id) for e in missing])
 
-  sess.bulk_save_objects(equivalences)
+  sess.bulk_save_objects(aliases)
   sess.commit()
 
   return all_db_accounts

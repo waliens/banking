@@ -15,9 +15,9 @@
         <b-input v-model="initial" :icon-right="Currency.currency2icon(account.currency)"></b-input>
       </b-field>
       <double-table-select
-          :data="allEquiv"
+          :data="allAliases"
           :selected.sync="selected"
-          :keyFn="getEquivKey"
+          :keyFn="getAliasKey"
           :filterFromQuery="queryFilter"
           :columns="columns"
           :title-selected="$t('account.representative')"
@@ -51,7 +51,7 @@ export default defineComponent({
   },
   async created() {
     this.account = await this.fetchAccount();
-    this.representative = this.makeEquivFromAccount(this.account);
+    this.representative = this.makeAliasFromAccount(this.account);
     this.selected = [this.representative];
     this.initial = new Number(this.account.initial);
   },
@@ -59,10 +59,10 @@ export default defineComponent({
     accountId() {
       return this.$route.params.accountId;
     },
-    allEquiv() {
+    allAliases() {
       let all = new Array();
-      all = all.concat(this.account.equivalences)
-      all.push(this.makeEquivFromAccount(this.account));
+      all = all.concat(this.account.aliases)
+      all.push(this.makeAliasFromAccount(this.account));
       return all;
     }
   },
@@ -70,7 +70,7 @@ export default defineComponent({
     async fetchAccount() {
       return await new Account({id: this.accountId}).fetch();
     },
-    makeEquivFromAccount(account) {
+    makeAliasFromAccount(account) {
       return {
         id: -1, 
         id_account: account.id, 
@@ -78,8 +78,8 @@ export default defineComponent({
         number: account.number 
       };
     },
-    getEquivKey(equiv) {
-      return equiv.id;
+    getAliasKey(alias) {
+      return alias.id;
     },
     async save() {
       await this.account.updateChange({
