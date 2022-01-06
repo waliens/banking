@@ -26,6 +26,9 @@ account.reference,Reference,Référence
 account.alias,Alias,Alias
 account.representative,Representative,Représentant
 account.aliases,Aliases,Alias
+string.matching.matches,Possible matches,Correspondances possibles
+string.matching.strategy,Strategy,Stratégie
+string.matching.auto-match,Auto-matching,Matching automatique
 transaction.transactions,Transactions,Transactions
 transaction.upload_data,Upload data,Upload des données
 amount,Amount,Montant
@@ -33,7 +36,7 @@ app_name,Banking,Banking
 balance,Balance,Solde
 create,Create,Créer
 date,Date,date
-description,Description,Déscription
+description,Description,Description
 drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
 double-table-select.selected-too-many,"Too many elements selected (selected: {selected}, maximum: {max})","Le nombre d'élément(s) sélectionné(s) est trop élevé (sélectionné(s): {selected}, maximum: {max})"
 double-table-select.nothing-selected,"Nothing selected","Pas de sélection"
