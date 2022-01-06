@@ -14,6 +14,10 @@
             :accounts="accounts" 
             :field-title="$t('account.representative')">
           </account-drop-down-selector>
+          <account-alias-table 
+            :aliases="getAliases(selectedRepr)" 
+            :title="$t('account.aliases')">
+          </account-alias-table>
         </div>
         <div class="column is-narrow">
           <b-button v-on:click="swapSelected" icon-right="exchange-alt"></b-button>
@@ -24,7 +28,11 @@
             :accounts="accounts" 
             :field-title="$t('account.alias')">
           </account-drop-down-selector>
-        </div> 
+          <account-alias-table
+            :aliases="getAliases(selectedAlias)" 
+            :title="$t('account.aliases')">
+          </account-alias-table>
+        </div>
       </div>
     </section>
   </div>
@@ -34,9 +42,10 @@
 import { defineComponent } from '@vue/composition-api'
 import AccountDropDownSelector from '../components/accounts/AccountDropDownSelector.vue'
 import Account from '@/utils/api/Account';
+import AccountAliasTable from '../components/accounts/AccountAliasTable.vue';
 
 export default defineComponent({
-  components: { AccountDropDownSelector },
+  components: { AccountDropDownSelector, AccountAliasTable },
   data() {
     return {
       accounts: [],
@@ -50,6 +59,12 @@ export default defineComponent({
   methods: {
     async fetchAccounts() {
       return await Account.fetchAll();
+    },
+    getAliases(account) {
+      if (!account) {
+        return [];
+      }
+      return account.equivalences;
     },
     merge() {
 

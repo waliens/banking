@@ -1,22 +1,19 @@
 <template>
-  <div>
-    <b-field :label="fieldTitle" label-position="on-border">
-      <b-autocomplete 
-        clearable 
-        v-model="query" 
-        :data="filteredData" 
-        @select="handleSelection"
-        :custom-formatter="formatEntry"
-        ref="autocomplete">
-      </b-autocomplete>
-    </b-field>
-    <account-alias-table :aliases="getAliases(value)" :title="$t('account.aliases')"></account-alias-table>
-  </div>
+  <b-field :label="fieldTitle" label-position="on-border">
+    <b-autocomplete 
+      clearable 
+      v-model="query" 
+      :data="filteredData" 
+      @select="handleSelection"
+      :custom-formatter="formatEntry"
+      ref="autocomplete">
+    </b-autocomplete>
+  </b-field>
 </template>
 
 <script>
 import { defineComponent } from '@vue/composition-api'
-import { queryFilter } from '@/components/accounts/AccountAliasTableData';
+import { queryFilter } from '@/components/accounts/AccountTableData';
 import AccountAliasTable from './AccountAliasTable.vue';
 
 export default defineComponent({
@@ -45,19 +42,13 @@ export default defineComponent({
       formatted += e.number ? e.number : this.$t('undefined');
       return formatted;
     },
-    getAliases(account) {
-      if (!account) {
-        return [];
-      }
-      return account.equivalences;
-    },
     handleSelection(value) {
       this.selected = value;
       this.$emit('input', this.selected)
     }
   },
   watch: {
-    // needed for two-ways binding ??? 
+    // needed for two-ways binding apparently
     value: function(newValue) {
       if (!newValue && !!this.selected) {
         this.query = '';  // reset autocomplete

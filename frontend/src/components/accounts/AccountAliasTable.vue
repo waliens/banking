@@ -2,7 +2,7 @@
   <table-with-query-filter
     :columns="columns"
     :data="aliases"
-    :query-filter="queryFilter"
+    :filter-from-query="queryFilter"
     :title="title">
   </table-with-query-filter>
 </template>
