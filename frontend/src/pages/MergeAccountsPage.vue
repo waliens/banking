@@ -96,7 +96,11 @@ export default defineComponent({
     },
     mergeWarning() {
       if (!this.selectedRepr || !this.selectedAlias) {
-        return;
+        this.$buefy.toast.open({
+            message: this.$t("account.no_account_selected"),
+            type: 'is-danger',
+            hasIcon: true
+        })
       }
       this.$buefy.dialog.confirm({
         title: this.$t('account.merge_warning.title'),
@@ -115,10 +119,13 @@ export default defineComponent({
       if (!this.selectedRepr || !this.selectedAlias) {
         return;
       }
-      await Account.merge(this.selectedRepr.id, this.selectedAlias.id).then(a => {
-        console.log(a);
+      await Account.merge(this.selectedRepr.id, this.selectedAlias.id).then(() => {
+        this.$router.go();
       }).catch(e => {
-        console.log(e);
+        this.$buefy.toast.open({
+            message: e.response.data.msg,
+            type: 'is-error'
+        })
       })
     },
     swapSelected() {
@@ -127,19 +134,15 @@ export default defineComponent({
       this.selectedAlias = tmp;
     },
     getMatchCandidates() {
-      console.log("eval");
-      console.log(this.selectedRepr);
       if (!this.selectedRepr || !this.selectedRepr.name) {
         return [];
       }
-      console.log("not sorted");
       let sorted = matchAndSortArray(
         this.matchStrategy, 
         this.selectedRepr,
         this.accounts.filter(account => account.id != this.selectedRepr.id && account.name), 
         o => o.name  
       );
-      console.log("sorted");
       return sorted;
     },
     nextMatch() {

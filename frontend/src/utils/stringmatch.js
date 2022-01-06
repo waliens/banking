@@ -20,6 +20,5 @@ export function matchScore(strategy, reference, other, keyFn) {
 export function matchAndSortArray(strategy, reference, array, keyFn) {
   let withScore = array.map(obj => { return {obj, score: matchScore(strategy, reference, obj, keyFn) }; });
   withScore.sort((a, b) => a.score - b.score);
-  console.log(withScore);
   return withScore;
 }
