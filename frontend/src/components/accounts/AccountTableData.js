@@ -30,6 +30,6 @@ export function queryFilter(query, data, checkAliases=false) {
   let q = new RegExp('.*' + query + '.*', "gi");
   return data.filter(account => {
     return (account.number && account.number.match(q)) || (account.name && account.name.match(q)) 
-            || (checkAliases && account.equivalences instanceof Array && account.equivalences.length > 0 && hasMatchingAliases(q, account.equivalences));
+            || (checkAliases && account.aliases instanceof Array && account.aliases.length > 0 && hasMatchingAliases(q, account.aliases));
   });
 }
