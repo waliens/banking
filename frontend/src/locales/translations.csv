@@ -17,6 +17,8 @@ account.details,Account details,Détails du compte
 account.edit,Account edition,Édition d'un compte
 account.initial,Initial,Initial
 account.merge,Merge accounts,Fusion de comptes
+account.merge_warning.title,Warning on accounts merging,Avertissement à propos de la fusion de comptes
+account.merge_warning.text,"Merging accounts is an non-reversible operation. After this operation, all transactions associated with '{alias}' will be associated with the reference account '{reference}' and it will not be possible to revert this association. Do you confirm that these accounts should be merged ?","Fusionner des comptes est une opération non-réversible. Après cette opération, toutes les transactions associées avec '{alias}' seront associées au compte de référence '{reference}' et il ne sera plus possible d'inverser cette association. Confirmes-tu que ces comptes doivent être fusionnés ?"
 account.name,Account,Compte
 account.number,Number,Numéro
 account.source.name,Name (source),Nom (source)
@@ -34,6 +36,8 @@ description,Description,Déscription
 drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
 double-table-select.selected-too-many,"Too many elements selected (selected: {selected}, maximum: {max})","Le nombre d'élément(s) sélectionné(s) est trop élevé (sélectionné(s): {selected}, maximum: {max})"
 double-table-select.nothing-selected,"Nothing selected","Pas de sélection"
+cancel,Cancel,Annuler
+confirm,Confirm,Confirmer
 edit,Edit,Éditer
 explore,Explore,Explorer
 group,Group,Groupe

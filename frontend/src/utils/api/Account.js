@@ -47,4 +47,12 @@ export default class Account extends Model {
     let result = await axios.put(this.uri, payload);
     return result.data;
   }
+
+  formatName(ctx) {
+    let formatted = '';
+    formatted += this.name ? this.name : ctx.$t('undefined');
+    formatted += " - ";
+    formatted += this.number ? this.number : ctx.$t('undefined');
+    return formatted;
+  }
 }

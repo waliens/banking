@@ -3,7 +3,7 @@
     <section class="level">
       <div class="level-left"><h3 class="level-item title">{{$t('account.merge')}}</h3></div>
       <div class="level-right">
-        <div class="level-left"> <b-button v-on:click="merge" class="level-item is-small" icon-right="cog">{{$t('merge')}}</b-button></div>
+        <div class="level-left"> <b-button v-on:click="mergeWarning" class="level-item is-small" icon-right="cog">{{$t('merge')}}</b-button></div>
       </div>
     </section>
     <section>
@@ -66,8 +66,25 @@ export default defineComponent({
       }
       return account.equivalences;
     },
+    mergeWarning() {
+      if (!this.selectedRepr || !this.selectedAlias) {
+        return;
+      }
+      this.$buefy.dialog.confirm({
+        title: this.$t('account.merge_warning.title'),
+        message: this.$t('account.merge_warning.text', {
+          'alias': this.selectedAlias.formatName(this), 
+          'reference': this.selectedRepr.formatName(this)
+        }),
+        cancelText: this.$t('cancel'),
+        confirmText: this.$t('confirm'),
+        type: 'is-warning',
+        hasIcon: true,
+        onConfirm: () => this.merge
+      })
+    },
     merge() {
-
+      
     },
     swapSelected() {
       let tmp = this.selectedRepr;

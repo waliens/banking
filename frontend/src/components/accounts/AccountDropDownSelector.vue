@@ -36,11 +36,7 @@ export default defineComponent({
   },
   methods: {
     formatEntry(e) {
-      let formatted = '';
-      formatted += e.name ? e.name : this.$t('undefined');
-      formatted += " - ";
-      formatted += e.number ? e.number : this.$t('undefined');
-      return formatted;
+      return e.formatName(this);
     },
     handleSelection(value) {
       this.selected = value;
