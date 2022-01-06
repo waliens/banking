@@ -14,10 +14,13 @@ account.dest.number,Number (dest),Numéro de compte (dest)
 account.details,Account details,Détails du compte
 account.edit,Account edition,Édition d'un compte
 account.initial,Initial,Initial
+account.merge,Merge accounts,Fusion de comptes
 account.name,Account,Compte
 account.number,Number,Numéro
 account.source.name,Name (source),Nom (source)
 account.source.number,Number (source),Numéro de compte (source)
+account.reference,Reference,Référence
+account.alias,Alias,Alias
 account.representative,Representative,Représentant
 account.aliases,Aliases,Alias
 amount,Amount,Montant
@@ -32,6 +35,7 @@ double-table-select.nothing-selected,"Nothing selected","Pas de sélection"
 edit,Edit,Éditer
 explore,Explore,Explorer
 group,Group,Groupe
+merge,Merge,Fusionner
 name,Name,Nom,
 new,New,Nouveau
 save,Save,Enregistrer

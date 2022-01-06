@@ -1,3 +1,4 @@
+import { hasMatchingAliases } from "./AccountAliasTableData";
 
 
 export function getColumns(ctx) {
@@ -25,9 +26,10 @@ export function getColumns(ctx) {
   ]
 }
 
-export function queryFilter(query, data) {
+export function queryFilter(query, data, checkAliases=false) {
   let q = new RegExp('.*' + query + '.*', "gi");
   return data.filter(account => {
-    return (account.number && account.number.match(q)) || (account.name && account.name.match(q));
+    return (account.number && account.number.match(q)) || (account.name && account.name.match(q)) 
+            || (checkAliases && account.equivalences instanceof Array && account.equivalences.length > 0 && hasMatchingAliases(q, account.equivalences));
   });
 }

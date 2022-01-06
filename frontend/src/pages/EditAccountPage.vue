@@ -18,7 +18,7 @@
           :data="allEquiv"
           :selected.sync="selected"
           :keyFn="getEquivKey"
-          :filterFromQuery="equivQueryFilter"
+          :filterFromQuery="queryFilter"
           :columns="columns"
           :title-selected="$t('account.representative')"
           :title-not-selected="$t('account.aliases')"
@@ -34,26 +34,19 @@ import { defineComponent } from '@vue/composition-api';
 import Account from '@/utils/api/Account';
 import DoubleTableSelect from '../components/generic/DoubleTableSelect.vue';
 import Currency from '@/utils/api/Currency';
+import { queryFilter, getColumns } from '@/components/accounts/AccountAliasTableData';
 
 export default defineComponent({
   components: { DoubleTableSelect },
   data() {
     return {
+      queryFilter,
       Currency,
       account: null,
       representative: null,
       selected: [],
       initial: new Number(),
-      columns: [
-        {
-          'label': this.$t("account.name"),
-          'field': 'name'
-        },
-        {
-          'label': this.$t("account.number"),
-          'field': 'number'
-        },
-      ]
+      columns: getColumns(this)
     };
   },
   async created() {
@@ -87,12 +80,6 @@ export default defineComponent({
     },
     getEquivKey(equiv) {
       return equiv.id;
-    },
-    equivQueryFilter(query, data) {
-      let q = new RegExp('.*' + query + '.*', "gi");
-      return data.filter(equiv => {
-        return (equiv.number && equiv.number.match(q)) || (equiv.name && equiv.name.match(q));
-      });
     },
     async save() {
       await this.account.updateChange({

@@ -33,6 +33,11 @@ const routes = [
     path: '/group/create',
     component: require('./pages/CreateUpdateAccountGroupPage.vue').default
   },
+  {
+    name: 'merge-accounts',
+    path: '/account/merge',
+    component: require('./pages/MergeAccountsPage.vue').default  
+  },
   // {
   //   name: 'edit-account-group',
   //   path: '/group/:groupid/edit',
