@@ -8,7 +8,6 @@ account_group.select_one,Select an account group,Sélectionne un groupe de compt
 account_group.selection,Account group selection,Sélection d'un groupe de comptes
 account_group.tag,Account group,Group de comptes
 account_group.update,Account group update,Mise à jour d'un groupe
-account.alternatives,Alternative name(s),Nom(s) alternatif(s)
 account.accounts,Accounts,Comptes
 account.balance,Balance,Solde
 account.dest.name,Name (dest),Nom (dest)
@@ -27,6 +26,8 @@ account.reference,Reference,Référence
 account.alias,Alias,Alias
 account.representative,Representative,Représentant
 account.aliases,Aliases,Alias
+transaction.transactions,Transactions,Transactions
+transaction.upload_data,Upload data,Upload des données
 amount,Amount,Montant
 app_name,Banking,Banking
 balance,Balance,Solde
@@ -47,6 +48,5 @@ new,New,Nouveau
 save,Save,Enregistrer
 search,Search,Chercher
 select,Select,Sélectionner
-transaction.upload_data,Upload data,Upload des données
 upload,Upload,Envoyer
 undefined,N/A,N/D

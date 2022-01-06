@@ -54,10 +54,14 @@ export default class Account extends Model {
   }
 
   formatName(ctx) {
+    return Account.formatNameByObj(this, ctx)
+  }
+
+  static formatNameByObj(obj, ctx) {
     let formatted = '';
-    formatted += this.name ? this.name : ctx.$t('undefined');
-    formatted += " - ";
-    formatted += this.number ? this.number : ctx.$t('undefined');
+    formatted += obj.name ? obj.name : ctx.$t('undefined');
+    formatted += " | ";
+    formatted += obj.number ? obj.number : ctx.$t('undefined');
     return formatted;
   }
 }

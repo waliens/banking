@@ -1,5 +1,5 @@
 <template>
-  <table-with-query-filter :data="transactions" :columns="columns" :filter-from-query="queryFilter">
+  <table-with-query-filter :data="transactions" :columns="columns" :filter-from-query="queryFilter" :title="title">
 
     <template slot="amount" slot-scope="props">
       <currency-display :currency="props.row.currency" :amount="getSignedAmount(props.row)" :do-color="!!referenceAccount"></currency-display>
@@ -48,7 +48,7 @@ import currency from 'currency.js';
 
 export default defineComponent({
   components: { TableWithQueryFilter, CurrencyDisplay, StringOrNullDisplay },
-  props: { transactions: Array, referenceAccount: Object },
+  props: { transactions: Array, referenceAccount: Object, title: String },
   data() {
     return {
       queryFilter

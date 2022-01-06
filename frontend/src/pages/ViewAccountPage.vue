@@ -33,11 +33,11 @@
     </section>
 
     <section class="alias-list">
-      <span>{{$t("account.alternatives")}}:</span> <span v-for="alias in account.aliases" v-bind:key="alias.id" class="tag is-primary">{{alias.number}}, {{alias.name}}</span>
+      <span>{{$t("account.aliases")}}:</span> <span v-for="alias in account.aliases" v-bind:key="alias.id" class="tag is-primary alias-tag">{{formatAlias(alias)}}</span>
     </section>
 
     <section v-if="transactions && account">
-      <transaction-table :transactions="transactions" :reference-account="account"></transaction-table>
+      <transaction-table :transactions="transactions" :reference-account="account" :title="$t('transaction.transactions')"></transaction-table>
     </section>
   </div>
 </template>
@@ -75,7 +75,9 @@ export default defineComponent({
       } else {
         return [];
       }
-      
+    },
+    formatAlias(alias) {
+      return Account.formatNameByObj(alias, this);
     },
     goToEditEvent() {
       this.$router.push({'name': 'edit-account', params: {'accountId': this.accountId}});
@@ -91,5 +93,9 @@ export default defineComponent({
 
 .edit-initial {
   margin-left: 5px;
+}
+
+.alias-tag {
+  margin-right: 5px;
 }
 </style>

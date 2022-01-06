@@ -6,8 +6,10 @@
       :data="filteredData" 
       @select="handleSelection"
       :custom-formatter="formatEntry"
-      ref="autocomplete">
+      ref="autocomplete"
+      expanded>
     </b-autocomplete>
+    <p class="control"><b-button @click="goToAccount" :disabled="!selected" icon-left="eye" class="is-secondary"></b-button></p>
   </b-field>
 </template>
 
@@ -41,6 +43,11 @@ export default defineComponent({
     handleSelection(value) {
       this.selected = value;
       this.$emit('input', this.selected)
+    },
+    goToAccount() {
+      if (this.selected) {
+        this.$router.push({ name: 'view-account', params: {accountId: this.selected.id}});
+      }
     }
   },
   watch: {
