@@ -100,7 +100,6 @@ export default defineComponent({
       this.$emit('update:selected', newSelected);
     },
     resetChecks() {
-      console.log("reset");
       this.rightChecked.splice(0, this.rightChecked.length);
       this.leftChecked.splice(0, this.leftChecked.length);
     },
