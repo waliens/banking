@@ -83,6 +83,52 @@ def update_account(id_account):
     return jsonify(account.as_dict())
 
 
+@app.route('/account/merge', methods=["PUT"])
+def merge_accounts():
+    id_alias = request.json.get("id_alias")
+    id_repr = request.json.get("id_repr")
+
+    if id_alias == id_repr:
+        abort(error_response("Cannot merge an account with itself."))
+    
+    session = Session()
+    alias = Account.query.get(id_alias)
+    repr = Account.query.get(id_repr)
+
+    if alias is None or repr is None:
+        abort(error_response("Alias or repr account does not exist."))
+
+    transactions = Transaction.query.filter(or_(
+        and_(Transaction.id_source == repr.id, Transaction.id_dest == alias.id), 
+        and_(Transaction.id_source == alias.id, Transaction.id_dest == repr.id))).all()
+
+    if len(transactions) > 0:
+        abort(error_response("There exists at least one transaction between the two accounts to merge. Therefore, they cannot be merged."))
+
+    # alias account aliases should be switch to repr's
+    session.execute(update(AccountAlias).where(AccountAlias.id_account==alias.id).values(id_account=repr.id))
+
+    # transactions referencing the alias account should now be referencing the repr account
+    session.execute(update(Transaction).where(Transaction.id_source==alias.id).values(id_source=repr.id))
+    session.execute(update(Transaction).where(Transaction.id_dest==alias.id).values(id_dest=repr.id))
+
+    # account groups referencing the alias account should now be referencing the repr account 
+    # (be careful about unique constraint if both alias and repr are in a group)
+    session.execute(update(AccountGroup).where(and_(
+        AccountGroup.id_account==alias.id,
+        AccountGroup.id_group.not_in(select(AccountGroup.id_group).where(AccountGroup.id_account==repr.id))
+    )).values(id_account=repr.id), execution_options=immutabledict({"synchronize_session": 'fetch'}))
+    session.execute(delete(AccountGroup).where(AccountGroup.id_account==alias.id))
+
+    # alias account should be removed and added as an alias
+    session.add(AccountAlias(name=alias.name, number=alias.number, id_account=repr.id))
+    session.delete(alias)
+    
+    session.commit()
+    
+    return jsonify(Account.query.get(id_repr).as_dict())
+
+
 @app.route("/account/groups", methods=["GET"])
 def account_groups():
     groups = Group.query.all()
