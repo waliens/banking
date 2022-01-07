@@ -23,6 +23,10 @@ class Tag(object):
     def parent_id(self):
         return self._parent_id
 
+    @property 
+    def id(self):
+        return self.identifier
+    
     @property
     def identifier(self):
         return self._identifier
@@ -41,8 +45,8 @@ class Tag(object):
 
 
 class TagTree(object):
-    def __init__(self, path="."):
-        self._tags, self._roots, self._tree = self.load_tree(path)
+    def __init__(self, tags, roots, tree):
+        self._tags, self._roots, self._tree = tags, roots, tree
 
     def __getitem__(self, item):
         return self._tags[item]
@@ -53,8 +57,22 @@ class TagTree(object):
     def tag_name(self, identifier):
         return self._tags[identifier].name
 
+    def has_children(self, identifier):
+        return identifier in self._tree
+
+    def get_children(self, identifier):
+        return list(self._tree.get(identifier, set()))
+    
+    @property
+    def roots(self):
+        return [self[_id] for _id in self._roots]
+
     def __len__(self):
         return len(self._tags)
+
+    @classmethod
+    def tree_from_file(cls, path="."):
+        return TagTree(*cls.load_tree(path))
 
     @classmethod
     def load_tree(cls, path):
@@ -102,5 +120,5 @@ class TagTree(object):
 
 
 if __name__ == "__main__":
-    tree = TagTree()
+    tree = TagTree.tree_from_file()
     tree.pprint()

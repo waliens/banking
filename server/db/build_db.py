@@ -22,7 +22,7 @@ def add_currencies(sess=None):
 
 
 def add_tags(sess=None):
-    tree = TagTree("parsing")
+    tree = TagTree.tree_from_file("parsing")
     save([Category(id=t.identifier, name=t.name, id_parent=t.parent_id, color=t.color, income=t.income, default=t.default) for k, t in tree._tags.items()], sess=sess)
 
 
