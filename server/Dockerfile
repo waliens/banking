@@ -4,6 +4,7 @@ FROM python:3.9.9-slim-bullseye
 RUN pip install python-dotenv
 RUN pip install sqlalchemy sqlalchemy-utils
 RUN pip install flask flask-cors
+RUN pip install scikit-learn nltk
 
 WORKDIR /app
 
