@@ -16,6 +16,7 @@ from db.database import init_db
 from db.models import AccountAlias, AccountGroup, Group, Transaction, Account
 from db.data_import import import_belfius_csv
 from background.celery_init import make_celery
+from server.ml.predict import NoValidModelException, predict_category
 
 # load environment
 load_dotenv()
@@ -177,9 +178,17 @@ def accounts():
     return jsonify([a.as_dict() for a in accounts])
 
 
-@app.teardown_appcontext
-def shutdown_session(exception=None):
-    Session.remove()
+@app.route("/transaction/<int:id_transaction>/category/infer", methods=["GET"])
+def ml_infer_category(id_transaction):
+    transaction = Transaction.query.get(id_transaction)
+    if transaction is None:
+        abort(404)
+    try:
+        category, proba = predict_category(transaction)
+        return jsonify({"category": category.as_dict(), "proba": proba})
+    except NoValidModelException:
+        return error_response("no valid model ready")
+
 
 
 @app.route("/", methods=["GET"])
@@ -205,3 +214,8 @@ def upload_data():
             return Response({"error": "unsupported format", "status": 401})
 
     return jsonify({"status": "ok"})
+
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    Session.remove()

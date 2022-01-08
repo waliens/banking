@@ -1,10 +1,11 @@
 import re
 import nltk
+import numpy as np
 from nltk.corpus import stopwords
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.base import TransformerMixin
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 from impl.belfius import parse_date
 from db.models import Category
@@ -17,7 +18,17 @@ from db.util import tag_tree_from_database
 # amount
 # date -> year, month, day, day of the week
 # hour minute (if exists)
+def transaction_fn(x):
+  return x.metadata_['transaction']
 
+def when_fn(x):
+  return x.when
+
+def valued_at_fn(x):
+  return parse_date(x.metadata_['valued_at'])
+
+def amount_fn(x):
+  return float(x.amount)
 
 class DateTransformer(TransformerMixin):
   def __init__(self, date_attr_fn=None):
@@ -79,14 +90,14 @@ class DescriptionEncoder(TransformerMixin):
       strip_accents="unicode", 
       stop_words=stopwords.words('english') + stopwords.words('french'), 
       max_df=0.9, 
-      min_df=0.025
+      min_df=2
     )
     self._pipeline = Pipeline([('desc-preprocess', self._preprocessor), ('tfidf', self._tfidf)])
 
   @classmethod
   def belfius(cls):
     return cls(
-      desc_attr_fn=lambda x: x.metadata_['transaction'], 
+      desc_attr_fn=transaction_fn, 
       remove_patterns=[
         r"REF\. : [0-9A-Z]{9,13}",
         r"VAL\. [0-9]{0,2}-[0-9]{0,2}",
@@ -138,9 +149,18 @@ class CategoryEncoder(TransformerMixin):
     self._id_categ_fn = id_categ_fn
     self._level = level
     self._categories = tag_tree_from_database()
-    self._selected_tags = self._get_at_level()
+    self._tag_index = self._get_at_level()
+    self._tag_inv_index = self._make_inv_index(self._tag_index)
     # sort for preserving order accross calls
-    self._one_hot_encoder = OneHotEncoder(categories=[v for _, v in sorted(self._selected_tags.items(), key=lambda t: t[0])])
+    self._label_encoder = LabelEncoder()
+    self._label_encoder.fit(list(self._tag_index.keys()))
+
+  def _make_inv_index(self, index):
+    inverted_index = dict()
+    for sel, mapped in index.items():
+      for label in mapped:
+        inverted_index[label] = sel
+    return inverted_index 
 
   def _get_at_level(self):
     result_dict = dict()
@@ -159,26 +179,27 @@ class CategoryEncoder(TransformerMixin):
       result_dict.update(self._get_at_level_recur(child_tag, depth + 1))
     return result_dict
   
-  def _to_ids(self, X):
-    return [self._id_categ_fn(x) for x in X]
+  def _cvt_to_selected(self, X):
+    return [self._tag_inv_index[self._id_categ_fn(x)] for x in X]
 
   def fit(self, X, y=None):
-    self._one_hot_encoder.fit(self._to_ids(X))
     return self
 
   def transform(self, X, y=None):
-    return self._one_hot_encoder.transform(self._to_ids(X))
+    return self._label_encoder.transform(self._cvt_to_selected(X))
 
+  def inverse_transform(self, X):
+    return self._label_encoder.inverse_transform(X)
 
 
 def belfius_transformer():
   feature_union = FeatureUnion([
     ('desc-tf-idf', DescriptionEncoder.belfius()),
-    ('when-to-scalars', DateTransformer(lambda x: x.when)),
-    ('value-at-to-scalars', DateTransformer(lambda x: parse_date(x.metadata_['valued_at']))),
+    ('when-to-scalars', DateTransformer(when_fn)),
+    ('value-at-to-scalars', DateTransformer(valued_at_fn)),
     ('accounts-one-hot', AccountsOneHot()),
     ('hour-minute-extractor', BelfiusHourMinuteTransformer()),
-    ('amount-extractor', SingleFeatureTransformer(val_fn=lambda x: float(x.amount)))
+    ('amount-extractor', SingleFeatureTransformer(val_fn=amount_fn))
   ])
   return feature_union
 
