@@ -27,7 +27,7 @@
         </b-field>
         <p>
           {{$t('string.matching.matches')}}: <em>{{matchingCurrentIndex+1}} / {{matchCandidates.length}}</em> 
-          <span v-if="isValidMatchIndex"> ({{$t('string.matching.match_score')}}: matchCandidates[matchingCurrentIndex].score)</span></p>
+          <span v-if="isValidMatchIndex"> ({{$t('string.matching.match_score')}}: {{matchCandidates[matchingCurrentIndex].score}})</span></p>
       </div>
 
     </section>
