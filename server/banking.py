@@ -48,12 +48,6 @@ def error_response(msg, code=403):
     return response
 
 
-@app.route("/test/background", methods=["GET"])
-def test_background():
-    result = add_together.delay(25, 26)
-    return jsonify({'val': result.wait()})
-
-
 @app.route("/account/<int:id_account>/transactions", methods=["GET"])
 def account_transactions(id_account):
     from sqlalchemy import or_
