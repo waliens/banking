@@ -18,7 +18,7 @@ import Buefy from 'buefy';
 Vue.use(Buefy, {defaultIconPack: 'fas'});
 
 import axios from 'axios';
-axios.defaults.baseURL = "http://localhost:5000/" // process.env.VUE_APP_API;
+axios.defaults.baseURL = process.env.VUE_APP_API;
 
 Vue.config.productionTip = false;
 
