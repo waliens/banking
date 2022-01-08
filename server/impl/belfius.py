@@ -234,7 +234,7 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
 
     @classmethod
     def transac_files(cls, path):
-        return [f for f in  os.listdir(path) if not f.endswith(".json")]
+        return [f for f in  os.listdir(path) if not f.endswith(".json") and not f.endswith(".db")]
 
     @classmethod
     def _read_transactions_file(cls, filepath, account_book: AccountBook):

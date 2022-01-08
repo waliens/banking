@@ -12,9 +12,7 @@ def refresh_all(models, sess):
     sess.refresh(m)
 
 
-def save(o, sess=None):
-  if sess is None:
-    sess = Session()
+def save(o, sess):
   if hasattr(o, "__len__"):
     sess.bulk_save_objects(o)
   else:

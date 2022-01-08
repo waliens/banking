@@ -1,10 +1,13 @@
+import enum
+import uuid
+
 from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 
-from sqlalchemy import Column, JSON, Boolean, Integer, Date, Float, String, ForeignKey, TypeDecorator, UniqueConstraint, Table
+from sqlalchemy import Column, JSON, Enum, Boolean, Integer, Date, Float, String, ForeignKey, TypeDecorator, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import column_property, relationship, foreign, remote
-from sqlalchemy.sql.expression import and_, select, func, cast, column, table
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.expression import and_, select, func
 from sqlalchemy.ext.hybrid import hybrid_property
 
 Base = declarative_base()
@@ -167,6 +170,7 @@ class Transaction(Base):
     amount = Column(MyNumeric)
     id_currency = Column(Integer, ForeignKey('currency.id'))
     id_category = Column(Integer, ForeignKey('category.id'), nullable=True)
+    data_source = Column(String)
 
     source = relationship("Account", foreign_keys=[id_source], lazy="joined", back_populates="as_source")
     dest = relationship("Account", foreign_keys=[id_dest], lazy="joined", back_populates="as_dest")
@@ -201,3 +205,22 @@ class Group(Base):
     def as_dict(self):
         return AsDictSerializer(
             "id", "name", "description", accounts=AsDictSerializer.iter_as_dict_fn()).serialize(self)
+
+
+class MLModelState(enum.Enum):
+    INVALID = "invalid"
+    VALID = "valid"
+    TRAINING = "training"
+
+
+class MLModelFile(Base):
+    __tablename__ = "ml_model_file"
+
+    id = Column(Integer, primary_key=True)
+    filename = Column(String)
+    metadata_ = Column("metadata", JSON)
+    state = Column(Enum(MLModelState))
+
+    @staticmethod
+    def generate_filename():
+        return "{}.pkl".format(uuid.uuid4())

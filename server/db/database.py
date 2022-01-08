@@ -4,7 +4,24 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.inspection import inspect
 
-from .build_db import add_currencies, add_tags
+from .util import save
+
+
+def add_currencies(sess=None):
+    from .models import Currency
+    save([
+        Currency(symbol="€", short_name="EUR", long_name="Euro"),
+        Currency(symbol="$", short_name="USD", long_name="US Dollar")
+    ], sess=sess)
+
+
+def add_tags(sess=None):
+    from .models import Category
+    from parsing.tags import TagTree
+    tree = TagTree.tree_from_file("parsing")
+    import numpy as np 
+    v, c = np.unique([t.identifier for t in tree._tags.values()], return_counts=True)
+    save([Category(id=t.identifier, name=t.name, id_parent=t.parent_id, color=t.color, income=t.income, default=t.default) for k, t in tree._tags.items()], sess=sess)
 
 
 def init_db():
