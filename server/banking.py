@@ -15,13 +15,20 @@ from sqlalchemy.util import immutabledict
 from db.database import init_db
 from db.models import AccountAlias, AccountGroup, Group, Transaction, Account
 from db.data_import import import_belfius_csv
+from background.celery_init import make_celery
 
 # load environment
 load_dotenv()
 
 # create app
 app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False
+app.config.update(
+  JSON_AS_ASCII=False,
+  CELERY_BROKER_URL='redis://{}:{}'.format(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT')),
+  CELERY_RESULT_BACKEND='redis://{}:{}'.format(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))
+)
+
+celery = make_celery(app)
 
 # cors
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -39,6 +46,12 @@ def error_response(msg, code=403):
     response = jsonify({'msg': msg})
     response.status = code
     return response
+
+
+@app.route("/test/background", methods=["GET"])
+def test_background():
+    result = add_together.delay(25, 26)
+    return jsonify({'val': result.wait()})
 
 
 @app.route("/account/<int:id_account>/transactions", methods=["GET"])

@@ -1,0 +1,61 @@
+services:
+  # flask server
+  server:
+    build:
+      context: server/
+      dockerfile: "Dockerfile"
+    ports:
+      - 5000:5000
+    command: "flask run"
+    environment:
+      FLASK_APP: banking
+      FLASK_RUN_HOST: 0.0.0.0
+      DB_FILE: /data/db.db
+      FLASK_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ./server/:/app  # to share code and having refresh on update
+      - ~/data/banking/db:/data
+      - ~/data/banking/models:/models
+
+  # vue client
+  frontend:
+    build:
+      context: frontend/
+      dockerfile: Dockerfile
+    environment:
+      VUE_APP_API: server:5000
+    ports:
+      - 8080:8080
+    volumes:
+      - ./frontend/src:/app/src 
+
+  # message broker for background tasks
+  redis:
+    image: redis:6-alpine
+    ports: 
+      - 6379:6379
+
+  # worker for celery background tasks
+  celery_worker:
+    build:
+      context: server/
+      dockerfile: Dockerfile
+    command: "celery -A banking.celery worker"
+    environment:
+      FLASK_APP: banking
+      FLASK_RUN_HOST: 0.0.0.0
+      DB_FILE: /data/db.db
+      FLASK_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - redis
+    volumes:      
+      - ~/data/banking/db:/data
+      - ~/data/banking/models:/models
+
+# volumes:
+#   db_volume:
+#   models_volume:
