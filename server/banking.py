@@ -1,22 +1,26 @@
 import json
 import os
+import re
 import tempfile
 
 from decimal import Decimal
+
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, abort
 from flask.wrappers import Response
 from flask_cors import CORS
-from sqlalchemy.orm.scoping import scoped_session
 
-from sqlalchemy.sql.expression import select, func, cast, column, table, update, or_, and_, delete
-from sqlalchemy.sql.operators import json_getitem_op
+from sqlalchemy.sql.expression import select, update, or_, and_, delete
 from sqlalchemy.util import immutabledict
+
 from db.database import init_db
-from db.models import AccountAlias, AccountGroup, Group, Transaction, Account
+from db.models import AccountAlias, AccountGroup, Group, MLModelFile, MLModelState, Transaction, Account
 from db.data_import import import_belfius_csv
+
+from ml.model_train import train_model
+from ml.predict import NoValidModelException, TooManyAvailableModelsException, predict_category
+
 from background.celery_init import make_celery
-from server.ml.predict import NoValidModelException, predict_category
 
 # load environment
 load_dotenv()
@@ -42,6 +46,22 @@ import logging
 logging.basicConfig()
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
+#################### CELERY TASKS #######################
+@celery.task
+def trigger_model_train(ctx, target):
+    train_model(ctx.session, data_source=target)
+
+@celery.task
+def delete_invalid_models(ctx):
+    session = ctx.session
+    models = MLModelFile.get_models_by_state(MLModelState.INVALID)
+    for model in models:
+        filepath = os.path.join(os.getenv("MODEL_PATH"), model.filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        model.state = MLModelState.DELETED
+    session.commit()
+#########################################################
 
 def error_response(msg, code=403):
     response = jsonify({'msg': msg})
@@ -133,9 +153,13 @@ def merge_accounts():
     # alias account should be removed and added as an alias
     session.add(AccountAlias(name=alias.name, number=alias.number, id_account=repr.id))
     session.delete(alias)
-    
+
+    # invalidate models
+    session.execute(MLModelFile.invalidate_models_stmt())
+    delete_invalid_models.delay()
+
     session.commit()
-    
+
     return jsonify(Account.query.get(id_repr).as_dict())
 
 
@@ -187,14 +211,27 @@ def ml_infer_category(id_transaction):
         category, proba = predict_category(transaction)
         return jsonify({"category": category.as_dict(), "proba": proba})
     except NoValidModelException:
-        return error_response("no valid model ready")
-
+        trigger_model_train.delay(transaction.data_source)
+        return error_response("no valid model ready (retry later)", code=400)
+    except TooManyAvailableModelsException("too many available model for prediction"):
+        return error_response("too many models available for prediction", code=500)
 
 
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({"msg": "hello"})
 
+
+@app.route("/model/<target>/refresh", methods=["POST"])
+def refresh_model(target):
+    if target not in {'belfius'}:
+        return error_response({'msg': 'invalid target'}, code=403)
+    session = Session()
+    session.execute(MLModelFile.invalidate_models_stmt(target=target))
+    session.commit()
+    delete_invalid_models.delay()
+    trigger_model_train.delay(target)
+    return jsonify({'msg': 'retrain triggered'})
 
 @app.route("/upload_files", methods=["POST"])
 def upload_data():

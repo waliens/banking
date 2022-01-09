@@ -1,13 +1,12 @@
 import enum
 import uuid
 
-from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 
 from sqlalchemy import Column, JSON, Enum, Boolean, Integer, Date, Float, String, ForeignKey, TypeDecorator, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.expression import and_, select, func
+from sqlalchemy.sql.expression import and_, select, func, update
 from sqlalchemy.ext.hybrid import hybrid_property
 
 Base = declarative_base()
@@ -162,7 +161,8 @@ class AccountAlias(Base):
 class Transaction(Base):
     __tablename__ = 'transaction'
 
-    id = Column(String(255), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    custom_id = Column(String(255), unique=True)
     id_source = Column(Integer, ForeignKey('account.id'))
     id_dest = Column(Integer, ForeignKey('account.id'))
     when = Column(Date)
@@ -178,11 +178,12 @@ class Transaction(Base):
     category = relationship("Category", lazy="joined")
 
     def as_dict(self):
-        return AsDictSerializer("id", "id_source", "id_dest", "when",
-                                "metadata_", "amount", "id_currency", "id_category",
-                                when=lambda v: v.isoformat(), amount=str,
-                                **{k: AsDictSerializer.as_dict_fn()
-                                   for k in ["source", "dest", "currency", "category"]}).serialize(self)
+        return AsDictSerializer(
+            "id", "custom_id", "id_source", "id_dest", "when",
+            "metadata_", "amount", "id_currency", "id_category",
+            when=lambda v: v.isoformat(), amount=str,
+            **{k: AsDictSerializer.as_dict_fn() for k in ["source", "dest", "currency", "category"]}
+        ).serialize(self)
 
     def __repr__(self):
         return "<Transaction(id='{}', amount='{}')>".format(self.id, self.amount)
@@ -211,6 +212,7 @@ class MLModelState(enum.Enum):
     INVALID = "invalid"
     VALID = "valid"
     TRAINING = "training"
+    DELETED = "deleted"
 
 
 class MLModelFile(Base):
@@ -218,9 +220,32 @@ class MLModelFile(Base):
 
     id = Column(Integer, primary_key=True)
     filename = Column(String)
+    target = Column(String)
     metadata_ = Column("metadata", JSON)
     state = Column(Enum(MLModelState))
 
     @staticmethod
     def generate_filename():
         return "{}.pkl".format(uuid.uuid4())
+
+    @classmethod
+    def get_models_by_state(cls, state: MLModelState, target=None):
+        cond = cls.state == state
+        if target is not None:
+            cond = and_(cond, cls.target == target)
+        return cls.query.where(cond).all()
+
+    @classmethod
+    def has_models_in_state(cls, state: MLModelState, target=None):
+        cond = cls.state == state
+        if target is not None:
+            cond = and_(cond, cls.target == target)
+        return cls.query.where(cond).count() > 0
+
+    @classmethod
+    def invalidate_models_stmt(cls, target=None):
+        stmt = update(cls)
+        if target is not None:
+            stmt = stmt.where(and_(cls.target == target, cls.state != MLModelState.DELETED))
+        stmt = stmt.values(state=MLModelState.INVALID)
+        return stmt

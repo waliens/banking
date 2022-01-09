@@ -1,8 +1,8 @@
 from collections import defaultdict
-from db.models import Account, Category
-from parsing.util import UnionFind
 from sqlalchemy.orm import sessionmaker
 
+from parsing.util import UnionFind
+from db.models import Account, Category
 from parsing.tags import Tag, TagTree
 
 Session = sessionmaker()

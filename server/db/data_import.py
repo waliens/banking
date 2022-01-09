@@ -5,7 +5,7 @@ from sqlalchemy import update, delete
 from sqlalchemy.sql.expression import bindparam
 
 from db.models import Account, AccountAlias, AccountGroup, Currency, Transaction
-from db.util import load_account_uf_from_database, make_metadata_serializable, save, refresh_all
+from db.util import load_account_uf_from_database, make_metadata_serializable, save
 from impl.belfius import BelfiusParserOrchestrator
 from parsing.util import group_by
 from parsing.account import AccountBook

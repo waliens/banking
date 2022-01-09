@@ -1,6 +1,6 @@
 from celery import Celery
 
-from server.db.database import init_db
+
 
 
 def make_celery(app):
@@ -14,6 +14,7 @@ def make_celery(app):
     class ContextTask(celery.Task):
       def __init__(self):
         super().__init__()
+        from db.database import init_db
         self._session_class, self._engine = init_db()
         self._session = None
       

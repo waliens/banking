@@ -9,16 +9,23 @@ from db.models import MLModelState, MLModelFile, Category
 
 from .feature_extractor import CategoryEncoder
 
+
+class TooManyAvailableModelsException(Exception):
+  pass
+
+
 class NoValidModelException(Exception):
   pass
 
+
 def predict_category(transaction):
-  valid_models = MLModelFile.query.where(MLModelFile.state == MLModelState.VALID).all()
-  models_for_target = [m for m in valid_models if m.metadata_["target"] == transaction.data_source]
-  if len(models_for_target) != 1:
-    raise ValueError("several valid models to choose from")
+  valid_models = MLModelFile.get_models_by_state(MLModelState.VALID, target=transaction.data_source)
+  if len(valid_models) > 1:
+    raise TooManyAvailableModelsException("several valid models to choose from")
+  elif len(valid_models) == 0:
+    raise NoValidModelException("no model that satisfies the conditions")
   
-  model_file = models_for_target[0]
+  model_file = valid_models[0]
   model_filepath = os.path.join(os.getenv('MODEL_PATH'), model_file.filename)
   pipeline = load(model_filepath)
   
