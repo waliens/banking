@@ -26,7 +26,7 @@ services:
       context: frontend/
       dockerfile: Dockerfile
     environment:
-      VUE_APP_API: server:5000
+      VUE_APP_API: localhost:5000
     ports:
       - 8080:8080
     volumes:

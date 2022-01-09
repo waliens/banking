@@ -35,7 +35,7 @@ const actions = {
     }
 
     let groupId = window.localStorage.currentGroupId;
-    if(!groupId) {
+    if(!groupId || groupId == "undefined") {
       commit('setInitialized');
       return;
     }
@@ -50,7 +50,6 @@ const actions = {
 
   async fetchGroup({commit, dispatch}, groupId) {
     if (!groupId) {
-      console.log("not set");
       return;
     }
     let group = null;
