@@ -35,6 +35,10 @@
       <string-or-null-display :value="props.row.dest.name"></string-or-null-display>
     </template>
 
+    <template slot="category" slot-scope="props">
+      <category-tag :category="props.row.category"></category-tag>
+    </template>
+
   </table-with-query-filter>
 </template>
 
@@ -43,11 +47,12 @@ import { defineComponent } from '@vue/composition-api'
 import TableWithQueryFilter from '@/components/generic/TableWithQueryFilter';
 import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import StringOrNullDisplay from '@/components/generic/StringOrNullDisplay';
+import CategoryTag from '@/components/categories/CategoryTag';
 import { queryFilter } from './TransactionTableData.js';
 import currency from 'currency.js';
 
 export default defineComponent({
-  components: { TableWithQueryFilter, CurrencyDisplay, StringOrNullDisplay },
+  components: { TableWithQueryFilter, CurrencyDisplay, StringOrNullDisplay, CategoryTag },
   props: { transactions: Array, referenceAccount: Object, title: String },
   data() {
     return {
@@ -68,7 +73,8 @@ export default defineComponent({
         columns.push({field: 'dest.name', label: this.$t('account.dest.name')});
       }
       columns.push({field: 'amount', label: this.$t('amount'), numeric: true});
-      columns.push({field: 'description', label: this.$t('description'), width: 400})
+      columns.push({field: 'description', label: this.$t('description'), width: 400});
+      columns.push({field: 'category', label: this.$t('category') });
       return columns;
     }
   },
