@@ -60,13 +60,14 @@ class Category(Base):
     color = Column(String(255))
     income = Column(Boolean)
     default = Column(Boolean)
+    icon = Column(String)
 
     def __repr__(self):
         return "<Account(id='%d', name='%s', parent='%d', color='%s')>" % (
             self.id, self.name, self.parent_category, self.color)
 
     def as_dict(self):
-        return AsDictSerializer("id", "name", "id_parent", "color", "income", "default").serialize(self)
+        return AsDictSerializer("id", "name", "id_parent", "color", "income", "default", "icon").serialize(self)
 
 
 class Currency(Base):

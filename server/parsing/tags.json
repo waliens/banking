@@ -7,7 +7,8 @@
     "color": "#39CCC5",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "star"
   },
   {
     "categoryId": 10700,
@@ -17,7 +18,8 @@
     "color": "#75CC28",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "gem"
   },
   {
     "categoryId": 1216134,
@@ -27,7 +29,8 @@
     "color": "#6EA986",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "file-invoice"
   },
   {
     "categoryId": 10300,
@@ -37,7 +40,8 @@
     "color": "#FF654D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hamburger"
   },
   {
     "categoryId": 20005,
@@ -47,7 +51,8 @@
     "color": "#DAD8C3",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 20002,
@@ -57,7 +62,8 @@
     "color": "#006330",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 10301,
@@ -67,7 +73,8 @@
     "color": "#FA959A",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "cat"
   },
   {
     "categoryId": 20007,
@@ -77,7 +84,8 @@
     "color": "#0FABE3",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 10105,
@@ -87,7 +95,8 @@
     "color": "#FA959A",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 10907,
@@ -97,7 +106,8 @@
     "color": "#39CCC5",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hands-helping"
   },
   {
     "categoryId": 10901,
@@ -107,7 +117,8 @@
     "color": "#D0E527",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "car-crash"
   },
   {
     "categoryId": 10902,
@@ -117,7 +128,8 @@
     "color": "#384EA7",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "users"
   },
   {
     "categoryId": 10904,
@@ -127,7 +139,8 @@
     "color": "#FB4C23",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "procedures"
   },
   {
     "categoryId": 10900,
@@ -137,7 +150,8 @@
     "color": "#0FABE3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "house-damage"
   },
   {
     "categoryId": 10903,
@@ -147,7 +161,8 @@
     "color": "#FFFF2D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "balance-scale-right"
   },
   {
     "categoryId": 10906,
@@ -157,7 +172,8 @@
     "color": "#8C0D95",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "skull-crossbones"
   },
   {
     "categoryId": 10905,
@@ -167,7 +183,8 @@
     "color": "#F38639",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "life-ring"
   },
   {
     "categoryId": 1216074,
@@ -177,7 +194,8 @@
     "color": "#E9005C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "biking"
   },
   {
     "categoryId": 109,
@@ -187,7 +205,8 @@
     "color": "#39CCC5",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hard-hat"
   },
   {
     "categoryId": 100,
@@ -197,7 +216,8 @@
     "color": "#BFEAED",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "car"
   },
   {
     "categoryId": 11502,
@@ -207,7 +227,8 @@
     "color": "#D0E527",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hammer"
   },
   {
     "categoryId": 10200,
@@ -217,7 +238,8 @@
     "color": "#0FABE3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "gift"
   },
   {
     "categoryId": 10000,
@@ -227,7 +249,8 @@
     "color": "#BFEAED",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "gas-pump"
   },
   {
     "categoryId": 1216082,
@@ -237,7 +260,8 @@
     "color": "#E9005C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 10702,
@@ -247,7 +271,8 @@
     "color": "#8C0D95",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "shoe-prints"
   },
   {
     "categoryId": 1216119,
@@ -257,7 +282,8 @@
     "color": "#6EA986",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "film"
   },
   {
     "categoryId": 10103,
@@ -267,7 +293,8 @@
     "color": "#006330",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "futbol"
   },
   {
     "categoryId": 10705,
@@ -277,7 +304,8 @@
     "color": "#BFEAED",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "cut"
   },
   {
     "categoryId": 1216077,
@@ -287,7 +315,8 @@
     "color": "#E9005C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "slideshare"
   },
   {
     "categoryId": 1216078,
@@ -297,7 +326,8 @@
     "color": "#E9005C",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "slideshare"
   },
   {
     "categoryId": 10703,
@@ -307,7 +337,8 @@
     "color": "#39CCC5",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "air-freshener"
   },
   {
     "categoryId": 11101,
@@ -317,7 +348,8 @@
     "color": "#FF654D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 10602,
@@ -327,7 +359,8 @@
     "color": "#D0E527",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "tooth"
   },
   {
     "categoryId": 11401,
@@ -337,7 +370,8 @@
     "color": "#F38639",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "donate"
   },
   {
     "categoryId": 1,
@@ -346,7 +380,8 @@
     "color": "#F38639",
     "income": false,
     "categoryType": "R",
-    "default": false
+    "default": false,
+    "icon": "minus"
   },
   {
     "categoryId": 10402,
@@ -356,7 +391,8 @@
     "color": "#F38639",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "tint"
   },
   {
     "categoryId": 10401,
@@ -366,7 +402,8 @@
     "color": "#75CC28",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "lightbulb"
   },
   {
     "categoryId": 10303,
@@ -376,7 +413,8 @@
     "color": "#BFEAED",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "plug"
   },
   {
     "categoryId": 10004,
@@ -386,7 +424,8 @@
     "color": "#FFFF2D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 104,
@@ -396,7 +435,8 @@
     "color": "#FFFF2D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "bolt"
   },
   {
     "categoryId": 11303,
@@ -406,7 +446,8 @@
     "color": "#FFFF2D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "child"
   },
   {
     "categoryId": 101,
@@ -416,7 +457,8 @@
     "color": "#0FABE3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "child"
   },
   {
     "categoryId": 10001,
@@ -426,7 +468,8 @@
     "color": "#0FABE3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "broom"
   },
   {
     "categoryId": 10306,
@@ -436,7 +479,8 @@
     "color": "#384EA7",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "broom"
   },
   {
     "categoryId": 1216144,
@@ -446,7 +490,8 @@
     "color": "#4B3E68",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "bicycle"
   },
   {
     "categoryId": 113,
@@ -456,7 +501,8 @@
     "color": "#FF654D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "piggy-bank"
   },
   {
     "categoryId": 11300,
@@ -466,7 +512,8 @@
     "color": "#0FABE3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "piggy-bank"
   },
   {
     "categoryId": 20004,
@@ -476,7 +523,8 @@
     "color": "#FA959A",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "piggy-bank"
   },
   {
     "categoryId": 11302,
@@ -486,7 +534,8 @@
     "color": "#384EA7",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "blind"
   },
   {
     "categoryId": 10802,
@@ -496,7 +545,8 @@
     "color": "#FA959A",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "building"
   },
   {
     "categoryId": 11102,
@@ -506,7 +556,8 @@
     "color": "#FA959A",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "money-check-alt"
   },
   {
     "categoryId": 10104,
@@ -516,7 +567,8 @@
     "color": "#FF654D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "baby"
   },
   {
     "categoryId": 10400,
@@ -526,7 +578,8 @@
     "color": "#FB4C23",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "burn"
   },
   {
     "categoryId": 107,
@@ -536,7 +589,8 @@
     "color": "#F38639",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "tshirt"
   },
   {
     "categoryId": 199,
@@ -546,7 +600,8 @@
     "color": "#DAD8C3",
     "income": false,
     "categoryType": "U",
-    "default": false
+    "default": false,
+    "icon": "tag"
   },
   {
     "categoryId": 299,
@@ -556,7 +611,8 @@
     "color": "#DAD8C3",
     "income": true,
     "categoryType": "U",
-    "default": false
+    "default": false,
+    "icon": "tag"
   },
   {
     "categoryId": 10603,
@@ -566,7 +622,8 @@
     "color": "#384EA7",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hospital-user"
   },
   {
     "categoryId": 10800,
@@ -576,7 +633,8 @@
     "color": "#006330",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "coins"
   },
   {
     "categoryId": 108,
@@ -586,7 +644,8 @@
     "color": "#8C0D95",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "coins"
   },
   {
     "categoryId": 10500,
@@ -596,7 +655,8 @@
     "color": "#D4072C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "wifi"
   },
   {
     "categoryId": 10209,
@@ -606,7 +666,8 @@
     "color": "#D4072C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "pagelines"
   },
   {
     "categoryId": 10204,
@@ -616,7 +677,8 @@
     "color": "#FB4C23",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "gamepad"
   },
   {
     "categoryId": 10202,
@@ -626,7 +688,8 @@
     "color": "#384EA7",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "newspaper"
   },
   {
     "categoryId": 10100,
@@ -636,7 +699,8 @@
     "color": "#8C0D95",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "book"
   },
   {
     "categoryId": 102,
@@ -646,7 +710,8 @@
     "color": "#D0E527",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "glass-cheers"
   },
   {
     "categoryId": 10201,
@@ -656,7 +721,8 @@
     "color": "#D0E527",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "glass-cheers"
   },
   {
     "categoryId": 20006,
@@ -666,7 +732,8 @@
     "color": "#BFEAED",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "house-user"
   },
   {
     "categoryId": 11500,
@@ -676,7 +743,8 @@
     "color": "#DAD8C3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "house-user"
   },
   {
     "categoryId": 115,
@@ -686,7 +754,8 @@
     "color": "#999999",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "home"
   },
   {
     "categoryId": 10403,
@@ -696,7 +765,8 @@
     "color": "#8C0D95",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "oil-can"
   },
   {
     "categoryId": 11501,
@@ -706,7 +776,8 @@
     "color": "#0FABE3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "chair"
   },
   {
     "categoryId": 10101,
@@ -716,7 +787,8 @@
     "color": "#39CCC5",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "university"
   },
   {
     "categoryId": 1216127,
@@ -726,7 +798,8 @@
     "color": "#4B3E68",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "music"
   },
   {
     "categoryId": 10604,
@@ -736,7 +809,8 @@
     "color": "#FFFF2D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "heartbeat"
   },
   {
     "categoryId": 10601,
@@ -746,7 +820,8 @@
     "color": "#0FABE3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "stethoscope"
   },
   {
     "categoryId": 10002,
@@ -756,7 +831,8 @@
     "color": "#D0E527",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "parking"
   },
   {
     "categoryId": 20001,
@@ -766,7 +842,8 @@
     "color": "#D4072C",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "blind"
   },
   {
     "categoryId": 11400,
@@ -776,7 +853,8 @@
     "color": "#75CC28",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "apple-alt"
   },
   {
     "categoryId": 20003,
@@ -786,7 +864,8 @@
     "color": "#FF654D",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "apple-alt"
   },
   {
     "categoryId": 10106,
@@ -796,7 +875,8 @@
     "color": "#DAD8C3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "apple-alt"
   },
   {
     "categoryId": 10600,
@@ -806,7 +886,8 @@
     "color": "#BFEAED",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "prescription-bottle-alt"
   },
   {
     "categoryId": 11301,
@@ -816,7 +897,8 @@
     "color": "#D0E527",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "piggy-bank"
   },
   {
     "categoryId": 1216080,
@@ -826,7 +908,8 @@
     "color": "#6EA986",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "trophy"
   },
   {
     "categoryId": 11000,
@@ -836,7 +919,8 @@
     "color": "#75CC28",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "car"
   },
   {
     "categoryId": 11001,
@@ -846,7 +930,8 @@
     "color": "#F38639",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "home"
   },
   {
     "categoryId": 110,
@@ -856,7 +941,8 @@
     "color": "#717342",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 20100,
@@ -866,7 +952,8 @@
     "color": "#384EA7",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "money-bill-wave"
   },
   {
     "categoryId": 10207,
@@ -876,7 +963,8 @@
     "color": "#8C0D95",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "utensils"
   },
   {
     "categoryId": 112,
@@ -886,7 +974,8 @@
     "color": "#006330",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "coins"
   },
   {
     "categoryId": 11200,
@@ -896,7 +985,8 @@
     "color": "#006330",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "coins"
   },
   {
     "categoryId": 2,
@@ -905,7 +995,8 @@
     "color": "#8C0D95",
     "income": true,
     "categoryType": "R",
-    "default": false
+    "default": false,
+    "icon": "plus"
   },
   {
     "categoryId": 201,
@@ -915,7 +1006,8 @@
     "color": "#0FABE3",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "arrow-down"
   },
   {
     "categoryId": 200,
@@ -925,7 +1017,8 @@
     "color": "#144C6C",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "sync"
   },
   {
     "categoryId": 1216081,
@@ -935,7 +1028,8 @@
     "color": "#E9005C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "tools"
   },
   {
     "categoryId": 20000,
@@ -945,7 +1039,8 @@
     "color": "#39CCC5",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 106,
@@ -955,7 +1050,8 @@
     "color": "#7B4C23",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "medkit"
   },
   {
     "categoryId": 10206,
@@ -965,7 +1061,8 @@
     "color": "#F38639",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "cocktail"
   },
   {
     "categoryId": 1216079,
@@ -975,7 +1072,8 @@
     "color": "#E9005C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "theater-masks"
   },
   {
     "categoryId": 10203,
@@ -985,7 +1083,8 @@
     "color": "#FFFF2D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "futbol"
   },
   {
     "categoryId": 10005,
@@ -995,7 +1094,8 @@
     "color": "#FB4C23",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "car"
   },
   {
     "categoryId": 10801,
@@ -1005,7 +1105,8 @@
     "color": "#FF654D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "dumpster"
   },
   {
     "categoryId": 10803,
@@ -1015,7 +1116,8 @@
     "color": "#DAD8C3",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "coins"
   },
   {
     "categoryId": 111,
@@ -1025,7 +1127,8 @@
     "color": "#D4072C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "university"
   },
   {
     "categoryId": 1216145,
@@ -1035,7 +1138,8 @@
     "color": "#4B3E68",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "exchange-alt"
   },
   {
     "categoryId": 11100,
@@ -1045,7 +1149,8 @@
     "color": "#006330",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "exchange-alt"
   },
   {
     "categoryId": 20101,
@@ -1055,7 +1160,8 @@
     "color": "#FFFF2D",
     "income": true,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "exchange-alt"
   },
   {
     "categoryId": 10003,
@@ -1065,7 +1171,8 @@
     "color": "#384EA7",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "bus"
   },
   {
     "categoryId": 1216072,
@@ -1075,7 +1182,8 @@
     "color": "#E9005C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "hand-holding-usd"
   },
   {
     "categoryId": 10502,
@@ -1085,7 +1193,8 @@
     "color": "#FF654D",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "tv"
   },
   {
     "categoryId": 105,
@@ -1095,7 +1204,8 @@
     "color": "#75CC28",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "broadcast-tower"
   },
   {
     "categoryId": 10503,
@@ -1105,7 +1215,8 @@
     "color": "#FA959A",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "phone-alt"
   },
   {
     "categoryId": 10501,
@@ -1115,7 +1226,8 @@
     "color": "#006330",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "mobile-alt"
   },
   {
     "categoryId": 103,
@@ -1125,7 +1237,8 @@
     "color": "#384EA7",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "calendar-day"
   },
   {
     "categoryId": 10205,
@@ -1135,7 +1248,8 @@
     "color": "#75CC28",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "plane"
   },
   {
     "categoryId": 10102,
@@ -1145,7 +1259,8 @@
     "color": "#D4072C",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "school"
   },
   {
     "categoryId": 1216143,
@@ -1155,7 +1270,8 @@
     "color": "#6EA986",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "bicycle"
   },
   {
     "categoryId": 10701,
@@ -1165,7 +1281,8 @@
     "color": "#F38639",
     "income": false,
     "categoryType": "N",
-    "default": false
+    "default": false,
+    "icon": "tshirt"
   },
   {
     "categoryId": 10908,
@@ -1175,7 +1292,8 @@
     "color": "#D4072C",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 11002,
@@ -1185,7 +1303,8 @@
     "color": "#FF654D",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 11103,
@@ -1195,7 +1314,8 @@
     "color": "#DAD8C3",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 11201,
@@ -1205,7 +1325,8 @@
     "color": "#BFEAED",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 11304,
@@ -1215,7 +1336,8 @@
     "color": "#FB4C23",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 114,
@@ -1225,7 +1347,8 @@
     "color": "#FA959A",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 11402,
@@ -1235,7 +1358,8 @@
     "color": "#8C0D95",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 20008,
@@ -1245,7 +1369,8 @@
     "color": "#D0E527",
     "income": true,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 20102,
@@ -1255,7 +1380,8 @@
     "color": "#FB4C23",
     "income": true,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 11503,
@@ -1265,7 +1391,8 @@
     "color": "#FFFF2D",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 10006,
@@ -1275,7 +1402,8 @@
     "color": "#75CC28",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 10107,
@@ -1285,7 +1413,8 @@
     "color": "#BFEAED",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 10210,
@@ -1295,7 +1424,8 @@
     "color": "#006330",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 10307,
@@ -1305,7 +1435,8 @@
     "color": "#FFFF2D",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 10404,
@@ -1315,7 +1446,8 @@
     "color": "#39CCC5",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 10504,
@@ -1325,7 +1457,8 @@
     "color": "#DAD8C3",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 10605,
@@ -1335,7 +1468,8 @@
     "color": "#FB4C23",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 10704,
@@ -1345,7 +1479,8 @@
     "color": "#D4072C",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   },
   {
     "categoryId": 10804,
@@ -1355,6 +1490,7 @@
     "color": "#BFEAED",
     "income": false,
     "categoryType": "N",
-    "default": true
+    "default": true,
+    "icon": "tag"
   }
 ]

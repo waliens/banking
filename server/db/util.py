@@ -61,7 +61,8 @@ def tag_tree_from_database():
         parent_id=category.id_parent,
         color=category.color,
         income=category.income,
-        default=category.default
+        default=category.default,
+        icon=category.icon
       )
       if new_tag.parent_id is not None:
           id_tree[new_tag.parent_id].add(identifier)

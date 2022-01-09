@@ -4,13 +4,14 @@ from collections import defaultdict
 
 
 class Tag(object):
-    def __init__(self, name, identifier, parent_id=None, income=True, color="#000000", default=False):
+    def __init__(self, name, identifier, parent_id=None, income=True, color="#000000", default=False, icon="tag"):
         self._name = name
         self._parent_id = parent_id
         self._identifier = identifier
         self._color = color
         self._income = income
         self._default = default
+        self._icon = icon
 
     def __repr__(self):
         return "Tag(id={}, name={})".format(self._identifier, self._name)
@@ -42,6 +43,10 @@ class Tag(object):
     @property
     def default(self):
         return self._default
+
+    @property
+    def icon(self):
+        return self._icon
 
 
 class TagTree(object):
@@ -89,7 +94,8 @@ class TagTree(object):
                     parent_id=tag.get("parentId"),
                     color=tag["color"],
                     income=tag["income"],
-                    default=tag["default"]
+                    default=tag["default"],
+                    icon=tag['icon']
                 )
                 if tag.parent_id is not None:
                     id_tree[tag.parent_id].add(tag.identifier)
