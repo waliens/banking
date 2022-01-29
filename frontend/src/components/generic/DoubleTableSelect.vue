@@ -35,7 +35,7 @@ export default defineComponent({
   components: { TableWithQueryFilter },
   props: {
     'data': Array,
-    'selected': Array,  // of identifiers
+    'selected': Array,
     'keyFn': Function,  // function to apply to items of data to extract an identifier
     'filterFromQuery': Function,
     'columns': Array,
@@ -91,7 +91,7 @@ export default defineComponent({
         return;
       }
       
-      if (this.maxSelected > 1) {
+      if (this.maxSelected != 1) {
         newSelected.push(...this.selected);
       }
       newSelected.push(...this.rightChecked.filter(e => !selectedSet.has(this.keyFn(e))));
