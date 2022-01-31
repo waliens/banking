@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 import re
 from enum import Enum
@@ -11,6 +11,20 @@ from pdfminer.converter import HTMLConverter
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 
 SMALL_DATE_PATTERN = r"^[0-9]{2}/[0-9]{2}$"
+
+
+def ms_identifier(t):
+  return re.sub(r"\s+", "", "mastercard/{}/{}/{}/{}/{}/{}/{}/{}".format(
+    t["amount"],
+    t["account"],
+    t["closing_date"].strftime("%d-%m-%Y"),
+    t["debit_date"].strftime("%d-%m-%Y"),
+    t["when"].strftime("%d-%m-%Y"),
+    t["value_date"].strftime("%d-%m-%Y"),
+    t["country_code"],
+    t["country_or_site"]
+  ))
+
 
 def pdf2soups(filename):
   outfp = StringIO()
@@ -62,6 +76,7 @@ def index_rows(divs, first_div_index):
     curr_div_index += 1
 
   return y_to_row_index, index_last_row
+
 
 def get_closest_y_from_index(index, y, eps=1):
   if y in index:
@@ -120,6 +135,10 @@ class PageInfo():
   @property
   def raw(self):
     return self._raw
+
+  @property
+  def transactions(self):
+    return self._data_dict.get("transactions", [])
       
   @classmethod
   def _parse_page(cls, page_soup):
@@ -139,7 +158,31 @@ class PageInfo():
       raise ValueError("transaction date range div cannot be found")
     matches = re.findall(r"([0-9]{2})/([0-9]{2})/([0-9]{4})", filtered[0].text)
     return (date(year=int(m[2]), month=int(m[1]), day=int(m[0])) for m in matches)
-    
+
+  @classmethod
+  def _closing_debit_dates(cls, page_soup):
+    divs = page_soup.find_all("div")
+    closings = [d for d in divs if d.text.strip() == "Date de clôture"]
+    debits = [d for d in divs if d.text.strip() == "Date de débit"]
+    if len(closings) != 1 or len(debits) != 1:
+      raise ValueError("no or several match(es) for closing and debit dates fields")
+    closing_label = closings[0]
+    closing_y, _ = extract_pos(closing_label)
+    debit_label = debits[0]
+    debit_y, _ = extract_pos(debit_label)
+    date_pattern = re.compile("[0-9]{2}/[0-9]{2}/[0-9]{4}") 
+    found_divs = [d for d in divs if date_pattern.match(d.text.strip()) is not None and extract_pos(d)[0] in {closing_y, debit_y}]
+    if len(found_divs) != 2:
+      raise ValueError("did not find date divs for debit and closing")
+    if extract_pos(found_divs[0])[0] == debit_y:
+      debit_date_div, closing_date_div = found_divs
+    else:
+      closing_date_div, debit_date_div = found_divs
+    return {
+      'closing_date': datetime.strptime(closing_date_div.text.strip(), '%d/%m/%Y').date(), 
+      'debit_date': datetime.strptime(debit_date_div.text.strip(), '%d/%m/%Y').date()
+    }
+
   @classmethod
   def _parse_summary(cls, page_soup):
     return {}
@@ -175,6 +218,7 @@ class PageInfo():
         continue 
       data[y_to_row_index[actual_y]].append(div.text.strip())
 
+    debit_closing = cls._closing_debit_dates(page_soup)
     date_start, date_end = cls._transactions_date_range(page_soup)
     formatted_data = list()
     for t_data in data.values():
@@ -185,7 +229,7 @@ class PageInfo():
       f_data = {
         'when': late_date,
         'value_date': early_date,
-        'account': t_data_cpy[0],
+        'account': re.sub("([\r\n]+|\(Via.*\))", "", t_data_cpy[0]).strip(),
         'country_or_site': t_data_cpy[1],
         'country_code': t_data_cpy[2]
       }
@@ -200,6 +244,8 @@ class PageInfo():
         'currency': re.split("\s+", t_data_cpy[amount_index], 1)[1].strip()[:-2]
       })
 
+      f_data.update(debit_closing)
+
       formatted_data.append(f_data)
 
     return {'transactions': formatted_data}
@@ -208,4 +254,13 @@ class PageInfo():
 def parse_mastercard_pdf(filename):
   pages = pdf2soups(filename)
   return [PageInfo(p) for p in pages]
-  
+
+
+if __name__ == "__main__":
+  from pprint import pprint
+
+  pages = parse_mastercard_pdf("/mnt/d/Documents/Downloads/6264665578_29_01_2022_18_53_25.pdf")
+  for page in pages:
+    pprint(page.transactions)
+    for t in page.transactions:
+      print(ms_identifier(t))
