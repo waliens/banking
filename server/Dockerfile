@@ -6,7 +6,7 @@ RUN pip install sqlalchemy sqlalchemy-utils
 RUN pip install flask flask-cors
 RUN pip install celery redis
 RUN pip install scikit-learn nltk
-RUN pip install pdfminer
+RUN pip install pdfminer beautifulsoup4
 
 WORKDIR /app
 
