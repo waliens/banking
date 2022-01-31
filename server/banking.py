@@ -15,7 +15,7 @@ from sqlalchemy.util import immutabledict
 
 from db.database import init_db
 from db.models import AccountAlias, AccountGroup, Group, MLModelFile, MLModelState, Transaction, Account
-from db.data_import import import_belfius_csv
+from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
 
 from ml.model_train import train_model
 from ml.predict import NoValidModelException, TooManyAvailableModelsException, predict_category
@@ -243,10 +243,17 @@ def upload_data():
             filepath = os.path.join(dirname, str(i))
             file.save(filepath) 
         
+        session = Session()
         if format == "belfius":
             with open(os.path.join(dirname, "accounts.json"), "w+", encoding="utf8") as jsonfile:
                 json.dump({}, jsonfile)
-            import_belfius_csv(dirname, Session())
+            import_belfius_csv(dirname, session)
+        elif format == "mastercard_upload":
+            id_mc_account = request.args.get("id_mc_account")
+            import_mastercard_pdf(dirname, id_mc_account, session)
+        elif format == "mastercard_preview":
+            preview = get_mastercard_preview(dirname)
+            return jsonify(preview)
         else:
             return Response({"error": "unsupported format", "status": 401})
 

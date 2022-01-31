@@ -6,7 +6,7 @@ from decimal import Decimal
 from sqlalchemy import Column, JSON, Enum, Boolean, Integer, Date, Float, String, ForeignKey, TypeDecorator, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.expression import and_, select, func, update
+from sqlalchemy.sql.expression import and_, select, func, update, or_
 from sqlalchemy.ext.hybrid import hybrid_property
 
 Base = declarative_base()
@@ -19,8 +19,11 @@ class AsDictSerializer(object):
     def serialize(self, obj):
         out = dict()
         for k in self._fields:
-            out[k] = getattr(obj, k)
+            if hasattr(obj, k):
+                out[k] = getattr(obj, k)
         for k, cvt in self._mapping.items():
+            if not hasattr(obj, k):
+                continue
             raw = getattr(obj, k)
             if raw is not None:
                 out[k] = cvt(raw)
@@ -28,7 +31,7 @@ class AsDictSerializer(object):
 
     @staticmethod
     def as_dict_fn():
-        return lambda v: v.as_dict()
+        return lambda v: v.as_dict() if v is not None else None
 
     @staticmethod
     def iter_as_dict_fn():
@@ -146,6 +149,14 @@ class Account(Base):
         return AsDictSerializer("id", "number", "name", "initial", "balance",
                                 currency=AsDictSerializer.as_dict_fn(), 
                                 aliases=AsDictSerializer.iter_as_dict_fn()).serialize(self)
+
+    @staticmethod
+    def accounts_by_name(name):
+        return Account.query.filter(or_(
+            Account.name==name, 
+            Account.id.in_(select(AccountAlias.id_account).where(AccountAlias.name==name))
+        )).all()
+
 
 class AccountAlias(Base):
     __tablename__ = "account_alias"

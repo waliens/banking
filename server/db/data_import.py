@@ -1,14 +1,17 @@
+from ast import parse
 from operator import eq
 import os
 
 from sqlalchemy import update, delete
 from sqlalchemy.sql.expression import bindparam
 
-from db.models import Account, AccountAlias, AccountGroup, Currency, Transaction
+from db.models import Account, AccountAlias, AccountGroup, AsDictSerializer, Currency, Transaction
 from db.util import load_account_uf_from_database, make_metadata_serializable, save
 from impl.belfius import BelfiusParserOrchestrator
 from parsing.util import group_by
 from parsing.account import AccountBook
+
+from impl.mastercard import ms_identifier, parse_folder, parse_mastercard_pdf
 
 
 def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
@@ -80,7 +83,7 @@ def import_belfius_csv(dirname, sess):
     if t.identifier in existing_ids:
       continue  # skip existing transactions
     transacs.append(Transaction(
-      id=t.identifier,
+      custom_id=t.identifier,
       id_source=db_accounts[t.source.identifier].id,
       id_dest=db_accounts[t.dest.identifier].id,
       when=t.when,
@@ -91,3 +94,68 @@ def import_belfius_csv(dirname, sess):
     )
     
   save(transacs, sess=sess)
+
+
+
+########## MASTERCARD ###########
+def check_existing_mastercard_accounts(account_names):
+  to_create, all_accounts = set(), dict()
+  for account_name in account_names:
+    accounts = Account.accounts_by_name(account_name)
+    if len(accounts) > 1:
+      raise ValueError("several candidates account for a mastercard accounts")
+    elif len(accounts) == 0:
+      to_create.add(account_name)
+    else:
+      all_accounts[account_name] = accounts[0]
+  return to_create, all_accounts
+
+def get_mastercard_preview(dirname):
+  _, transactions, account_names, account2currency = parse_folder(dirname)
+  to_create, all_accounts = check_existing_mastercard_accounts(account_names)
+  toisoformat = lambda v: v.isoformat()
+  
+  for t in transactions:
+    account_name = t["account"]
+    t["account_name"] = account_name
+    t["account"] = all_accounts[account_name] if account_name not in to_create else None
+
+  serializer = AsDictSerializer(
+    "account_name", "country_code", "country_or_site", "currency", 
+    "original_amount", "original_currency", "rate_to_final",
+    closing_date=toisoformat, debit_date=toisoformat,
+    when=toisoformat, value_date=toisoformat, amount=str, 
+    original_amount=lambda v: (None if v is None else str(v))
+    **{k: AsDictSerializer.as_dict_fn() for k in ["account"]}
+  )
+
+  return [serializer.serialize(t) for t in transactions]
+
+
+def import_mastercard_pdf(dirname, id_mc_account, sess):
+  _, transactions, account_names, account2currency = parse_folder(dirname)
+  to_create, all_accounts = check_existing_mastercard_accounts(account_names)
+
+  name2currency = {c.short_name: c for c in Currency.query.all()}
+  new_accounts = {name: Account(number=None, name=name, id_currency=name2currency[account2currency[name]].id, initial=0) for name in to_create}
+  sess.bulk_save_objects(new_accounts.values(), return_defaults=True)
+  sess.commit()
+
+  all_accounts.update(new_accounts)
+
+  new_transactions = list()
+  for t in transactions:
+    amount = t["amount"]
+    id_source, id_dest = id_mc_account, all_accounts[t["account"]]
+    if amount < 0:  # income
+      id_source, id_dest = id_dest, id_source
+    new_transactions.append(Transaction(
+      custom_id=ms_identifier(t),
+      id_source=id_source, id_dest=id_dest,
+      when=t["when"], amount=amount,
+      id_currency=name2currency[t["currency"]].id,
+      metadata_=make_metadata_serializable(t),
+      id_category=None)
+    )
+  
+  save(new_transactions, sess=sess)

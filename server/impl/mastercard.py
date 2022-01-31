@@ -1,7 +1,8 @@
+import re
+import os
 from collections import defaultdict
 from datetime import date, datetime
 from decimal import Decimal
-import re
 from enum import Enum
 from io import StringIO
 from bs4 import BeautifulSoup
@@ -256,11 +257,25 @@ def parse_mastercard_pdf(filename):
   return [PageInfo(p) for p in pages]
 
 
-if __name__ == "__main__":
-  from pprint import pprint
 
-  pages = parse_mastercard_pdf("/mnt/d/Documents/Downloads/6264665578_29_01_2022_18_53_25.pdf")
-  for page in pages:
-    pprint(page.transactions)
-    for t in page.transactions:
-      print(ms_identifier(t))
+def parse_folder(dirname):
+  page_infos = list()
+  for filename in os.listdir(dirname):
+    if filename.endswith(".pdf"):
+      page_infos.extend(parse_mastercard_pdf(os.path.join(dirname, filename)))
+  
+  # extract transactions and account names
+  transactions = list()
+  account_names = set()
+  account2currency = dict()
+  for page_info in page_infos:
+    ts = page_info.transactions
+    transactions.extends(ts)
+    for t in ts:
+      account2currency[t["account"]] = t.get("original_currency", t["currency"])
+      account_names.add(t["account"])
+    
+  return page_infos, transactions, account_names, account2currency
+
+
+
