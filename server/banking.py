@@ -19,6 +19,7 @@ from sqlalchemy.util import immutabledict
 from db.database import init_db
 from db.models import AccountAlias, AccountGroup, AsDictSerializer, Group, MLModelFile, MLModelState, Transaction, Account
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
+from db.util import get_transaction_query
 
 from ml.model_train import train_model
 from ml.predict import NoValidModelException, TooManyAvailableModelsException, predict_categories, predict_category
@@ -108,35 +109,8 @@ def get_transactions():
     if sort_by is not None and sort_by not in {'when', 'amount'}:
         return error_response("cannot sort by other fields than {'when', 'amount'}")
     
-    # create filters
-    filters = []
-    if account is not None:
-        filters.append(or_(Transaction.id_source == account, Transaction.id_dest == account))
-    if group is not None:
-        sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
-        filters.append(or_(Transaction.id_source.in_(sel_expr), Transaction.id_dest.in_(sel_expr)))
-    if has_category is not None:
-        app.logger.info("has_category set: {}".format(has_category))
-        if has_category:
-            filters.append(Transaction.id_category != None)
-        else:
-            filters.append(Transaction.id_category == None)
-
-    query = Transaction.query.filter(and_(*filters))
-
-    if sort_by is not None:
-        sort_expr = {
-            'when': Transaction.when,
-            'amount': cast(Transaction.amount, Float)
-        }[sort_by]
-        if order == "desc":
-            sort_expr = sort_expr.desc()
-        else:
-            sort_expr = sort_expr.asc()
-        query = query.order_by(sort_expr)
-    
     # fetch
-    transactions = query[start:(start+count)]
+    transactions = get_transaction_query(account=account, group=group, has_category=has_category, sort_by=sort_by, order=order)[start:(start+count)]
     to_return = [t.as_dict() for t in transactions]
 
     if ml_category:
@@ -146,6 +120,17 @@ def get_transactions():
             t_dict["ml_proba"] = p
     
     return jsonify(to_return)
+
+
+@app.route("/transactions/count", methods=["GET"])
+def get_transactions_count():
+    order = request.args.get("order", type=str, default="desc")
+    sort_by = request.args.get("sort_by", type=str, default=None)
+    account = request.args.get("account", type=int, default=None)
+    group = request.args.get("group", type=int, default=None)
+    has_category = request.args.get("has_category", type=bool_type, default=None)
+    query = get_transaction_query(account=account, group=group, has_category=has_category, sort_by=sort_by, order=order)
+    return jsonify({'count': query.count() })
 
 
 @app.route("/account/<int:id_account>", methods=["GET"])

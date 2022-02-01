@@ -3,7 +3,7 @@ import Model from './Model';
 export default class Transaction extends Model {
   /** @inheritdoc */
   static get className() {
-    return 'account';
+    return 'transaction';
   }
 
   /** @inheritdoc */

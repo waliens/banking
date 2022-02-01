@@ -1,8 +1,9 @@
 from collections import defaultdict
+from sqlalchemy import Float, and_, cast, or_, select
 from sqlalchemy.orm import sessionmaker
 
 from parsing.util import UnionFind
-from db.models import Account, Category
+from db.models import Account, AccountGroup, Category, Transaction
 from parsing.tags import Tag, TagTree
 
 Session = sessionmaker()
@@ -70,3 +71,33 @@ def tag_tree_from_database():
           roots.add(identifier)
       tags[identifier] = new_tag
   return TagTree(tags, roots, id_tree)
+
+
+def get_transaction_query(account=None, group=None, has_category=None, sort_by=None, order="desc"):
+  query = Transaction.query
+  filters = []
+  if account is not None:
+    filters.append(or_(Transaction.id_source == account, Transaction.id_dest == account))
+  if group is not None:
+    sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
+    filters.append(or_(Transaction.id_source.in_(sel_expr), Transaction.id_dest.in_(sel_expr)))
+  if has_category is not None:
+    if has_category:
+      filters.append(Transaction.id_category != None)
+    else:
+      filters.append(Transaction.id_category == None)
+
+  query = Transaction.query.filter(and_(*filters))
+
+  if sort_by is not None:
+    sort_expr = {
+      'when': Transaction.when,
+      'amount': cast(Transaction.amount, Float)
+    }[sort_by]
+    if order == "desc":
+      sort_expr = sort_expr.desc()
+    else:
+      sort_expr = sort_expr.asc()
+    query = query.order_by(sort_expr)
+
+  return query

@@ -117,6 +117,21 @@ export default class Model {
   }
 
   /**
+   * Count number of entries returned by fetchAll
+   * @param {*} params 
+   * @returns 
+   */
+  static async countAll(params={}) {
+    let {data} = await axios.get(`${this.collectionName}/count`, {
+      params,
+      paramsSerializer: params => {
+        return qs.stringify(params);
+      }
+    });
+    return data.count;
+  }
+
+  /**
    * Save the object (if it is new, it is added; otherwise, it is updated)
    *
    * @param {Object} params
