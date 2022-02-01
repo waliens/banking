@@ -20,6 +20,8 @@ export default class Currency extends Model {
       return "euro-sign";
     } else if (currency.short_name == "USD") {
       return "dollar-sign"
+    } else if (currency.short_name == "GBP") {
+      return "pound-sign";
     } else {
       throw new Error("unknow currency");
     }
