@@ -1,8 +1,8 @@
 <template>
-  <p>
+  <span>
     <span v-if="text">{{text}}</span>
     <span v-else class="tag">{{$t('undefined')}}</span>
-  </p>
+  </span>
 </template>
 
 <script>
