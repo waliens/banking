@@ -4,21 +4,24 @@ import re
 import tempfile
 
 from decimal import Decimal
+from time import sleep
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, abort
 from flask.wrappers import Response
 from flask_cors import CORS
+from numpy import sort
 
-from sqlalchemy.sql.expression import select, update, or_, and_, delete
+from sqlalchemy import Float
+from sqlalchemy.sql.expression import select, update, or_, and_, delete, cast
 from sqlalchemy.util import immutabledict
 
 from db.database import init_db
-from db.models import AccountAlias, AccountGroup, Group, MLModelFile, MLModelState, Transaction, Account
+from db.models import AccountAlias, AccountGroup, AsDictSerializer, Group, MLModelFile, MLModelState, Transaction, Account
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
 
 from ml.model_train import train_model
-from ml.predict import NoValidModelException, TooManyAvailableModelsException, predict_category
+from ml.predict import NoValidModelException, TooManyAvailableModelsException, predict_categories, predict_category
 
 from background.celery_init import make_celery
 
@@ -62,6 +65,9 @@ def delete_invalid_models(ctx):
         model.state = MLModelState.DELETED
     session.commit()
 #########################################################
+def bool_type(v):
+    return v.lower() in {"1", "true"}
+
 
 def error_response(msg, code=403):
     response = jsonify({'msg': msg})
@@ -232,6 +238,12 @@ def refresh_model(target):
     delete_invalid_models.delay()
     trigger_model_train.delay(target)
     return jsonify({'msg': 'retrain triggered'})
+
+
+@app.route("/models", methods=["GET"])
+def get_models():
+    return jsonify([m.as_dict() for m in MLModelFile.query.all()])
+
 
 @app.route("/upload_files", methods=["POST"])
 def upload_data():

@@ -16,6 +16,9 @@
         <b-navbar-item tag="router-link" :to="{ name: 'transactions-tagging' }">
           {{$t('tagging.title')}}
         </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ name: 'models' }">
+          {{$t('ml_model.title')}}
+        </b-navbar-item>
       </b-navbar-dropdown>
     </template>
     <template #end>

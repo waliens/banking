@@ -29,6 +29,11 @@ const routes = [
     component: require('./pages/TagTransactionsPage.vue').default
   },
   {
+    name: 'models',
+    path: '/models',
+    component: require('./pages/ModelsPage.vue').default
+  },
+  {
     name: 'select-account-group',
     path: '/group/select',
     component: require('./pages/AccountGroupSelectionPage.vue').default

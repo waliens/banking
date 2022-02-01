@@ -261,3 +261,6 @@ class MLModelFile(Base):
             stmt = stmt.where(and_(cls.target == target, cls.state != MLModelState.DELETED))
         stmt = stmt.values(state=MLModelState.INVALID)
         return stmt
+
+    def as_dict(self):
+        return AsDictSerializer("id", "filename", "target", "metadata_", "state")
