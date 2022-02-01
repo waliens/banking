@@ -3,3 +3,7 @@ export function hasOwnProperty(obj, prop) {
   return (prop in obj) &&
       (!(prop in proto) || proto[prop] !== obj[prop]);
 }
+
+export function regexpEscape(string) {
+  return string.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+}

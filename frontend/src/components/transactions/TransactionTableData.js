@@ -1,7 +1,7 @@
-
+import { regexpEscape } from "../../utils/helpers";
 
 export function queryFilter(query, data) {
-  let q = new RegExp('.*' + query + '.*', "gi");
+  let q = new RegExp('.*' + regexpEscape(query) + '.*', "gi");
   return data.filter(transaction => {
     return (transaction.source.name && transaction.source.name.match(q)) || (transaction.source.number && transaction.source.number.match(q)) 
             || (transaction.dest.name && transaction.dest.name.match(q)) || (transaction.dest.number && transaction.dest.number.match(q))
