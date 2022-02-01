@@ -227,31 +227,33 @@ class PageInfo():
       if actual_y < 0:
         # skip div not in table
         continue 
-      data[y_to_row_index[actual_y]].append(div.text.strip())
+      data[y_to_row_index[actual_y]].append(div)
 
     debit_closing = cls._closing_debit_dates(page_soup)
     date_start, date_end = cls._transactions_date_range(page_soup)
     formatted_data = list()
-    for t_data in data.values():
+    for t_divs in data.values():
+      t_data = [d.text.strip() for d in sorted(t_divs, key=lambda div: extract_pos(div)[1])]
       # value_date earliest, accounted_date latest
-      date1_idx, date2_idx = [i for i, s in enumerate(t_data) if small_date_pattern.match(s) is not None]
-      early_date, late_date = process_dates(t_data[date1_idx], t_data[date2_idx], date_start, date_end)
-      t_data_cpy = [t for i, t in enumerate(t_data) if i not in {date1_idx, date2_idx}]
+      early_date, late_date = process_dates(t_data[0], t_data[1], date_start, date_end)
+
+      c_data = dict()
+      if len(t_data) > 6:  # has another currency
+        c_data['original_amount'], c_data['original_currency'], c_data['rate_to_final'] = parse_conversion_data(t_data[5]) 
+        amount_index = 6
+      else:
+        amount_index = 5
+
       f_data = {
         'when': late_date,
         'value_date': early_date,
-        'account': re.sub("([\r\n]+|\(Via.*\))", "", t_data_cpy[0]).strip(),
-        'country_or_site': t_data_cpy[1],
-        'country_code': t_data_cpy[2]
+        'account': re.sub("([\r\n]+|\(Via.*\))", "", t_data[2]).strip(),
+        'country_or_site': t_data[2],
+        'country_code': t_data[4]
       }
-      if len(t_data_cpy) > 4:  # has another currency
-        f_data['original_amount'], f_data['original_currency'], f_data['rate_to_final'] = parse_conversion_data(t_data_cpy[3]) 
-        amount_index = 4
-      else:
-        amount_index = 3
 
-      amount, currency = parse_amount(t_data_cpy[amount_index])
-
+      amount, currency = parse_amount(t_data[amount_index])
+      f_data.update(c_data)
       f_data.update({ 'amount': amount, 'currency': currency })
       f_data.update(debit_closing)
       formatted_data.append(f_data)
@@ -281,3 +283,9 @@ def parse_folder(dirname):
       account_names.add(t["account"])
     
   return page_infos, transactions, account_names, account2currency
+
+
+if __name__ == "__main__":
+  pages = parse_mastercard_pdf("/mnt/d/Git/banking/personal/6291106679_01_02_2022_01_36_32.pdf")
+  import pprint
+  pprint.pprint([p.transactions for p in pages])
