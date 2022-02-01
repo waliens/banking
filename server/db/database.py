@@ -12,7 +12,8 @@ def add_currencies(sess=None):
     from .models import Currency
     save([
         Currency(symbol="€", short_name="EUR", long_name="Euro"),
-        Currency(symbol="$", short_name="USD", long_name="US Dollar")
+        Currency(symbol="$", short_name="USD", long_name="US Dollar"),
+        Currency(symbol="£", short_name="GBP", long_name="GB Pounds")
     ], sess=sess)
 
 
