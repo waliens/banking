@@ -36,6 +36,7 @@ data_upload.title,Upload data,Upload des données
 data_upload.upload_file_type,File type,Type de fichier
 data_upload.mastercard_account,MasterCard account,Compte MasterCard
 data_upload.mastercard_preview,MasterCard preview,Preview MasterCard
+navbar.data,Data,Données
 amount,Amount,Montant
 app_name,Banking,Banking
 balance,Balance,Solde

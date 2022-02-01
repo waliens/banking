@@ -6,9 +6,14 @@
       </b-navbar-item>
     </template>
     <template #start>
-      <b-navbar-item tag="router-link" :to="{ name: 'merge-accounts' }">
-        {{$t('account.merge')}}
-      </b-navbar-item>
+      <b-navbar-dropdown :label="$t('navbar.data')">
+        <b-navbar-item tag="router-link" :to="{ name: 'upload-data' }">
+          {{$t('data_upload.title')}}
+        </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ name: 'merge-accounts' }">
+          {{$t('account.merge')}}
+        </b-navbar-item>
+      </b-navbar-dropdown>
     </template>
     <template #end>
         <b-navbar-item tag="router-link" :to="{ name: 'select-account-group' }">
