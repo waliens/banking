@@ -44,7 +44,7 @@ Session, engine = init_db()
 
 import logging
 logging.basicConfig()
-# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 #################### CELERY TASKS #######################
 @celery.task
@@ -249,8 +249,9 @@ def upload_data():
                 json.dump({}, jsonfile)
             import_belfius_csv(dirname, session)
         elif format == "mastercard_pdf":
-            id_mc_account = request.args.get("id_mc_account")
-            import_mastercard_pdf(dirname, id_mc_account, session)
+            id_mscard_account = request.args.get("id_mscard_account")
+            app.logger.info(id_mscard_account)
+            import_mastercard_pdf(dirname, id_mscard_account, session)
         elif format == "mastercard_pdf_preview":
             preview = get_mastercard_preview(dirname)
             return jsonify(preview)

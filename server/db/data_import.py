@@ -111,11 +111,21 @@ def check_existing_mastercard_accounts(account_names):
       all_accounts[account_name] = accounts[0]
   return to_create, all_accounts
 
+
+def make_mscard_metadata(t):
+  toisoformat = lambda v: v.isoformat()
+  serializer = AsDictSerializer(
+    "country_code", "country_or_site", "rate_to_final", "original_currency", 
+    closing_date=toisoformat, debit_date=toisoformat, value_date=toisoformat,
+    original_amount=(lambda v: None if v is None else str(v)),
+  )
+  return serializer.serialize(t)
+
+
 def get_mastercard_preview(dirname):
   _, transactions, account_names, account2currency = parse_folder(dirname)
   to_create, all_accounts = check_existing_mastercard_accounts(account_names)
   logging.getLogger('banking').info("found {} transaction(s) in pdf file(s)".format(len(transactions)))
-  logging.getLogger('banking').info(transactions)
 
   currencies = {c.short_name: c for c in Currency.query.all()}
   for t in transactions:
@@ -128,7 +138,7 @@ def get_mastercard_preview(dirname):
 
   toisoformat = lambda v: v.isoformat()
   serializer = AsDictSerializer(
-    "account_name", "country_code", "country_or_site", "original_amount", "rate_to_final",
+    "account_name", "country_code", "country_or_site", "rate_to_final",
     closing_date=toisoformat, debit_date=toisoformat,
     when=toisoformat, value_date=toisoformat, amount=str, 
     original_amount=(lambda v: None if v is None else str(v)),
@@ -156,16 +166,19 @@ def import_mastercard_pdf(dirname, id_mc_account, sess):
   new_transactions = list()
   for t in transactions:
     amount = t["amount"]
-    id_source, id_dest = id_mc_account, all_accounts[t["account"]]
+    id_source, id_dest = id_mc_account, all_accounts[t["account"]].id
     if amount > 0:  # income
       id_source, id_dest = id_dest, id_source
+    logging.getLogger().info((make_mscard_metadata(t), id_source, id_dest))
     new_transactions.append(Transaction(
       custom_id=ms_identifier(t),
       id_source=id_source, id_dest=id_dest,
-      when=t["when"], amount=amount.abs(),
+      when=t["when"], amount=amount.copy_abs(),
+      metadata_=make_mscard_metadata(t),
       id_currency=name2currency[t["currency"]].id,
-      metadata_=make_metadata_serializable(t),
-      id_category=None)
-    )
+      id_category=None,
+      data_source="mastercard"
+    ))
   
-  save(new_transactions, sess=sess)
+  sess.bulk_save_objects(new_transactions)
+  sess.commit()

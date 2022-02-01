@@ -18,10 +18,10 @@ def ms_identifier(t):
   return re.sub(r"\s+", "", "mastercard/{}/{}/{}/{}/{}/{}/{}/{}".format(
     t["amount"],
     t["account"],
-    t["closing_date"].strftime("%d-%m-%Y"),
-    t["debit_date"].strftime("%d-%m-%Y"),
-    t["when"].strftime("%d-%m-%Y"),
-    t["value_date"].strftime("%d-%m-%Y"),
+    t["closing_date"].isoformat(),
+    t["debit_date"].isoformat(),
+    t["when"].isoformat(),
+    t["value_date"].isoformat(),
     t["country_code"],
     t["country_or_site"]
   ))
