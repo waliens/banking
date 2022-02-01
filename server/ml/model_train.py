@@ -30,7 +30,6 @@ def train_model(session, data_source="belfius", required_sample_size=50, random_
   if data_source not in {'belfius'}:
     raise ValueError("not supported for other data then beflius")
 
-
   transformer = belfius_transformer()
   transactions = Transaction.query.filter(Transaction.data_source == data_source).all()
   labeled_idxs = np.array([i for i, t in enumerate(transactions) if t.id_category is not None])
@@ -40,7 +39,7 @@ def train_model(session, data_source="belfius", required_sample_size=50, random_
   if MLModelFile.has_models_in_state(MLModelState.TRAINING, target=data_source):
     raise ModelBeingTrainedException("model being trained for target")
   if n_samples < required_sample_size:
-    return 
+    return
 
   # save model in training mode
   model_filename = MLModelFile.generate_filename()
@@ -75,10 +74,11 @@ def train_model(session, data_source="belfius", required_sample_size=50, random_
     
     model_path = os.getenv('MODEL_PATH')
     model_filepath = os.path.join(model_path, model_file.filename)
+    os.makedirs(model_path, exist_ok=True)
     logging.getLogger().info("dump trained model model into '{}'")
 
     # check if TRAINING state hasn't change
-    session.refresh()
+    session.refresh(model_file)
     if model_file.state == MLModelState.TRAINING:
       dump(pipeline, model_filepath)
       model_file.state = MLModelState.VALID

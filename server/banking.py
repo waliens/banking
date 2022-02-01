@@ -51,12 +51,12 @@ logging.basicConfig()
 
 #################### CELERY TASKS #######################
 @celery.task
-def trigger_model_train(ctx, target):
-    train_model(ctx.session, data_source=target)
+def trigger_model_train(target):
+    train_model(trigger_model_train.session, data_source=target)
 
 @celery.task
-def delete_invalid_models(ctx):
-    session = ctx.session
+def delete_invalid_models():
+    session = delete_invalid_models.session
     models = MLModelFile.get_models_by_state(MLModelState.INVALID)
     for model in models:
         filepath = os.path.join(os.getenv("MODEL_PATH"), model.filename)
@@ -65,6 +65,7 @@ def delete_invalid_models(ctx):
         model.state = MLModelState.DELETED
     session.commit()
 #########################################################
+
 def bool_type(v):
     return v.lower() in {"1", "true"}
 
@@ -73,6 +74,11 @@ def error_response(msg, code=403):
     response = jsonify({'msg': msg})
     response.status = code
     return response
+
+
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"msg": "hello"})
 
 
 @app.route("/account/<int:id_account>/transactions", methods=["GET"])
@@ -84,6 +90,61 @@ def account_transactions(id_account):
         .filter(or_(Transaction.id_dest == id_account, Transaction.id_source == id_account)) \
         .order_by(Transaction.when.desc())[start:(start+count)]
     return jsonify([t.as_dict() for t in transactions])
+
+
+@app.route("/transactions", methods=["GET"])
+def get_transactions():
+    start = request.args.get("start", type=int, default=0)
+    count = request.args.get("count", type=int, default=50)
+    order = request.args.get("order", type=str, default="desc")
+    sort_by = request.args.get("sort_by", type=str, default=None)
+    account = request.args.get("account", type=int, default=None)
+    group = request.args.get("group", type=int, default=None)
+    has_category = request.args.get("has_category", type=bool_type, default=None)
+    ml_category = request.args.get("ml_category", type=bool_type, default=False)
+
+    if account is not None and group is not None:
+        return error_response("cannot set both account and account_group when fetching transactions")
+    if sort_by is not None and sort_by not in {'when', 'amount'}:
+        return error_response("cannot sort by other fields than {'when', 'amount'}")
+    
+    # create filters
+    filters = []
+    if account is not None:
+        filters.append(or_(Transaction.id_source == account, Transaction.id_dest == account))
+    if group is not None:
+        sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
+        filters.append(or_(Transaction.id_source.in_(sel_expr), Transaction.id_dest.in_(sel_expr)))
+    if has_category is not None:
+        if has_category:
+            filters.append(Transaction.id_category == None)
+        else:
+            filters.append(Transaction.id_category != None)
+
+    query = Transaction.query.filter(and_(*filters))
+
+    if sort_by is not None:
+        sort_expr = {
+            'when': Transaction.when,
+            'amount': cast(Transaction.amount, Float)
+        }[sort_by]
+        if order == "desc":
+            sort_expr = sort_expr.desc()
+        else:
+            sort_expr = sort_expr.asc()
+        query = query.order_by(sort_expr)
+    
+    # fetch
+    transactions = query[start:(start+count)]
+    to_return = [t.as_dict() for t in transactions]
+
+    if ml_category:
+        categories, probas = predict_categories(transactions)
+        for t_dict, c, p in zip(to_return, categories, probas):
+            t_dict["ml_category"] = c.as_dict()
+            t_dict["ml_proba"] = p
+    
+    return jsonify(to_return)
 
 
 @app.route("/account/<int:id_account>", methods=["GET"])
@@ -222,10 +283,6 @@ def ml_infer_category(id_transaction):
     except TooManyAvailableModelsException("too many available model for prediction"):
         return error_response("too many models available for prediction", code=500)
 
-
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({"msg": "hello"})
 
 
 @app.route("/model/<target>/refresh", methods=["POST"])

@@ -41,6 +41,9 @@ ml_model.title,Models,Modèles,
 ml_model.target,Target data,Données cibles
 ml_model.state,State,État
 ml_model.metadata,Metadata,Méta-données
+ml_model.refresh,Re-train,Ré-entraîner
+ml_model.refresh_success,"Model re-train has been successfully triggered","Le ré-entraînement du modèle a été déclenché avec succès"
+ml_model.refresh_failure,"Model re-train has failed. Cause: {msg}","Le ré-entraînement a échouhé. Cause: {msg}"
 tagging.title,Tagging,Étiquetage
 navbar.data,Data,Données
 amount,Amount,Montant

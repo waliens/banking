@@ -1,3 +1,4 @@
+import axios from 'axios';
 import Model from './Model';
 
 export default class MLModelFile extends Model {
@@ -18,5 +19,10 @@ export default class MLModelFile extends Model {
 
   get metadata() {
     return this.metadata_;
+  }
+
+  static async refresh(target) {
+    let data = await axios.post( `${this.className}/${target}/refresh`);
+    return data;
   }
 }

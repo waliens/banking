@@ -1,4 +1,5 @@
 import enum
+from http.client import MULTI_STATUS
 import uuid
 
 from decimal import Decimal
@@ -263,4 +264,4 @@ class MLModelFile(Base):
         return stmt
 
     def as_dict(self):
-        return AsDictSerializer("id", "filename", "target", "metadata_", "state")
+        return AsDictSerializer("id", "filename", "target", "metadata_", state=lambda v: v.name).serialize(self)

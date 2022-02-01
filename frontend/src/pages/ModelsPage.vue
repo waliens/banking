@@ -8,6 +8,21 @@
       </div>
     </section>
     <section>
+      <b-field :label="$t('ml_model.target')" label-position="on-border" >
+        <b-select v-model="selectedDataSource" expanded>
+          <option 
+            v-for="source in dataSources"
+            :key="source"
+            :value="source">
+            {{ source }}
+          </option>
+        </b-select>
+        <p class="control">
+          <b-button v-on:click="refreshSourceModel" icon-right="redo" class="is-secondary" :disabled="refreshDisabled">{{$t('ml_model.refresh')}}</b-button>
+        </p>
+      </b-field>
+    </section>
+    <section>
       <b-table
         :loading="isLoading"
         :data="modelFiles">
@@ -35,6 +50,9 @@ import MLModelFile from '@/utils/api/MLModelFile';
 export default defineComponent({
   data() {
     return {
+      refreshDisabled: false,
+      selectedDataSource: 'belfius',
+      dataSources: ['belfius'],  // mastercard not available yet
       modelFiles: [],
       isLoading: false
     };
@@ -53,11 +71,29 @@ export default defineComponent({
         invalid: "is-warning", 
         valid: "is-success", 
         training: "is-primary", 
-        deleted: "is-light"
-      }[state];
+        deleted: "is-light",
+        unknown: ""
+      }[state.toLowerCase()];
     },
     formatMetadata(metadata) {
       return JSON.stringify(metadata);
+    },
+    async refreshSourceModel() {
+      this.refreshDisabled = true;
+      MLModelFile.refresh(this.selectedDataSource).then(() => {
+        this.$buefy.toast.open({
+          message: this.$t('ml_model.refresh_success'),
+          hasIcon: true,
+          type: 'is-success'
+        });
+      }).catch(e => {
+        this.$buefy.toast.open({
+          message: this.$t('ml_model.refresh_failure', {msg: e}),
+          hasIcon: true,
+          type: 'is-danger'
+        });
+        setTimeout(() => this.refreshDisabled = false, 1000);
+      });
     }
   }
 })
