@@ -103,6 +103,16 @@ def parse_conversion_data(s):
   return Decimal(original_amount.replace(",", ".")), src_currency, rate
 
 
+def parse_amount(s):
+  match = re.match("^([0-9]+(?:,[0-9]+))\s*([A-Z]+)\s*([-+])$", s)
+  if match is None:
+    raise ValueError("cannot parse amount '{}'".format(s))
+  amount = Decimal(match.group(1).replace(",","."))
+  if match.group(3) == "-":
+    amount *= -1
+  return amount, match.group(2)
+
+
 def process_dates(date1, date2, _from, _to):
   day1, month1 = map(int, date1.split("/"))
   day2, month2 = map(int, date2.split("/"))
@@ -234,19 +244,16 @@ class PageInfo():
         'country_or_site': t_data_cpy[1],
         'country_code': t_data_cpy[2]
       }
-      if len(t_data_cpy) > 6:  # has another currency
+      if len(t_data_cpy) > 4:  # has another currency
         f_data['original_amount'], f_data['original_currency'], f_data['rate_to_final'] = parse_conversion_data(t_data_cpy[3]) 
         amount_index = 4
       else:
         amount_index = 3
 
-      f_data.update({
-        'amount': Decimal(re.split("\s+", t_data_cpy[amount_index], 1)[0].strip().replace(",", ".")),
-        'currency': re.split("\s+", t_data_cpy[amount_index], 1)[1].strip()[:-2]
-      })
+      amount, currency = parse_amount(t_data_cpy[amount_index])
 
+      f_data.update({ 'amount': amount, 'currency': currency })
       f_data.update(debit_closing)
-
       formatted_data.append(f_data)
 
     return {'transactions': formatted_data}
@@ -257,12 +264,10 @@ def parse_mastercard_pdf(filename):
   return [PageInfo(p) for p in pages]
 
 
-
 def parse_folder(dirname):
   page_infos = list()
   for filename in os.listdir(dirname):
-    if filename.endswith(".pdf"):
-      page_infos.extend(parse_mastercard_pdf(os.path.join(dirname, filename)))
+    page_infos.extend(parse_mastercard_pdf(os.path.join(dirname, filename)))
   
   # extract transactions and account names
   transactions = list()
@@ -270,12 +275,9 @@ def parse_folder(dirname):
   account2currency = dict()
   for page_info in page_infos:
     ts = page_info.transactions
-    transactions.extends(ts)
+    transactions.extend(ts)
     for t in ts:
       account2currency[t["account"]] = t.get("original_currency", t["currency"])
       account_names.add(t["account"])
     
   return page_infos, transactions, account_names, account2currency
-
-
-

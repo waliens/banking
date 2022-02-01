@@ -1,4 +1,5 @@
 from ast import parse
+import logging
 from operator import eq
 import os
 
@@ -113,23 +114,32 @@ def check_existing_mastercard_accounts(account_names):
 def get_mastercard_preview(dirname):
   _, transactions, account_names, account2currency = parse_folder(dirname)
   to_create, all_accounts = check_existing_mastercard_accounts(account_names)
-  toisoformat = lambda v: v.isoformat()
-  
+  logging.getLogger('banking').info("found {} transaction(s) in pdf file(s)".format(len(transactions)))
+  logging.getLogger('banking').info(transactions)
+
+  currencies = {c.short_name: c for c in Currency.query.all()}
   for t in transactions:
     account_name = t["account"]
     t["account_name"] = account_name
     t["account"] = all_accounts[account_name] if account_name not in to_create else None
+    t["currency"] = currencies[t["currency"]]
+    if "original_currency" in t:
+      t["original_currency"] = currencies[t["original_currency"]]
 
+  toisoformat = lambda v: v.isoformat()
   serializer = AsDictSerializer(
-    "account_name", "country_code", "country_or_site", "currency", 
-    "original_amount", "original_currency", "rate_to_final",
+    "account_name", "country_code", "country_or_site", "original_amount", "rate_to_final",
     closing_date=toisoformat, debit_date=toisoformat,
     when=toisoformat, value_date=toisoformat, amount=str, 
-    original_amount=lambda v: (None if v is None else str(v))
-    **{k: AsDictSerializer.as_dict_fn() for k in ["account"]}
+    original_amount=(lambda v: None if v is None else str(v)),
+    **{k: AsDictSerializer.as_dict_fn() for k in ["original_currency", "account", "currency"]}
   )
 
-  return [serializer.serialize(t) for t in transactions]
+  class Struct:
+    def __init__(self, **members) -> None:
+      self.__dict__.update(**members)
+
+  return [serializer.serialize(Struct(**t)) for t in transactions]
 
 
 def import_mastercard_pdf(dirname, id_mc_account, sess):
@@ -147,12 +157,12 @@ def import_mastercard_pdf(dirname, id_mc_account, sess):
   for t in transactions:
     amount = t["amount"]
     id_source, id_dest = id_mc_account, all_accounts[t["account"]]
-    if amount < 0:  # income
+    if amount > 0:  # income
       id_source, id_dest = id_dest, id_source
     new_transactions.append(Transaction(
       custom_id=ms_identifier(t),
       id_source=id_source, id_dest=id_dest,
-      when=t["when"], amount=amount,
+      when=t["when"], amount=amount.abs(),
       id_currency=name2currency[t["currency"]].id,
       metadata_=make_metadata_serializable(t),
       id_category=None)

@@ -235,8 +235,8 @@ def refresh_model(target):
 
 @app.route("/upload_files", methods=["POST"])
 def upload_data():
-    format = request.args.get("format", type=int, default="belfius")
-    print(request.files)
+    format = request.args.get("format")
+    app.logger.info("file upload with format '{}'".format(format))
 
     with tempfile.TemporaryDirectory() as dirname:
         for i, file in enumerate(request.files.values()):
@@ -248,10 +248,10 @@ def upload_data():
             with open(os.path.join(dirname, "accounts.json"), "w+", encoding="utf8") as jsonfile:
                 json.dump({}, jsonfile)
             import_belfius_csv(dirname, session)
-        elif format == "mastercard_upload":
+        elif format == "mastercard_pdf":
             id_mc_account = request.args.get("id_mc_account")
             import_mastercard_pdf(dirname, id_mc_account, session)
-        elif format == "mastercard_preview":
+        elif format == "mastercard_pdf_preview":
             preview = get_mastercard_preview(dirname)
             return jsonify(preview)
         else:
