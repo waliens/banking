@@ -116,10 +116,11 @@ def get_transactions():
         sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
         filters.append(or_(Transaction.id_source.in_(sel_expr), Transaction.id_dest.in_(sel_expr)))
     if has_category is not None:
+        app.logger.info("has_category set: {}".format(has_category))
         if has_category:
-            filters.append(Transaction.id_category == None)
-        else:
             filters.append(Transaction.id_category != None)
+        else:
+            filters.append(Transaction.id_category == None)
 
     query = Transaction.query.filter(and_(*filters))
 

@@ -57,14 +57,15 @@ def train_model(session, data_source="belfius", required_sample_size=50, random_
     y = encoder.transform(categories)
 
     # create model
-    estimator = ExtraTreesClassifier(n_estimators=2, random_state=random_state)
+    estimator = ExtraTreesClassifier(n_estimators=500, random_state=random_state)
     
-    param_grid = { 'min_samples_leaf': get_max_samples_leaf(n_samples) }
+    n_features = features.shape[1]
+    param_grid = { 'min_samples_leaf': get_max_samples_leaf(n_samples), 'max_features': [int(np.sqrt(n_features)), n_features// 2, n_features] }
     kfold = KFold(n_splits=5, shuffle=True, random_state=random_state)
     gsearch = GridSearchCV(estimator, param_grid, scoring=make_scorer(accuracy_score), refit=True, cv=kfold)
     gsearch.fit(x, y)
     
-    logging.getLogger().info("finish tuning model '{}' for target '{}' (cv_score={}, best_params={})".format(
+    logging.getLogger(__name__).info("finish tuning model '{}' for target '{}' (cv_score={}, best_params={})".format(
       model_file.filename, model_file.target, gsearch.best_score_, gsearch.best_params_))
 
     pipeline = Pipeline([
@@ -75,13 +76,18 @@ def train_model(session, data_source="belfius", required_sample_size=50, random_
     model_path = os.getenv('MODEL_PATH')
     model_filepath = os.path.join(model_path, model_file.filename)
     os.makedirs(model_path, exist_ok=True)
-    logging.getLogger().info("dump trained model model into '{}'")
+    logging.getLogger(__name__).info("dump trained model model into '{}'")
 
     # check if TRAINING state hasn't change
     session.refresh(model_file)
     if model_file.state == MLModelState.TRAINING:
       dump(pipeline, model_filepath)
       model_file.state = MLModelState.VALID
+      model_file.metadata_ = {
+        'params': gsearch.best_params_,
+        'cv_score': gsearch.best_score_,
+        **model_file.metadata_
+      }
       session.commit()
 
   except Exception as e:

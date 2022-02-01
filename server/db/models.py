@@ -67,8 +67,8 @@ class Category(Base):
     icon = Column(String)
 
     def __repr__(self):
-        return "<Account(id='%d', name='%s', parent='%d', color='%s')>" % (
-            self.id, self.name, self.parent_category, self.color)
+        return "<Category(id='%d', name='%s', parent='%d', color='%s')>" % (
+            self.id, self.name, self.id_parent, self.color)
 
     def as_dict(self):
         return AsDictSerializer("id", "name", "id_parent", "color", "income", "default", "icon").serialize(self)
