@@ -13,6 +13,9 @@
         <b-navbar-item tag="router-link" :to="{ name: 'merge-accounts' }">
           {{$t('account.merge')}}
         </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ name: 'transactions-tagging' }">
+          {{$t('tagging.title')}}
+        </b-navbar-item>
       </b-navbar-dropdown>
     </template>
     <template #end>
