@@ -32,7 +32,10 @@ string.matching.strategy,Strategy,Stratégie
 string.matching.auto-match,Auto-matching,Matching automatique
 string.matching.match_score,match score,score du match
 transaction.transactions,Transactions,Transactions
-transaction.upload_data,Upload data,Upload des données
+data_upload.title,Upload data,Upload des données
+data_upload.upload_file_type,File type,Type de fichier
+data_upload.mastercard_account,MasterCard account,Compte MasterCard
+data_upload.mastercard_preview,MasterCard preview,Preview MasterCard
 amount,Amount,Montant
 app_name,Banking,Banking
 balance,Balance,Solde
@@ -50,6 +53,7 @@ group,Group,Groupe
 merge,Merge,Fusionner
 name,Name,Nom,
 new,New,Nouveau
+preview,Preview,Preview
 save,Save,Enregistrer
 search,Search,Chercher
 select,Select,Sélectionner

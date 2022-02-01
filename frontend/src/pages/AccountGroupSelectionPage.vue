@@ -5,7 +5,7 @@
       <div class="level-left">
         <b-button v-if="selectedAccountGroup" class="level-item is-small is-secondary" v-on:click="selectGroup">{{$t('select')}}</b-button>
         <b-button v-on:click="goToCreateGroup" class="level-item is-small" icon-right="plus">{{$t('account_group.create_account_group')}}</b-button>
-        <b-button v-on:click="goToUpload" class="level-item is-small" icon-right="upload">{{$t('transaction.upload_data')}}</b-button>
+        <b-button v-on:click="goToUpload" class="level-item is-small" icon-right="upload">{{$t('upload')}}</b-button>
       </div>
     </section>
     
