@@ -44,7 +44,7 @@ Session, engine = init_db()
 
 import logging
 logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+#logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 #################### CELERY TASKS #######################
 @celery.task
