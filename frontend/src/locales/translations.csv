@@ -46,6 +46,7 @@ drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
 double-table-select.selected-too-many,"Too many elements selected (selected: {selected}, maximum: {max})","Le nombre d'élément(s) sélectionné(s) est trop élevé (sélectionné(s): {selected}, maximum: {max})"
 double-table-select.nothing-selected,"Nothing selected","Pas de sélection"
 cancel,Cancel,Annuler
+category,Category,Catégorie
 confirm,Confirm,Confirmer
 edit,Edit,Éditer
 explore,Explore,Explorer
