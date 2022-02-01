@@ -11,7 +11,7 @@ services:
       FLASK_APP: banking
       FLASK_RUN_HOST: 0.0.0.0
       DB_FILE: /data/db.db
-      MODEL_PATH: ~/data/banking/models
+      MODEL_PATH: /models
       FLASK_ENV: development
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -48,7 +48,7 @@ services:
       FLASK_APP: banking
       FLASK_RUN_HOST: 0.0.0.0
       DB_FILE: /data/db.db
-      MODEL_PATH: ~/data/banking/models
+      MODEL_PATH: /models
       FLASK_ENV: development
       REDIS_HOST: redis
       REDIS_PORT: 6379
