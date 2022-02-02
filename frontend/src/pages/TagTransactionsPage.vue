@@ -2,6 +2,9 @@
   <div>
     <section class="level title-section">
       <div class="level-left"><h3 class="level-item title">{{$t('tagging.title')}}</h3></div>
+      <div class="level-right">
+        <b-button class="level-item is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button>
+      </div>
     </section>
     <section>
       <b-table
@@ -26,6 +29,22 @@
         <b-table-column field="when" :label="$t('account.when')" v-slot="props" sortable>
           <datetime-display :asdate="true" :datetime="props.row.when"></datetime-display>
         </b-table-column>
+        
+        <b-table-column :label="$t('account.source.name')" field="source.number" v-slot="props">
+          <string-or-null-display :value="props.row.source.number"></string-or-null-display>
+        </b-table-column>
+
+        <b-table-column :label="$t('account.source.number')" field="source.name" v-slot="props">
+          <string-or-null-display :value="props.row.source.name"></string-or-null-display>
+        </b-table-column>
+
+        <b-table-column :label="$t('account.dest.name')" field="dest.number" v-slot="props">
+          <string-or-null-display :value="props.row.dest.number"></string-or-null-display>
+        </b-table-column>
+
+        <b-table-column :label="$t('account.dest.number')" field="dest.name" v-slot="props">
+          <string-or-null-display :value="props.row.dest.name"></string-or-null-display>
+        </b-table-column>
 
         <b-table-column field="amount" :label="$t('amount')" v-slot="props" sortable>
           <currency-display :currency="props.row.currency" :amount="getAmountWithCurrency(props.row.amount)" :do-color="false"></currency-display>
@@ -41,7 +60,7 @@
             </p>
             <p class="control">
               <b-tooltip :label="conditionalSuggestedLabel(props.row.ml_category && selectedCategories[props.row.id] == props.row.ml_category.id, props.row.ml_proba)" class="is-secondary is-light">
-                <b-button :icon-right="categoryMap[selectedCategories[props.row.id]].icon" size="is-small" :class="getSelectedIconClass(props.row)"></b-button>
+                <b-button :icon-right="getSelectedIcon(props.row)" size="is-small" :class="getSelectedIconClass(props.row)"></b-button>
               </b-tooltip>
             </p>
             <b-select v-model="selectedCategories[props.row.id]" size="is-small">
@@ -60,7 +79,14 @@
         </b-table-column>
 
         <template #detail="props">
-          <p>{{props.row.id}}</p>
+          <table class="table">
+            <tbody>
+               <tr v-for="(value, key) in props.row.metadata_" :key="key" :value="value">
+                <th>{{humanReadable(key)}}</th>
+                <td>{{value}}</td>
+              </tr>
+            </tbody>
+          </table>
         </template>
       </b-table>
     </section>
@@ -75,9 +101,10 @@ import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import DatetimeDisplay from '@/components/generic/DatetimeDisplay.vue'
 import Transaction from '@/utils/api/Transaction';
 import Vue from 'vue';
+import StringOrNullDisplay from '../components/generic/StringOrNullDisplay.vue';
 
 export default defineComponent({
-  components: { DatetimeDisplay, CurrencyDisplay },
+  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay },
   data() {
     return {
       transactions: [],
@@ -96,7 +123,6 @@ export default defineComponent({
     this.isLoading = true;
     this.categories = await Category.getFlattenedCategoryTree();
     await this.updateTransactions();
-    this.totalTransactions = await Transaction.countAll(this.getFilterParams());
     this.isLoading = false; 
   },
   computed: {
@@ -114,8 +140,25 @@ export default defineComponent({
     }
   },
   methods: {
+    humanReadable(s) {
+      if (s) {
+        return (s.charAt(0).toUpperCase() + s.slice(1)).replaceAll("_", " ");        
+      } else {
+        return "";
+      }
+    },
+    getSelectedIcon(transaction) {
+      let selected = this.selectedCategories[transaction.id];
+      if (!selected || !this.categoryMap[selected]) {
+        return "";
+      }
+      return this.categoryMap[selected].icon;
+    },
     getSelectedIconClass(transaction) {
       let selected = this.selectedCategories[transaction.id];
+      if (!selected || !this.categoryMap[selected]) {
+        return "";
+      }
       if (this.categoryMap[selected].income) {
         return "incomeClass";
       } else {
@@ -152,19 +195,21 @@ export default defineComponent({
     },
     async onPageChange(page) {
       this.currentPage = page;
-      this.isLoading = true;
-      await this.updateTransactions();
-      this.isLoading = false; 
+      await this.updateTransactionsWithLoading();
     },
     async onSort(field, order) {
       this.sortField = field;
       this.sortOrder = order;
+      await this.updateTransactionsWithLoading();
+    },
+    async updateTransactionsWithLoading() {
       this.isLoading = true;
       await this.updateTransactions();
       this.isLoading = false; 
     },
     async updateTransactions() {
       this.transactions = await this.getFilteredTransactions();
+      this.totalTransactions = await Transaction.countAll(this.getFilterParams());
       this.setSelectedCategories();
     },
     async getFilteredTransactions() {
@@ -189,6 +234,9 @@ export default defineComponent({
       let model = new Transaction(transaction);
       await model.setCategory(this.selectedCategories[model.id]);
       this.commitedCategories[model.id] = model.category; 
+    },
+    async refreshPage() {
+      await this.updateTransactionsWithLoading();
     }
   }
 })
@@ -201,10 +249,6 @@ export default defineComponent({
 }
 .incomeClass {
   color: $amount-positive;
-}
-.proba {
-  font-size: 0.6em;
-  color: gray;
 }
 
 </style>
