@@ -57,7 +57,7 @@ def train_model(session, data_source="belfius", required_sample_size=50, random_
     y = encoder.transform(categories)
 
     # create model
-    estimator = ExtraTreesClassifier(n_estimators=500, random_state=random_state, n_jobs=-1)
+    estimator = ExtraTreesClassifier(n_estimators=500, random_state=random_state)
     
     n_features = features.shape[1]
     param_grid = { 'min_samples_leaf': get_max_samples_leaf(n_samples), 'max_features': [int(np.sqrt(n_features)), n_features// 2, n_features] }
