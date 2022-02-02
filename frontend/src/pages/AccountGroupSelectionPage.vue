@@ -2,7 +2,7 @@
   <div>
     <section class="level title-section">
       <div class="level-left"><h3 class="level-item title">{{$t('account_group.selection')}}</h3></div>
-      <div class="level-left">
+      <div class="level-right">
         <b-button v-if="selectedAccountGroup" class="level-item is-small is-secondary" v-on:click="selectGroup">{{$t('select')}}</b-button>
         <b-button v-on:click="goToCreateGroup" class="level-item is-small" icon-right="plus">{{$t('account_group.create_account_group')}}</b-button>
       </div>
