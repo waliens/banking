@@ -17,7 +17,7 @@ from sqlalchemy.sql.expression import select, update, or_, and_, delete, cast
 from sqlalchemy.util import immutabledict
 
 from db.database import init_db
-from db.models import AccountAlias, AccountGroup, AsDictSerializer, Group, MLModelFile, MLModelState, Transaction, Account
+from db.models import AccountAlias, AccountGroup, AsDictSerializer, Category, Group, MLModelFile, MLModelState, Transaction, Account
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
 from db.util import get_transaction_query
 
@@ -131,6 +131,21 @@ def get_transactions_count():
     has_category = request.args.get("has_category", type=bool_type, default=None)
     query = get_transaction_query(account=account, group=group, has_category=has_category, sort_by=sort_by, order=order)
     return jsonify({'count': query.count() })
+
+
+@app.route("/transaction/<int:id_transaction>/category/infer", methods=["GET"])
+def ml_infer_category(id_transaction):
+    transaction = Transaction.query.get(id_transaction)
+    if transaction is None:
+        abort(404)
+    try:
+        category, proba = predict_category(transaction)
+        return jsonify({"category": category.as_dict(), "proba": proba})
+    except NoValidModelException:
+        trigger_model_train.delay(transaction.data_source)
+        return error_response("no valid model ready (retry later)", code=400)
+    except TooManyAvailableModelsException("too many available model for prediction"):
+        return error_response("too many models available for prediction", code=500)
 
 
 @app.route("/account/<int:id_account>", methods=["GET"])
@@ -255,22 +270,6 @@ def accounts():
     return jsonify([a.as_dict() for a in accounts])
 
 
-@app.route("/transaction/<int:id_transaction>/category/infer", methods=["GET"])
-def ml_infer_category(id_transaction):
-    transaction = Transaction.query.get(id_transaction)
-    if transaction is None:
-        abort(404)
-    try:
-        category, proba = predict_category(transaction)
-        return jsonify({"category": category.as_dict(), "proba": proba})
-    except NoValidModelException:
-        trigger_model_train.delay(transaction.data_source)
-        return error_response("no valid model ready (retry later)", code=400)
-    except TooManyAvailableModelsException("too many available model for prediction"):
-        return error_response("too many models available for prediction", code=500)
-
-
-
 @app.route("/model/<target>/refresh", methods=["POST"])
 def refresh_model(target):
     if target not in {'belfius'}:
@@ -286,6 +285,11 @@ def refresh_model(target):
 @app.route("/models", methods=["GET"])
 def get_models():
     return jsonify([m.as_dict() for m in MLModelFile.query.all()])
+
+
+@app.route("/categories", methods=["GET"])
+def get_categories():
+    return jsonify([c.as_dict() for c in Category.query.all()])
 
 
 @app.route("/upload_files", methods=["POST"])

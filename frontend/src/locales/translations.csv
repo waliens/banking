@@ -44,6 +44,9 @@ ml_model.metadata,Metadata,Méta-données
 ml_model.refresh,Re-train,Ré-entraîner
 ml_model.refresh_success,"Model re-train has been successfully triggered","Le ré-entraînement du modèle a été déclenché avec succès"
 ml_model.refresh_failure,"Model re-train has failed. Cause: {msg}","Le ré-entraînement a échouhé. Cause: {msg}"
+ml_model.label_suggested_by_ml,"This category was suggested by a machine learning model at {proba}% confidence.","Cette catégorie a été suggérée par une modèle de machine learning avec une confiance de {proba}%."
+ml_model.not_suggested_by_ml,"This category was not suggested by a machine learning model.","Cette catégorie n'a pas été suggérée par une modèle de machine learning"
+ml_model.reset_to_predicted,"Reset to predicted category","Ré-initialiser à la catégorie prédite"
 tagging.title,Tagging,Étiquetage
 navbar.data,Data,Données
 amount,Amount,Montant
