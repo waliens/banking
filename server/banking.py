@@ -124,12 +124,10 @@ def get_transactions():
 
 @app.route("/transactions/count", methods=["GET"])
 def get_transactions_count():
-    order = request.args.get("order", type=str, default="desc")
-    sort_by = request.args.get("sort_by", type=str, default=None)
     account = request.args.get("account", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
     has_category = request.args.get("has_category", type=bool_type, default=None)
-    query = get_transaction_query(account=account, group=group, has_category=has_category, sort_by=sort_by, order=order)
+    query = get_transaction_query(account=account, group=group, has_category=has_category)
     return jsonify({'count': query.count() })
 
 

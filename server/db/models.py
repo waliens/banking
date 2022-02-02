@@ -4,9 +4,9 @@ import uuid
 
 from decimal import Decimal
 
-from sqlalchemy import Column, JSON, Enum, Boolean, Integer, Date, Float, String, ForeignKey, TypeDecorator, UniqueConstraint
+from sqlalchemy import Column, JSON, Enum, Boolean, Integer, Date, Float, String, ForeignKey, Numeric, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, noload
 from sqlalchemy.sql.expression import and_, select, func, update, or_
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -39,20 +39,8 @@ class AsDictSerializer(object):
         return lambda iterable: [AsDictSerializer.as_dict_fn()(v) for v in iterable]
 
 
-class MyNumeric(TypeDecorator):
-    impl = String
-
-    def __init__(self, length=None, **kwargs):
-        super().__init__(length, **kwargs)
-
-    def process_literal_param(self, value: Decimal, dialect):
-        return str(value) if value is not None else None
-
-    process_bind_param = process_literal_param
-
-    def process_result_value(self, value, dialect):
-        # convert sql string to python time
-        return Decimal(value) if value is not None else None
+def no_load(query, *keys):
+  return query.options(noload(*keys))
 
 
 class Category(Base):
@@ -102,7 +90,7 @@ class Account(Base):
     id = Column(Integer, primary_key=True)
     number = Column(String(63), nullable=True)
     name = Column(String(255), nullable=True)
-    initial = Column(MyNumeric, nullable=True)
+    initial = Column(Numeric(2), nullable=True)
     id_currency = Column(Integer, ForeignKey('currency.id'))
 
     as_source = relationship(lambda: Transaction, foreign_keys=lambda: Transaction.id_source, back_populates="source")
@@ -128,7 +116,7 @@ class Account(Base):
 
     @hybrid_property
     def balance(self):
-        return self.initial - Decimal(str(self.balance_neg)) + Decimal(str(self.balance_pos))
+        return self.initial - self.balance_neg + self.balance_pos
     
     @staticmethod
     def _balance_generic_instance(transacs):
@@ -136,7 +124,7 @@ class Account(Base):
 
     def _balance_generic_expr(cls, field):
         # TODO consider also other currencies
-        return select([func.sum(Transaction.amount.cast(Float))]).where(and_(cls.id == field, cls.id_currency == Transaction.id_currency)).correlate_except(Transaction).as_scalar()
+        return select([func.sum(Transaction.amount)]).where(and_(cls.id == field, cls.id_currency == Transaction.id_currency)).correlate_except(Transaction).as_scalar()
 
     __table_args__ = (
         UniqueConstraint('number', 'name', name='account_name_number_unique_constraint'),
@@ -180,7 +168,7 @@ class Transaction(Base):
     id_dest = Column(Integer, ForeignKey('account.id'))
     when = Column(Date)
     metadata_ = Column("metadata", JSON)
-    amount = Column(MyNumeric)
+    amount = Column(Numeric(2))
     id_currency = Column(Integer, ForeignKey('currency.id'))
     id_category = Column(Integer, ForeignKey('category.id'), nullable=True)
     data_source = Column(String)
@@ -190,6 +178,22 @@ class Transaction(Base):
     currency = relationship("Currency", lazy="joined")
     category = relationship("Category", lazy="joined")
 
+    @hybrid_property
+    def when_month(self):
+        return self.when.month
+
+    @when_month.expression
+    def when_month(cls):
+        return func.extract('month', cls.when)
+
+    @hybrid_property
+    def when_year(self):
+        return self.when.year
+
+    @when_year.expression
+    def when_year(cls):
+        return func.extract('year', cls.when)
+    
     def as_dict(self):
         return AsDictSerializer(
             "id", "custom_id", "id_source", "id_dest", "when",
@@ -200,6 +204,10 @@ class Transaction(Base):
 
     def __repr__(self):
         return "<Transaction(id='{}', amount='{}')>".format(self.id, self.amount)
+
+    @classmethod
+    def noload_query(cls):
+        return cls.query.option(noload('source', 'dest', 'currency', 'category'))
 
 
 class AccountGroup(Base):

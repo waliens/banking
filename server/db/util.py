@@ -92,7 +92,7 @@ def get_transaction_query(account=None, group=None, has_category=None, sort_by=N
   if sort_by is not None:
     sort_expr = {
       'when': Transaction.when,
-      'amount': cast(Transaction.amount, Float)
+      'amount': Transaction.amount
     }[sort_by]
     if order == "desc":
       sort_expr = sort_expr.desc()
