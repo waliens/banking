@@ -44,7 +44,6 @@
                 <b-button :icon-right="categoryMap[selectedCategories[props.row.id]].icon" size="is-small" :class="getSelectedIconClass(props.row)"></b-button>
               </b-tooltip>
             </p>
-
             <b-select v-model="selectedCategories[props.row.id]" size="is-small">
               <optgroup v-for="top_level in categories" :key="top_level.id" :value="top_level.id" :label="top_level.nestedName">
                 <option v-for="bottom_level in top_level.children" :key="bottom_level.id" :value="bottom_level.id">
@@ -54,7 +53,7 @@
             </b-select>
             <p class="control">
               <b-tooltip :label="$t('save')" class="is-secondary is-light">
-                <b-button v-on:click="makeSaveLabelHandler(props.row)" icon-right="check" size="is-small" :class="getButtonClass(props.row)"></b-button>
+                <b-button v-on:click="() => { saveLabel(props.row); }" icon-right="check" size="is-small" :class="getButtonClass(props.row)"></b-button>
               </b-tooltip>
             </p>
           </b-field>
@@ -141,9 +140,6 @@ export default defineComponent({
         return this.$t('ml_model.not_suggested_by_ml');
       }
     },
-    makeSaveLabelHandler(transaction) {
-      return () => { this.saveLabel(transaction) };
-    },
     setSelectedCategories() {
       this.selectedCategories = {};
       this.transactions.forEach(transaction => {
@@ -189,8 +185,10 @@ export default defineComponent({
         ... this.getFilterParams()
       };
     },
-    saveLabel(transaction) {
-      console.log(transaction)
+    async saveLabel(transaction) {
+      let model = new Transaction(transaction);
+      await model.setCategory(this.selectedCategories[model.id]);
+      this.commitedCategories[model.id] = model.category; 
     }
   }
 })

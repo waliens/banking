@@ -133,6 +133,14 @@ def get_transactions_count():
     return jsonify({'count': query.count() })
 
 
+@app.route("/transaction/<int:id_transaction>/category/<int:id_category>", methods=["PUT"])
+def set_transaction_category(id_transaction, id_category):
+    session = Session()
+    session.execute(update(Transaction).where(Transaction.id==id_transaction).values(id_category=id_category))
+    session.commit()
+    return jsonify(Transaction.query.get(id_transaction).as_dict())
+
+
 @app.route("/transaction/<int:id_transaction>/category/infer", methods=["GET"])
 def ml_infer_category(id_transaction):
     transaction = Transaction.query.get(id_transaction)

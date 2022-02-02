@@ -1,9 +1,17 @@
+import axios from 'axios';
 import Model from './Model';
 
 export default class Transaction extends Model {
   /** @inheritdoc */
   static get className() {
     return 'transaction';
+  }
+
+  async setCategory(id_category) {
+    let {data} = await axios.put(`${this.uri}/category/${id_category}`);
+    this.id_category = data.id_category;
+    this.category = data.category;
+    return this;
   }
 
   /** @inheritdoc */
