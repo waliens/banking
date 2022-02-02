@@ -33,7 +33,19 @@
 
         <b-table-column field="category" :label="$t('category')" v-slot="props">
           <b-field class="level-item">
-            <b-select v-model="selectedCategories[props.row.id]" icon-pack="fas" :icon="categoryMap[selectedCategories[props.row.id]].icon" size="is-small">
+            <!-- icon-pack="fas" :icon="categoryMap[selectedCategories[props.row.id]].icon"  -->
+            <p class="control">
+              <b-tooltip :label="$t('ml_model.reset_to_predicted')" class="is-secondary is-light">
+                <b-button v-on:click="selectedCategories[props.row.id] = props.row.ml_category.id" icon-right="desktop" size="is-small" :class="getButtonClass(props.row)"></b-button>
+              </b-tooltip>
+            </p>
+            <p class="control">
+              <b-tooltip :label="conditionalSuggestedLabel(selectedCategories[props.row.id] == props.row.ml_category.id, props.row.ml_proba)" class="is-secondary is-light">
+                <b-button :icon-right="categoryMap[selectedCategories[props.row.id]].icon" size="is-small" :class="getSelectedIconClass(props.row)"></b-button>
+              </b-tooltip>
+            </p>
+
+            <b-select v-model="selectedCategories[props.row.id]" size="is-small">
               <optgroup v-for="top_level in categories" :key="top_level.id" :value="top_level.id" :label="top_level.nestedName">
                 <option v-for="bottom_level in top_level.children" :key="bottom_level.id" :value="bottom_level.id">
                   <p>{{bottom_level.name}}</p>
@@ -41,13 +53,8 @@
               </optgroup>
             </b-select>
             <p class="control">
-              <b-tooltip :label="conditionalSuggestedLabel(selectedCategories[props.row.id] == props.row.ml_category.id, props.row.ml_proba)" class="is-secondary is-light">
+              <b-tooltip :label="$t('submit')" class="is-secondary is-light">
                 <b-button v-on:click="makeSaveLabelHandler(props.row)" icon-right="check" size="is-small" :class="getButtonClass(props.row)"></b-button>
-              </b-tooltip>
-            </p>
-            <p class="control">
-              <b-tooltip :label="$t('ml_model.reset_to_predicted')" class="is-secondary is-light">
-                <b-button v-on:click="selectedCategories[props.row.id] = props.row.ml_category.id" icon-right="desktop" size="is-small" :class="getButtonClass(props.row)"></b-button>
               </b-tooltip>
             </p>
           </b-field>
@@ -108,6 +115,14 @@ export default defineComponent({
     }
   },
   methods: {
+    getSelectedIconClass(transaction) {
+      let selected = this.selectedCategories[transaction.id];
+      if (this.categoryMap[selected].income) {
+        return "incomeClass";
+      } else {
+        return "expenseClass";
+      }
+    },
     getButtonClass(transaction) {
       let commited = this.commitedCategories[transaction.id];
       let selected = this.selectedCategories[transaction.id];
