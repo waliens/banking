@@ -1,0 +1,103 @@
+<template>
+  <div>
+    <section class="level">
+      <div class="level-item level-center" >
+        <b-field :label="$t('year')" label-position="on-border">
+          <b-select v-model="selectedYear" @input="onYearChange">
+            <option v-for="year in getYears()" :key="year" :value="year">
+              {{year}}
+            </option>
+          </b-select>
+        </b-field>
+      </div>
+    </section>
+    <section v-if="chartData.length > 0">
+      <GChart :data="chartData" :options="options" type="ColumnChart"></GChart>
+    </section>
+  </div>  
+</template>
+
+<script>
+import moment from 'moment';
+import currency from 'currency.js';
+import { defineComponent } from '@vue/composition-api';
+import { GChart } from 'vue-google-charts';
+
+export default defineComponent({
+  components: {GChart},
+  props: {'group': Object},
+  data() {
+    return {
+      selectedYear: this.getCurrentYear(),
+      chartData: [],
+      options: {
+        title: this.$t('charts.incomeexpense.title'),
+        chartArea: {width: '80%'},
+        hAxis: {
+          minValue: Math.max(...this.getYears()),
+        },
+        vAxis: {
+          title: 'currency'
+        },
+        colors: ['#63be7b', '#f8696b']
+      }
+    }
+  },
+  async created() {
+    this.chartData = await this.generateChartData();
+  },
+  computed: {
+    monthMap() {
+      return {
+        1: this.$t("january"),
+        2: this.$t("february"),
+        3: this.$t("march"),
+        4: this.$t("april"),
+        5: this.$t("may"),
+        6: this.$t("june"),
+        7: this.$t("july"),
+        8: this.$t("august"),
+        9: this.$t("september"),
+        10: this.$t("october"),
+        11: this.$t("november"),
+        12: this.$t("december")
+      };
+    }
+  },
+  methods: {
+    getYears() {
+      let length = 20; 
+      return Array.from({length}, (_, i) => this.getCurrentYear() + i - length + 1);
+    },
+    getCurrentYear() {
+      return moment().year();
+    },
+    async getRawStats() {
+      return await this.group.getIncomesExpensesStats(this.selectedYear);
+    },
+    async generateChartData() {
+      let rawStats = await this.getRawStats();
+      let map = {}, foundMonths = [];
+      rawStats.incomes.forEach(entry => {
+        foundMonths.push(entry.month);
+        map[entry.month] = {};
+        map[entry.month].income = currency(entry.total).value;
+      });
+      rawStats.expenses.forEach(entry => map[entry.month].expense = currency(entry.total).value);
+      foundMonths.sort((a, b) => a - b);
+
+      // generate actual chart data
+      let data = new Array();
+      data.push(new Array(this.$t('month'), this.$t('charts.incomeexpense.incomes'), this.$t('charts.incomeexpense.expenses')));
+      foundMonths.forEach(month => {
+        data.push(new Array(`${this.monthMap[month]}`, ...[map[month].income, map[month].expense]));
+      })
+      return data;
+    },
+    async onYearChange(newValue) {
+      this.selectedYear = newValue;
+      this.chartData = await this.generateChartData();
+    }
+  }
+})
+</script>

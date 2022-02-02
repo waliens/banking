@@ -25,6 +25,7 @@ from ml.model_train import train_model
 from ml.predict import NoValidModelException, TooManyAvailableModelsException, predict_categories, predict_category
 
 from background.celery_init import make_celery
+from db.stats import incomes_expenses
 
 # load environment
 load_dotenv()
@@ -268,6 +269,15 @@ def get_account_group(id_group):
     if group is None:
         abort(404)
     return jsonify(group.as_dict())    
+
+
+@app.route("/account_group/<int:id_group>/stats/incomeexpense")
+def get_group_income_expense(id_group):
+    year = request.args.get("year", type=int, default=None)
+    month = request.args.get("month", type=int, default=None)
+    session = Session()
+    expenses, incomes = incomes_expenses(session, id_group, year=year, month=month)
+    return jsonify({'incomes': incomes, 'expenses': expenses})
 
 
 @app.route("/accounts", methods=["GET"])

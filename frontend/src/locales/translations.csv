@@ -9,64 +9,63 @@ account_group.selection,Account group selection,Sélection d'un groupe de compte
 account_group.tag,Account group,Group de comptes
 account_group.update,Account group update,Mise à jour d'un groupe
 account.accounts,Accounts,Comptes
+account.alias,Alias,Alias
+account.aliases,Aliases,Alias
 account.balance,Balance,Solde
 account.dest.name,Name (dest),Nom (dest)
 account.dest.number,Number (dest),Numéro de compte (dest)
 account.details,Account details,Détails du compte
 account.edit,Account edition,Édition d'un compte
 account.initial,Initial,Initial
-account.merge,Merge accounts,Fusion de comptes
-account.merge_warning.title,Warning on accounts merging,Avertissement à propos de la fusion de comptes
 account.merge_warning.text,"Merging accounts is an non-reversible operation. After this operation, all transactions associated with '{alias}' will be associated with the reference account '{reference}' and it will not be possible to revert this association. Do you confirm that these accounts should be merged ?","Fusionner des comptes est une opération non-réversible. Après cette opération, toutes les transactions associées avec '{alias}' seront associées au compte de référence '{reference}' et il ne sera plus possible d'inverser cette association. Confirmes-tu que ces comptes doivent être fusionnés ?"
+account.merge_warning.title,Warning on accounts merging,Avertissement à propos de la fusion de comptes
+account.merge,Merge accounts,Fusion de comptes
 account.name,Account,Compte
 account.no_account_selected,No account selected,Pas de compte sélectionné
 account.number,Number,Numéro
+account.reference,Reference,Référence
+account.representative,Representative,Représentant
 account.source.name,Name (source),Nom (source)
 account.source.number,Number (source),Numéro de compte (source)
-account.reference,Reference,Référence
-account.alias,Alias,Alias
-account.representative,Representative,Représentant
-account.aliases,Aliases,Alias
 account.when,Date,Date
-string.matching.matches,Possible matches,Correspondances possibles
-string.matching.strategy,Strategy,Stratégie
-string.matching.auto-match,Auto-matching,Matching automatique
-string.matching.match_score,match score,score du match
-transaction.transactions,Transactions,Transactions
-data_upload.title,Upload data,Upload des données
-data_upload.upload_file_type,File type,Type de fichier
-data_upload.mastercard_account,MasterCard account,Compte MasterCard
-data_upload.mastercard_preview,MasterCard preview,Preview MasterCard
-ml_model.title,Models,Modèles,
-ml_model.target,Target data,Données cibles
-ml_model.state,State,État
-ml_model.metadata,Metadata,Méta-données
-ml_model.refresh,Re-train,Ré-entraîner
-ml_model.refresh_success,"Model re-train has been successfully triggered","Le ré-entraînement du modèle a été déclenché avec succès"
-ml_model.refresh_failure,"Model re-train has failed. Cause: {msg}","Le ré-entraînement a échouhé. Cause: {msg}"
-ml_model.label_suggested_by_ml,"This category was suggested by a machine learning model at {proba}% confidence.","Cette catégorie a été suggérée par une modèle de machine learning avec une confiance de {proba}%."
-ml_model.not_suggested_by_ml,"This category was not suggested by a machine learning model.","Cette catégorie n'a pas été suggérée par une modèle de machine learning"
-ml_model.reset_to_predicted,"Reset to predicted category","Ré-initialiser à la catégorie prédite"
-tagging.title,Tagging,Étiquetage
-navbar.data,Data,Données
 amount,Amount,Montant
 app_name,Banking,Banking
 balance,Balance,Solde
-create,Create,Créer
-date,Date,date
-description,Description,Description
-drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
-double-table-select.selected-too-many,"Too many elements selected (selected: {selected}, maximum: {max})","Le nombre d'élément(s) sélectionné(s) est trop élevé (sélectionné(s): {selected}, maximum: {max})"
-double-table-select.nothing-selected,"Nothing selected","Pas de sélection"
 cancel,Cancel,Annuler
 category,Category,Catégorie
+charts.incomeexpense.expenses,Expenses,Dépenses
+charts.incomeexpense.incomes,Incomes,Rentrées
+charts.incomeexpense.title,Incomes & Expenses,Rentrées et dépenses
 confirm,Confirm,Confirmer
+create,Create,Créer
 current-page,Current page,Page actuelle
+data_upload.mastercard_account,MasterCard account,Compte MasterCard
+data_upload.mastercard_preview,MasterCard preview,Preview MasterCard
+data_upload.title,Upload data,Upload des données
+data_upload.upload_file_type,File type,Type de fichier
+date,Date,date
+month,Month,Mois
+year,Year,Année
+description,Description,Description
+double-table-select.nothing-selected,"Nothing selected","Pas de sélection"
+double-table-select.selected-too-many,"Too many elements selected (selected: {selected}, maximum: {max})","Le nombre d'élément(s) sélectionné(s) est trop élevé (sélectionné(s): {selected}, maximum: {max})"
+drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
 edit,Edit,Éditer
 explore,Explore,Explorer
 group,Group,Groupe
 merge,Merge,Fusionner
+ml_model.label_suggested_by_ml,"This category was suggested by a machine learning model at {proba}% confidence.","Cette catégorie a été suggérée par une modèle de machine learning avec une confiance de {proba}%."
+ml_model.metadata,Metadata,Méta-données
+ml_model.not_suggested_by_ml,"This category was not suggested by a machine learning model.","Cette catégorie n'a pas été suggérée par une modèle de machine learning"
+ml_model.refresh_failure,"Model re-train has failed. Cause: {msg}","Le ré-entraînement a échouhé. Cause: {msg}"
+ml_model.refresh_success,"Model re-train has been successfully triggered","Le ré-entraînement du modèle a été déclenché avec succès"
+ml_model.refresh,Re-train,Ré-entraîner
+ml_model.reset_to_predicted,"Reset to predicted category","Ré-initialiser à la catégorie prédite"
+ml_model.state,State,État
+ml_model.target,Target data,Données cibles
+ml_model.title,Models,Modèles,
 name,Name,Nom,
+navbar.data,Data,Données
 new,New,Nouveau
 next-page,Next page,Page suivante
 page,Page,Page
@@ -76,5 +75,23 @@ refresh,Refresh,Rafraîchir
 save,Save,Enregistrer
 search,Search,Chercher
 select,Select,Sélectionner
+string.matching.auto-match,Auto-matching,Matching automatique
+string.matching.match_score,match score,score du match
+string.matching.matches,Possible matches,Correspondances possibles
+string.matching.strategy,Strategy,Stratégie
+tagging.title,Tagging,Étiquetage
+transaction.transactions,Transactions,Transactions
 undefined,N/A,N/D
 upload,Upload,Envoyer
+january,January,Janvier
+february,February,Février
+march,March,Mars
+april,April,Avril
+may,May,Mai
+june,June,Juin
+july,July,Juillet
+august,August,Août
+september,September,Septembre
+october,October,Octobre
+november,November,Novembre
+december,December,Décembre

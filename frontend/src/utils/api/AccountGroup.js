@@ -22,4 +22,8 @@ export default class AccountGroup extends Model {
     return data;
   }
 
+  async getIncomesExpensesStats(year, month) {
+    let {data} = await axios.get(`${this.uri}/stats/incomeexpense`, { params: {year, month} });
+    return data;
+  }
 }

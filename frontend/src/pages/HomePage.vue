@@ -1,24 +1,28 @@
 <template>
-    <div>
-      <h1 class="title">Group <em>{{group.name}}</em></h1>
-      <section class="level">
-        <div class="level-item has-text-centered">
-          <div>
-            <p class="heading">{{$t('account_group.number_accounts')}}</p>
-            <p class="title">{{group.accounts.length}}</p>
-          </div>
+  <div>
+    <h1 class="title">Group <em>{{group.name}}</em></h1>
+    <section class="level">
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">{{$t('account_group.number_accounts')}}</p>
+          <p class="title">{{group.accounts.length}}</p>
         </div>
-        <div class="level-item has-text-centered">
-          <div>
-            <p class="heading">{{$t('balance')}}</p>
-            <p class="title"><currency-display :currency="currency" :amount="overallBalance" :do-color="true"></currency-display></p>
-          </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">{{$t('balance')}}</p>
+          <p class="title"><currency-display :currency="currency" :amount="overallBalance" :do-color="true"></currency-display></p>
         </div>
-      </section>
-      <section>
-        <account-table :accounts="group.accounts"></account-table>
-      </section>
-    </div>
+      </div>
+    </section>
+    <section>
+      <account-table :accounts="group.accounts"></account-table>
+    </section>
+    <div class="divider" />
+    <section>
+      <income-expense-chart :group="group"></income-expense-chart>
+    </section>
+  </div>
 </template>
 
 <script>
@@ -26,9 +30,10 @@ import { defineComponent } from '@vue/composition-api'
 import AccountTable from '../components/accounts/AccountTable.vue';
 import currency from 'currency.js';
 import CurrencyDisplay from '../components/generic/CurrencyDisplay.vue';
+import IncomeExpenseChart from '../components/charts/IncomeExpenseChart.vue';
 
 export default defineComponent({
-  components: {AccountTable, CurrencyDisplay},
+  components: {AccountTable, CurrencyDisplay, IncomeExpenseChart},
   computed: {
     group() {
       return this.$store.state.currentGroup;
@@ -53,5 +58,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+.divider {
+  display: block;
+  position: relative;
+  border-top: 0.1rem solid #dbdbdb;
+  height: 0.1rem;
+  margin: 2rem 0;
+  text-align: center;
+}
 
 </style>
