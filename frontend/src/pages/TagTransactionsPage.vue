@@ -34,13 +34,13 @@
         <b-table-column field="category" :label="$t('category')" v-slot="props">
           <b-field class="level-item">
             <!-- icon-pack="fas" :icon="categoryMap[selectedCategories[props.row.id]].icon"  -->
-            <p class="control">
+            <p class="control" v-if="props.row.ml_category">
               <b-tooltip :label="$t('ml_model.reset_to_predicted')" class="is-secondary is-light">
                 <b-button v-on:click="selectedCategories[props.row.id] = props.row.ml_category.id" icon-right="desktop" size="is-small" :class="getButtonClass(props.row)"></b-button>
               </b-tooltip>
             </p>
             <p class="control">
-              <b-tooltip :label="conditionalSuggestedLabel(selectedCategories[props.row.id] == props.row.ml_category.id, props.row.ml_proba)" class="is-secondary is-light">
+              <b-tooltip :label="conditionalSuggestedLabel(props.row.ml_category && selectedCategories[props.row.id] == props.row.ml_category.id, props.row.ml_proba)" class="is-secondary is-light">
                 <b-button :icon-right="categoryMap[selectedCategories[props.row.id]].icon" size="is-small" :class="getSelectedIconClass(props.row)"></b-button>
               </b-tooltip>
             </p>
@@ -53,7 +53,7 @@
               </optgroup>
             </b-select>
             <p class="control">
-              <b-tooltip :label="$t('submit')" class="is-secondary is-light">
+              <b-tooltip :label="$t('save')" class="is-secondary is-light">
                 <b-button v-on:click="makeSaveLabelHandler(props.row)" icon-right="check" size="is-small" :class="getButtonClass(props.row)"></b-button>
               </b-tooltip>
             </p>
@@ -147,7 +147,7 @@ export default defineComponent({
     setSelectedCategories() {
       this.selectedCategories = {};
       this.transactions.forEach(transaction => {
-        Vue.set(this.selectedCategories, transaction.id, transaction.ml_category.id);
+        Vue.set(this.selectedCategories, transaction.id, !transaction.ml_category ? this.categories[0].children[0].id : transaction.ml_category.id);
         Vue.set(this.commitedCategories, transaction.id, null);
       });
     },
