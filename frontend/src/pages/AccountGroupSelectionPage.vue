@@ -67,7 +67,7 @@ export default defineComponent({
     },
     selectGroup() {
       if (this.selectedAccountGroup) {
-        this.$store.dispatch('setCurrentGroup', this.selectedAccountGroup);
+        this.$store.dispatch('setCurrentGroup', new AccountGroup(this.selectedAccountGroup));
         this.$router.push({ name: 'home' });
       }
     },
