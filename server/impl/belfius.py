@@ -234,7 +234,7 @@ class BelfiusParserOrchestrator(ParserOrchestrator):
 
     @classmethod
     def transac_files(cls, path):
-        return [f for f in  os.listdir(path) if f.endswith(".csv")]
+        return [f for f in  os.listdir(path) if "." not in f or f.rsplit(".", 1)[1] not in {'pdf', 'json', 'db'}]
 
     @classmethod
     def _read_transactions_file(cls, filepath, account_book: AccountBook):
