@@ -49,7 +49,7 @@ import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import StringOrNullDisplay from '@/components/generic/StringOrNullDisplay';
 import CategoryTag from '@/components/categories/CategoryTag';
 import { queryFilter } from './TransactionTableData.js';
-import currency from 'currency.js';
+import { strcurrency } from '@/utils/helpers';
 
 export default defineComponent({
   components: { TableWithQueryFilter, CurrencyDisplay, StringOrNullDisplay, CategoryTag },
@@ -84,7 +84,7 @@ export default defineComponent({
     },
     getSignedAmount(t) {
       if (!!this.referenceAccount && t.source.id == this.referenceAccount.id) {
-        return currency(t.amount).multiply(-1); 
+        return strcurrency(t.amount).multiply(-1); 
       } else {
         return t.amount;
       }

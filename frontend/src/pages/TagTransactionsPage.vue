@@ -96,7 +96,7 @@
 <script>
 import { defineComponent } from '@vue/composition-api'
 import Category from '@/utils/api/Category';
-import currency from 'currency.js'
+import { strcurrency } from '@/utils/helpers';
 import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import DatetimeDisplay from '@/components/generic/DatetimeDisplay.vue'
 import Transaction from '@/utils/api/Transaction';
@@ -191,7 +191,7 @@ export default defineComponent({
       });
     },
     getAmountWithCurrency(amount) {
-      return currency(amount);
+      return strcurrency(amount);
     },
     async onPageChange(page) {
       this.currentPage = page;

@@ -29,6 +29,7 @@
 import { defineComponent } from '@vue/composition-api'
 import AccountTable from '../components/accounts/AccountTable.vue';
 import currency from 'currency.js';
+import { strcurrency } from '@/utils/helpers';
 import CurrencyDisplay from '../components/generic/CurrencyDisplay.vue';
 import IncomeExpenseChart from '../components/charts/IncomeExpenseChart.vue';
 
@@ -40,7 +41,7 @@ export default defineComponent({
     },
     overallBalance() {
       let balance = currency(0);
-      return this.group.accounts.map(a => currency(a.balance)).reduce((o, b) => o.add(b), balance);
+      return this.group.accounts.map(a => strcurrency(a.balance)).reduce((o, b) => o.add(b), balance);
     },
     currency() {
       // if all accounts currencies are the same, pick this one. Otherwise, do not display it (TODO make something smarter)

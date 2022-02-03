@@ -5,6 +5,7 @@
 <script>
 import { defineComponent } from '@vue/composition-api';
 import currency from "currency.js";
+import { strcurrency } from '@/utils/helpers';
 
 export default defineComponent({
   props: {
@@ -15,11 +16,7 @@ export default defineComponent({
   computed: {
     formattedAmount() {
       // parse
-      let parseFmtObj = {
-        decimal: '.',
-        separator: ''
-      };
-      let parsed = currency(this.amount, parseFmtObj);
+      let parsed = strcurrency(this.amount);
 
       // prepare formatting
       let formatFmtObj = { 
@@ -42,7 +39,7 @@ export default defineComponent({
       if (!this.doColor) {
         return "";
       }
-      let amount = currency(this.amount);
+      let amount = strcurrency(this.amount);
       if (amount.value >= 0) {
         return "amountPositive";
       } else {

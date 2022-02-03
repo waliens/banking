@@ -1,6 +1,6 @@
 import Model from './Model';
 import axios from 'axios';
-import currency from 'currency.js';
+import { strcurrency } from '@/utils/helpers';
 import { hasOwnProperty } from '../helpers';
 
 export default class Account extends Model {
@@ -31,7 +31,7 @@ export default class Account extends Model {
   async updateChange(data) {
     let payload = {};
     let doUpdate = false;
-    if(hasOwnProperty(data, 'initial') && currency(this.initial).intValue != currency(data.initial).intValue) {
+    if(hasOwnProperty(data, 'initial') && strcurrency(this.initial).intValue != strcurrency(data.initial).intValue) {
       payload.initial = data.initial;
       doUpdate = true;
     }

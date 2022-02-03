@@ -19,7 +19,7 @@
 
 <script>
 import moment from 'moment';
-import currency from 'currency.js';
+import { strcurrency } from '@/utils/helpers';
 import { defineComponent } from '@vue/composition-api';
 import { GChart } from 'vue-google-charts';
 
@@ -81,9 +81,9 @@ export default defineComponent({
       rawStats.incomes.forEach(entry => {
         foundMonths.push(entry.month);
         map[entry.month] = {};
-        map[entry.month].income = currency(entry.total).value;
+        map[entry.month].income = strcurrency(entry.total).value;
       });
-      rawStats.expenses.forEach(entry => map[entry.month].expense = currency(entry.total).value);
+      rawStats.expenses.forEach(entry => map[entry.month].expense = strcurrency(entry.total).value);
       foundMonths.sort((a, b) => a - b);
 
       // generate actual chart data
