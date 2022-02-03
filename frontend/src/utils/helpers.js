@@ -11,5 +11,7 @@ export function regexpEscape(string) {
 }
 
 export function strcurrency(s) {
-  return currency(Number(s));
+  return currency(Number(s), { 
+    precision: 2 
+  });
 }
