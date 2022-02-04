@@ -33,6 +33,7 @@ app_name,Banking,Banking
 balance,Balance,Solde
 cancel,Cancel,Annuler
 category,Category,Catégorie
+charts.no_data,No data,Pas de données
 charts.incomeexpense.expenses,Expenses,Dépenses
 charts.incomeexpense.incomes,Incomes,Rentrées
 charts.incomeexpense.title,Incomes & Expenses,Rentrées et dépenses

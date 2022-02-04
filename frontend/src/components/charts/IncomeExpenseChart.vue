@@ -11,8 +11,11 @@
         </b-field>
       </div>
     </section>
-    <section v-if="chartData.length > 0">
+    <section v-if="chartData.length > 1">
       <GChart :data="chartData" :options="options" type="ColumnChart"></GChart>
+    </section>
+    <section v-else>
+      <no-data-box height="400px" width="80%"></no-data-box>
     </section>
   </div>  
 </template>
@@ -22,9 +25,10 @@ import moment from 'moment';
 import { strcurrency } from '@/utils/helpers';
 import { defineComponent } from '@vue/composition-api';
 import { GChart } from 'vue-google-charts';
+import NoDataBox from '../generic/NoDataBox.vue';
 
 export default defineComponent({
-  components: {GChart},
+  components: {GChart, NoDataBox},
   props: {'group': Object},
   data() {
     return {
@@ -83,14 +87,23 @@ export default defineComponent({
         map[entry.month] = {};
         map[entry.month].income = strcurrency(entry.total).value;
       });
-      rawStats.expenses.forEach(entry => map[entry.month].expense = strcurrency(entry.total).value);
+      rawStats.expenses.forEach(entry => {
+        if (!map[entry.month]) {
+          map[entry.month] = {};
+        }
+        map[entry.month].expense = strcurrency(entry.total).value
+      });
       foundMonths.sort((a, b) => a - b);
 
       // generate actual chart data
       let data = new Array();
       data.push(new Array(this.$t('month'), this.$t('charts.incomeexpense.incomes'), this.$t('charts.incomeexpense.expenses')));
       foundMonths.forEach(month => {
-        data.push(new Array(`${this.monthMap[month]}`, ...[map[month].income, map[month].expense]));
+        let month_data = map[month];
+        if (!month_data) {
+          month_data = {};
+        }
+        data.push(new Array(`${this.monthMap[month]}`, ...[map[month].income || 0, map[month].expense || 0]));
       })
       return data;
     },
