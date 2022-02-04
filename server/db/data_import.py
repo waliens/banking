@@ -3,7 +3,7 @@ import logging
 from operator import eq
 import os
 
-from sqlalchemy import update, delete
+from sqlalchemy import select, update, delete
 from sqlalchemy.sql.expression import bindparam
 
 from db.models import Account, AccountAlias, AccountGroup, AsDictSerializer, Currency, Transaction
@@ -75,8 +75,8 @@ def import_belfius_csv(dirname, sess):
   
   db_accounts = save_diff_db_parsed_accounts(db_accounts, env.account_book, sess=sess)
   currencies = Currency.query.all()
-
-  existing_ids = {v[0] for v in sess.query(Transaction.id).all()}
+  
+  existing_ids = {s[0] for s in sess.query(Transaction.custom_id).all()}
 
   # transactions
   transacs = list()
@@ -93,6 +93,8 @@ def import_belfius_csv(dirname, sess):
       id_currency=[c for c in currencies if t.currency == c.short_name][0].id,
       id_category=None)
     )
+  
+  logging.getLogger("banking").info("uploading {} new transaction(s)".format(len(transacs)))
     
   save(transacs, sess=sess)
 
