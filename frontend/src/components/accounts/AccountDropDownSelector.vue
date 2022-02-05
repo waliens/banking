@@ -9,7 +9,7 @@
       ref="autocomplete"
       expanded>
     </b-autocomplete>
-    <p class="control"><b-button @click="goToAccount" :disabled="!selected" icon-left="eye" class="is-secondary"></b-button></p>
+    <p class="control"><b-button @click="toAccount" :disabled="!selected" icon-left="eye" class="is-secondary"></b-button></p>
   </b-field>
 </template>
 
@@ -44,9 +44,9 @@ export default defineComponent({
       this.selected = value;
       this.$emit('input', this.selected)
     },
-    goToAccount(accountId) {
+    toAccount() {
       if (this.selected) {
-        this.$router.push({ name: 'view-account', params: {accountId}});
+        this.$router.push({ name: 'view-account', params: {accountid: this.selected.id} });
       }
     }
   },

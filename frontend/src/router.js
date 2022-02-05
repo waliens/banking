@@ -60,12 +60,12 @@ const routes = [
   // },
   {
     name: 'view-account',
-    path: '/account/:accountId',
+    path: '/account/:accountid',
     component: require('./pages/ViewAccountPage.vue').default
   },
   {
     name: 'edit-account',
-    path: '/account/:accountId/edit',
+    path: '/account/:accountid/edit',
     component: require('./pages/EditAccountPage.vue').default
   },
   {

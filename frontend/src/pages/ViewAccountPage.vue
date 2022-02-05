@@ -57,17 +57,22 @@ export default defineComponent({
     };
   },
   async created() {
-    this.account = await this.fetchAccount();
-    this.transactions = await this.fetchTransactions();
+    if (this.hasAccountId) {
+      this.account = await this.fetchAccount();
+      this.transactions = await this.fetchTransactions();
+    }
   },
   computed: {
+    hasAccountId() {
+      return !!this.accountId;
+    },
     accountId() {
-      return this.$route.params.accountId;
+      return this.$route.params.accountid;
     }
   },
   methods: {
     async fetchAccount() {
-      return await Account.fetch(this.accountId);
+      return await new Account({id: this.accountId}).fetch();
     },
     async fetchTransactions() {
       if (this.account) {
