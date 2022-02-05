@@ -10,6 +10,9 @@
         <b-navbar-item tag="router-link" :to="{ name: 'upload-data' }">
           {{$t('data_upload.title')}}
         </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ name: 'select-account-group' }">
+          {{$t('account_group.groups')}}
+        </b-navbar-item>
         <b-navbar-item tag="router-link" :to="{ name: 'merge-accounts' }">
           {{$t('account.merge')}}
         </b-navbar-item>

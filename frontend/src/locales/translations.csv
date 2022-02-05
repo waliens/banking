@@ -1,4 +1,5 @@
 key,en,fr
+account_group.groups,Account groups,Groupes de comptes
 account_group.create_account_group,Create a group,Créer un groupe
 account_group.creation,Account group creation,Création d'un groupe
 account_group.no_account_group_message,"You have no account group currently registered on the app. If you have already added some transactions and accounts, please create an account group. If you have not added any data yet, please upload transactions from your bank and then create account groups.","Tu n'as pas encore ajouté de groupe sur l'application. Si tu as déjà uploadé des transactions et des comptes, crée un group en suivant le lien ci-dessous. Si tu n'as pas encore uploadé des données, ajoutes-en en suivant l'autre lien."
