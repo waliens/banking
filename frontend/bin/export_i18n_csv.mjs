@@ -52,7 +52,7 @@ function create_deep_field(obj, keys, value, overwrite=false) {
   } else if (keys.length == 1) {
     let key = keys[0];
     if(!overwrite && key in obj){
-      throw Error("key already contained");
+      throw Error(`key ${key} already contained`);
     }
     obj[key] = value;
     return;
