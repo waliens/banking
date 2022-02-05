@@ -1,20 +1,20 @@
-FROM node:12.22-alpine3.14
+FROM node:12.22-alpine3.14 as build-stage
 
-# for dev: 
-#   from frontend root: docker build -f Dockerfile.dev -t nodedev .
-#   from frontend root: docker run -v ~/repos/banking/frontend/src:/app/src -e VUE_APP_API=localhost:5000 -p 8080:8080 --rm -it nodedev
-# définit le dossier 'app' comme dossier de travail
 WORKDIR /app
-
 RUN apk add --no-cache bash
-
 COPY ./yarn.lock ./package.json /app/
   
-# installe les dépendances du projet
 RUN yarn install
 
 ADD ./src /app/src
 ADD ./public /app/public
 ADD ./bin /app/bin 
 
-ENTRYPOINT [ "yarn", "serve" ]
+ARG VUE_APP_MODE
+ARG VUE_APP_API
+RUN VUE_APP_MODE=${VUE_APP_MODE} VUE_APP_API=${VUE_APP_API} yarn build 
+
+FROM nginx:1.21.6-alpine as production-stage
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
