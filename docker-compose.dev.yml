@@ -1,9 +1,9 @@
 services:
   # flask server
-  server:
+  server-dev:
     build:
       context: server/
-      dockerfile: "Dockerfile"
+      dockerfile: Dockerfile
     ports:
       - 5000:5000
     command: "flask run"
@@ -21,10 +21,10 @@ services:
       - ~/data/banking/models:/models
 
   # vue client
-  frontend:
+  frontend-dev:
     build:
       context: frontend/
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     environment:
       VUE_APP_API: localhost:5000
     ports:
@@ -54,6 +54,7 @@ services:
       REDIS_PORT: 6379
     depends_on:
       - redis
+      - server
     volumes:      
       - ~/data/banking/db:/data
       - ~/data/banking/models:/models
