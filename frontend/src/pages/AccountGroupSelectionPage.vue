@@ -3,8 +3,9 @@
     <section class="level title-section">
       <div class="level-left"><h3 class="level-item title">{{$t('account_group.selection')}}</h3></div>
       <div class="level-right">
-        <b-button v-if="selectedAccountGroup" class="level-item is-small is-secondary" v-on:click="selectGroup">{{$t('select')}}</b-button>
-        <b-button v-on:click="goToCreateGroup" class="level-item is-small" icon-right="plus">{{$t('account_group.create_account_group')}}</b-button>
+        <b-button v-if="selectedAccountGroup" class="level-item is-small is-secondary" @click="editGroup" icon-right="pen">{{$t('edit')}}</b-button>
+        <b-button v-if="selectedAccountGroup" class="level-item is-small is-secondary" @click="selectGroup" icon-right="hand-pointer">{{$t('select')}}</b-button>
+        <b-button @click="createGroup" class="level-item is-small" icon-right="plus">{{$t('account_group.create_account_group')}}</b-button>
       </div>
     </section>
     
@@ -56,11 +57,9 @@ export default defineComponent({
       selectedAccountGroup: null
     }
   },
-
   async created() {
     await this.fetchAccountGroups()
   },
-
   methods: {
     async fetchAccountGroups() {
       await AccountGroup.fetchGroups().then(groups => { this.accountGroups = groups; });
@@ -71,8 +70,11 @@ export default defineComponent({
         this.$router.push({ name: 'home' });
       }
     },
-    goToCreateGroup() {
+    createGroup() {
       this.$router.push({ name: 'create-account-group' });
+    },
+    editGroup() {
+      this.$router.push({ name: 'edit-account-group', params: { groupid: this.selectedAccountGroup.id }});
     }
   }
 })

@@ -44,9 +44,9 @@ export default defineComponent({
       this.selected = value;
       this.$emit('input', this.selected)
     },
-    goToAccount() {
+    goToAccount(accountId) {
       if (this.selected) {
-        this.$router.push({ name: 'view-account', params: {accountId: this.selected.id}});
+        this.$router.push({ name: 'view-account', params: {accountId}});
       }
     }
   },

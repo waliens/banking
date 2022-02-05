@@ -6,34 +6,51 @@
         <h3 class="title" v-if="accountGroupId">{{$t('account_group.update')}}</h3>
       </div>
       <div class="level-left">
-        <b-button v-on:click="send" class="level-item is-small" icon-right="plus">{{$t('create')}}</b-button>
+        <b-button v-on:click="send" class="level-item is-small" icon-right="plus">{{$t('save')}}</b-button>
       </div>
     </section>
-
-
     <section class="submit-section">
-      <div class="control">
-        <b-field :label="$t('name')" label-position="on-border">
-          <b-input v-model="accountGroup.name" ></b-input>
+      <b-field :label="$t('name')" label-position="on-border">
+        <b-input v-model="accountGroup.name" ></b-input>
+      </b-field>
+      <b-field :label="$t('description')" label-position="on-border">
+        <b-input v-model="accountGroup.description" maxlength="200" type="textarea"></b-input>
+      </b-field>
+      <div class="control level">
+        <account-drop-down-selector
+          class="level-item"
+          :accounts="candidateAccounts"
+          v-model="selectedAccountInDrowdown" >
+        </account-drop-down-selector>
+        <b-field label-position="on-border" class="level-item" narrowed>
+          <b-button icon-right="plus" @click="selectAccount" class="addButton"></b-button>
         </b-field>
       </div>
       <div class="control">
-        <b-field :label="$t('description')" label-position="on-border">
-          <b-input v-model="accountGroup.description" maxlength="200" type="textarea"></b-input>
-        </b-field>
-      </div>
-      <div class="control">
-        
-      </div>
-      <div class="control">
-        <double-table-select
-          :data="accounts"
-          :columns="tableColumns"
-          :notSelected="notSelectedAccounts"
-          :selected.sync="accountGroup.accounts"
-          :filterFromQuery="queryFilter"
-          :keyFn="(e) => e.id"
-          ></double-table-select>
+        <b-table
+          :data="accountGroup.accounts"
+          :title="$t('selection')">
+
+          <b-table-column field="name" :label="$t('account.name')" v-slot="props" sortable>
+            <string-or-null-display :value="props.row.name" ></string-or-null-display>
+          </b-table-column>
+          
+          <b-table-column field="number" :label="$t('account.number')" v-slot="props" sortable>
+            <string-or-null-display :value="props.row.number" ></string-or-null-display>
+          </b-table-column>
+
+          <b-table-column field="balance" :label="$t('account.balance')" v-slot="props" sortable>
+            <currency-display :currency="props.row.currency" :amount="props.row.balance" :color="false"></currency-display>
+          </b-table-column>
+
+          <b-table-column :label="$t('explore')" v-slot="props">
+            <b-field>
+              <b-button class="table-button is-small is-primary" icon-right="eye" @click="() => goToAccount(props.row.id)"></b-button>
+              <b-button class="table-button is-small is-danger" icon-right="times" @click="() => unselectAccount(props.row.id)"></b-button>
+            </b-field>
+          </b-table-column>
+
+        </b-table>
       </div>
     </section>
 
@@ -41,63 +58,96 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import { defineComponent } from '@vue/composition-api';
 import AccountGroup from '@/utils/api/AccountGroup';
 import Account from '@/utils/api/Account';
-import DoubleTableSelect from '@/components/generic/DoubleTableSelect.vue';
+import AccountTable from '@/components/accounts/AccountTable';
+import AccountDropDownSelector from '@/components/accounts/AccountDropDownSelector';
+import StringOrNullDisplay from '@/components/generic/StringOrNullDisplay';
+import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import {getColumns, queryFilter} from '../components/accounts/AccountTableData.js';
 
 export default defineComponent({
-  components: { DoubleTableSelect },
+  components: { AccountTable, AccountDropDownSelector, StringOrNullDisplay, CurrencyDisplay },
   data() {
     return {
       accountGroup: new AccountGroup(),
       tableColumns: getColumns(this),
+      selectedAccountInDrowdown: null,
       queryFilter,
-      accounts: [],
-      notSelectedAccounts: []
+      accounts: []
     }
   },
   async created() {
-    if (this.accountGroupId) {
-      this.accountGroup = this.accountGroup.fetch(this.accountGroupId);
+    if (this.hasAccountGroupId) {
+      this.accountGroup = await this.getAccountGroup();
     }
-    await this.getAllAccounts();
+    this.accounts = await this.getAllAccounts();
+    Vue.set(this.accountGroup, 'accounts', this.accountGroup.accounts);
   },
   computed: {
     accountGroupId() {
       return this.$route.params.groupid;
     },
+    hasAccountGroupId() {
+      return !!this.accountGroupId;
+    },
+    candidateAccounts() {
+      if (this.accounts.length == 0) {
+        return [];
+      } else {
+        if (this.accountGroup.accounts && this.accountGroup.accounts.length > 0) {
+          let selectedSet = new Set(this.accountGroup.accounts.map(a => a.id));
+          return this.accounts.filter(a => !selectedSet.has(a.id));
+        } else {
+          return this.accounts;
+        }
+      }
+    }
   },
   methods: {
     async getAllAccounts() {
-      this.accounts = await Account.fetchAll();
-      if (this.accountGroup.accounts) {
-        let selectedIdSet = new Set(this.accountGroup.accounts.map(a => a.id))
-        this.notSelectedAccounts = this.accounts.filter(a => !selectedIdSet.has(a.id));
+      return await Account.fetchAll();
+    },
+    selectAccount() {
+      if (this.selectedAccountInDrowdown) {
+        this.accountGroup.accounts.push(this.selectedAccountInDrowdown);
+        this.selectedAccountInDrowdown = null;
       }
     },
-
+    unselectAccount(accountId) {
+      this.accountGroup.accounts = this.accountGroup.accounts.filter(a => a.id != accountId); 
+    },
+    goToAccount() {
+      this.$router.push({ name: 'view-account' })
+    },
     async send() {
       this.accountGroup.save().then(() => {
-        this.$router.push({ name: 'home' });
+        this.$router.go(-1);
       });
+    },
+    async getAccountGroup() {
+      if (this.hasAccountGroupId) {
+        return await new AccountGroup({id: this.accountGroupId}).fetch();
+      } else {
+        return null;
+      }
     }
-
   }
 })
 </script>
 
 <style lang="scss" scoped>
-.control {
-  margin-top: 10px;
-}
-
 .title {
   margin: 10px;
 }
 
-.submit-section {
+.addButton {
   margin-bottom: 10px;
+}
+
+.table-button {
+  margin-right: 5px;
 }
 </style>

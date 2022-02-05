@@ -6,7 +6,7 @@ account_group.not_selected,group not selected,Aucun groupe sélectionné
 account_group.number_accounts,Number of accounts,Nombre de comptes
 account_group.select_one,Select an account group,Sélectionne un groupe de comptes
 account_group.selection,Account group selection,Sélection d'un groupe de comptes
-account_group.tag,Account group,Group de comptes
+account_group.tag,Account group,Groupe de comptes
 account_group.update,Account group update,Mise à jour d'un groupe
 account.accounts,Accounts,Comptes
 account.alias,Alias,Alias
@@ -45,6 +45,7 @@ data_upload.mastercard_preview,MasterCard preview,Preview MasterCard
 data_upload.title,Upload data,Upload des données
 data_upload.upload_file_type,File type,Type de fichier
 date,Date,date
+edit,Edit,Éditer
 month,Month,Mois
 year,Year,Année
 description,Description,Description
@@ -75,6 +76,7 @@ previous-page,Previous page,Page précédente
 refresh,Refresh,Rafraîchir
 save,Save,Enregistrer
 search,Search,Chercher
+selection,Selection,Sélection
 select,Select,Sélectionner
 string.matching.auto-match,Auto-matching,Matching automatique
 string.matching.match_score,match score,score du match

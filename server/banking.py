@@ -262,6 +262,21 @@ def create_group():
 
     return jsonify(grp.as_dict())
 
+@app.route("/account_group/<int:id_group>", methods=["PUT"])
+def update_group(id_group):
+    session = Session()
+    group = Group.query.get(id_group)
+    group.name = request.json.get("name", group.name).strip()
+    group.description = request.json.get("description", group.description).strip()
+
+
+    session.execute(delete(AccountGroup).where(AccountGroup.id_group==id_group))
+    session.bulk_save_objects([AccountGroup(
+        id_account=acc["id"], id_group=id_group
+    ) for acc in request.json.get('accounts')])
+    session.commit()
+    return jsonify(group.as_dict())
+
 
 @app.route("/account_group/<int:id_group>", methods=["GET"])
 def get_account_group(id_group):
