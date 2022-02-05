@@ -118,8 +118,8 @@ def get_transactions():
     if ml_category:
         categories, probas = predict_categories(transactions)
         for t_dict, c, p in zip(to_return, categories, probas):
-            t_dict["ml_category"] = c.as_dict()
-            t_dict["ml_proba"] = p
+            t_dict["ml_category"] = c.as_dict() if c is not None else None
+            t_dict["ml_proba"] = p if c is not None else 0
     
     return jsonify(to_return)
 
