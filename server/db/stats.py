@@ -1,8 +1,9 @@
 from cmath import exp
 from numpy import extract
 from sqlalchemy import and_, func, select
-from db.models import AccountGroup, Transaction
-
+from db.models import AccountGroup, Currency, Transaction
+  
+import logging
 
 def group_boundary_transactions(out, query, sel_group_stmt):
   if out:
@@ -39,6 +40,8 @@ def incomes_expenses(session, id_group, year=None, month=None):
     
     return query 
 
+  currency_ids = set() 
+
   def to_dict(results):
     to_return = list()
     for result in results:
@@ -50,11 +53,14 @@ def incomes_expenses(session, id_group, year=None, month=None):
         to_return[-1]["year"] = result[2]
       if month is None:
         to_return[-1]["month"] = result[3 if year is None else 2] 
+      currency_ids.add(result[1])
     return to_return
 
   # incomes
   expenses = make_query(True).all()
   incomes = make_query(False).all()
+  d_expenses, d_incomes = to_dict(expenses), to_dict(incomes)
+  currencies = Currency.query.filter(Currency.id.in_(currency_ids)).all()
 
-  return to_dict(expenses), to_dict(incomes)
+  return d_expenses, d_incomes, currencies
 

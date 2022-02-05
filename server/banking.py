@@ -1,4 +1,5 @@
 import json
+from locale import currency
 import os
 import re
 import tempfile
@@ -268,8 +269,6 @@ def update_group(id_group):
     group = Group.query.get(id_group)
     group.name = request.json.get("name", group.name).strip()
     group.description = request.json.get("description", group.description).strip()
-
-
     session.execute(delete(AccountGroup).where(AccountGroup.id_group==id_group))
     session.bulk_save_objects([AccountGroup(
         id_account=acc["id"], id_group=id_group
@@ -291,8 +290,8 @@ def get_group_income_expense(id_group):
     year = request.args.get("year", type=int, default=None)
     month = request.args.get("month", type=int, default=None)
     session = Session()
-    expenses, incomes = incomes_expenses(session, id_group, year=year, month=month)
-    return jsonify({'incomes': incomes, 'expenses': expenses})
+    expenses, incomes, currencies = incomes_expenses(session, id_group, year=year, month=month)
+    return jsonify({'incomes': incomes, 'expenses': expenses, 'currencies': [c.as_dict() for c in currencies]})
 
 
 @app.route("/accounts", methods=["GET"])

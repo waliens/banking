@@ -82,6 +82,12 @@ export default defineComponent({
     async generateChartData() {
       let rawStats = await this.getRawStats();
       let map = {}, foundMonths = [];
+      if (rawStats.currencies.length != 1) {
+        // several currencies in list
+        return [];
+      } else {
+        this.options.vAxis.title = `${rawStats.currencies[0].long_name} (${rawStats.currencies[0].symbol})`;
+      }
       rawStats.incomes.forEach(entry => {
         foundMonths.push(entry.month);
         map[entry.month] = {};
