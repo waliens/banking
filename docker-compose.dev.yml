@@ -13,7 +13,7 @@ services:
       DB_FILE: /data/db.db
       MODEL_PATH: /models
       FLASK_ENV: development
-      REDIS_HOST: redis
+      REDIS_HOST: redis-dev
       REDIS_PORT: 6379
     volumes:
       - ./server/:/app  # to share code and having refresh on update
@@ -50,11 +50,11 @@ services:
       DB_FILE: /data/db.db
       MODEL_PATH: /models
       FLASK_ENV: development
-      REDIS_HOST: redis
+      REDIS_HOST: redis-dev
       REDIS_PORT: 6379
     depends_on:
-      - redis
-      - server
+      - redis-dev
+      - server-dev
     volumes:      
       - ~/data/banking/db:/data
       - ~/data/banking/models:/models
