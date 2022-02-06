@@ -56,7 +56,7 @@ drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
 explore,Explore,Explorer
 group,Group,Groupe
 merge,Merge,Fusionner
-ml_model.label_suggested_by_ml,"This category was suggested by a machine learning model at {proba}% confidence.","Cette catégorie a été suggérée par une modèle de machine learning avec une confiance de {proba}%."
+ml_model.label_suggested_by_ml,"This category was suggested by a machine learning model with {proba}% confidence.","Cette catégorie a été suggérée par une modèle de machine learning avec une confiance de {proba}%."
 ml_model.metadata,Metadata,Méta-données
 ml_model.not_suggested_by_ml,"This category was not suggested by a machine learning model.","Cette catégorie n'a pas été suggérée par une modèle de machine learning"
 ml_model.refresh_failure,"Model re-train has failed. Cause: {msg}","Le ré-entraînement a échouhé. Cause: {msg}"
@@ -83,6 +83,8 @@ string.matching.match_score,match score,score du match
 string.matching.matches,Possible matches,Correspondances possibles
 string.matching.strategy,Strategy,Stratégie
 tagging.title,Tagging,Étiquetage
+tagging.transac_per_page,Transactions per page,Transactions par page
+tagging.validate_page,Validate,Valider
 transaction.transactions,Transactions,Transactions
 undefined,N/A,N/D
 upload,Upload,Envoyer

@@ -3,7 +3,17 @@
     <section class="level title-section">
       <div class="level-left"><h3 class="level-item title">{{$t('tagging.title')}}</h3></div>
       <div class="level-right">
+        <b-button class="level-item is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button>
         <b-button class="level-item is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button>
+      </div>
+    </section>
+    <section class="level">
+      <div class="level-right">
+        <b-field class="level-item" :label="$t('tagging.transac_per_page')" label-position="on-border" width="is-large">
+          <b-select v-model="transactionsPerPage" @input="refreshPage">
+            <option v-for="number in perPageNumbers" :key="number" :value="number">{{number}}</option>
+          </b-select>
+        </b-field>
       </div>
     </section>
     <section>
@@ -78,6 +88,12 @@
           </b-field>
         </b-table-column>
 
+        <b-table-column field="proba" label="" v-slot="props">
+          <b-tooltip v-if="props.row.ml_category" :label="`${probaToPercentage(props.row.ml_proba)} %`" class="is-secondary is-light">
+            <tiny-pie-chart-icon class="probaPie" :ratio="props.row.ml_proba"></tiny-pie-chart-icon>
+          </b-tooltip>
+        </b-table-column>
+
         <template #detail="props">
           <table class="table">
             <tbody>
@@ -102,9 +118,10 @@ import DatetimeDisplay from '@/components/generic/DatetimeDisplay.vue'
 import Transaction from '@/utils/api/Transaction';
 import Vue from 'vue';
 import StringOrNullDisplay from '../components/generic/StringOrNullDisplay.vue';
+import TinyPieChartIcon from '../components/icons/TinyPieChartIcon.vue';
 
 export default defineComponent({
-  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay },
+  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TinyPieChartIcon },
   data() {
     return {
       transactions: [],
@@ -116,7 +133,8 @@ export default defineComponent({
       totalTransactions: 0,
       selectedCategories: {},
       commitedCategories: {},
-      categories: []
+      categories: [],
+      perPageNumbers: [5, 10, 25, 50, 100]
     }
   },
   async created() {
@@ -178,10 +196,13 @@ export default defineComponent({
     },
     conditionalSuggestedLabel(cond, proba) {
       if (cond) {
-        return this.$t('ml_model.label_suggested_by_ml', {proba: (proba * 100).toFixed(2)});
+        return this.$t('ml_model.label_suggested_by_ml', {proba: this.probaToPercentage(proba)});
       } else {
         return this.$t('ml_model.not_suggested_by_ml');
       }
+    },
+    probaToPercentage(proba) {
+      return (proba * 100).toFixed(2);
     },
     setSelectedCategories() {
       this.selectedCategories = {};
@@ -237,6 +258,10 @@ export default defineComponent({
     },
     async refreshPage() {
       await this.updateTransactionsWithLoading();
+    },
+    async validatePage() {
+
+      await this.refreshPage();
     }
   }
 })
@@ -249,6 +274,9 @@ export default defineComponent({
 }
 .incomeClass {
   color: $amount-positive;
+}
+.probaPie {
+  margin-top: 3px;
 }
 
 </style>
