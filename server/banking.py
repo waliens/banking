@@ -13,7 +13,7 @@ from flask.wrappers import Response
 from flask_cors import CORS
 from numpy import sort
 
-from sqlalchemy import Float
+from sqlalchemy import Float, bindparam
 from sqlalchemy.sql.expression import select, update, or_, and_, delete, cast
 from sqlalchemy.util import immutabledict
 
@@ -131,6 +131,15 @@ def get_transactions_count():
     has_category = request.args.get("has_category", type=bool_type, default=None)
     query = get_transaction_query(account=account, group=group, has_category=has_category)
     return jsonify({'count': query.count() })
+
+@app.route("/transactions/tag", methods=["PUT"])
+def tag_transactions():
+    sess = Session()
+    stmt = update(Transaction).where(Transaction.id == bindparam('id_transaction')).values({Transaction.id_category: bindparam('id_category')})
+    sess.execute(stmt, request.json.get("categories", []))
+    sess.commit()
+    return jsonify({'msg': 'success'})
+
 
 
 @app.route("/transaction/<int:id_transaction>/category/<int:id_category>", methods=["PUT"])

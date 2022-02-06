@@ -125,7 +125,7 @@ export default defineComponent({
   data() {
     return {
       transactions: [],
-      transactionsPerPage: 10,
+      transactionsPerPage: 25,
       currentPage: 1,
       isLoading: false,
       sortField: 'when',
@@ -260,7 +260,10 @@ export default defineComponent({
       await this.updateTransactionsWithLoading();
     },
     async validatePage() {
-
+      let transactions = this.transactions.map(t => {
+        return {id_transaction: t.id, id_category: this.selectedCategories[t.id]};
+      });
+      await Transaction.setCategories(transactions);
       await this.refreshPage();
     }
   }

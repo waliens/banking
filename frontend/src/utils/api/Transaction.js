@@ -14,6 +14,11 @@ export default class Transaction extends Model {
     return this;
   }
 
+  static async setCategories(new_categories) {
+    let {data} = await axios.put(`${this.collectionName}/tag`, {'categories': new_categories});
+    return data;
+  }
+
   /** @inheritdoc */
   _initProperties() {
     super._initProperties();
