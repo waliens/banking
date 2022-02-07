@@ -86,6 +86,7 @@ tagging.title,Tagging,Étiquetage
 tagging.transac_per_page,Transactions per page,Transactions par page
 tagging.validate_page,Validate,Valider
 tagging.tree,Category tree,Arbre de catégories
+tagging.add_new_category,Add new,Créer une nouvelle catégorie
 transaction.transactions,Transactions,Transactions
 undefined,N/A,N/D
 upload,Upload,Envoyer
