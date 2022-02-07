@@ -41,6 +41,7 @@ charts.incomeexpense.title,Incomes & Expenses,Rentrées et dépenses
 confirm,Confirm,Confirmer
 create,Create,Créer
 current-page,Current page,Page actuelle
+delete,Delete,Supprimer
 data_upload.mastercard_account,MasterCard account,Compte MasterCard
 data_upload.mastercard_preview,MasterCard preview,Preview MasterCard
 data_upload.title,Upload data,Upload des données
@@ -95,6 +96,9 @@ tagging.tag.income,Income,Rentrée
 tagging.tag.parent,Parent,Parent
 tagging.tag.no_parent,No parent,Pas de parent
 transaction.transactions,Transactions,Transactions
+tagging.tag_delete_warning.title,Category deletion,Suppression de catégorie
+tagging.tag_delete_warning.with_children,"This action cannot reverted. This category appears to have children categories. These will be moved as children of the parent of the deleted category.","Cette action est irréversible. Cette catégorie semble avoir des catégories filles. Celles-ci seront déplacées comment enfants de la catégorie parente."
+tagging.tag_delete_warning.without_children,"This action cannot reverted.","Cette action est irréversible."
 undefined,N/A,N/D
 upload,Upload,Envoyer
 january,January,Janvier

@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request, abort
 from flask.wrappers import Response
 from flask_cors import CORS
-from numpy import sort
+from numpy import isin, sort
 
 from sqlalchemy import Float, bindparam
 from sqlalchemy.sql.expression import select, update, or_, and_, delete, cast
@@ -70,6 +70,8 @@ def delete_invalid_models():
 #########################################################
 
 def bool_type(v):
+    if isinstance(v, bool):
+        return v
     return v.lower() in {"1", "true"}
 
 
@@ -132,6 +134,7 @@ def get_transactions_count():
     query = get_transaction_query(account=account, group=group, has_category=has_category)
     return jsonify({'count': query.count() })
 
+
 @app.route("/transactions/tag", methods=["PUT"])
 def tag_transactions():
     sess = Session()
@@ -139,7 +142,6 @@ def tag_transactions():
     sess.execute(stmt, request.json.get("categories", []))
     sess.commit()
     return jsonify({'msg': 'success'})
-
 
 
 @app.route("/transaction/<int:id_transaction>/category/<int:id_category>", methods=["PUT"])
@@ -329,6 +331,64 @@ def get_models():
 @app.route("/categories", methods=["GET"])
 def get_categories():
     return jsonify([c.as_dict() for c in Category.query.all()])
+
+
+@app.route("/category/<int:id_category>", methods=["PUT"])
+def update_category(id_category):
+    session = Session()
+    category = Category.query.get(id_category)
+    if category is None:
+        return error_response("category not found", 404)
+    name = request.json.get("name", category.name)
+    id_parent = request.json.get("id_parent", category.id_parent)
+    color = request.json.get("color", category.color)
+    icon = request.json.get("icon", category.icon)
+    default = request.json.get("default", category.default)
+    income = request.json.get("income", category.income)
+
+    category.name = name
+    category.id_parent = id_parent
+    category.color = color
+    category.icon = icon
+    category.default = bool_type(default)
+    category.income = bool_type(income)
+
+    session.commit()
+    return jsonify(category.as_dict())
+
+
+@app.route("/category/<int:id_category>", methods=["DELETE"])
+def delete_category(id_category):    
+    session = Session()
+    category = Category.query.get(id_category)
+    session.execute(update(Category).where(Category.id_parent == id_category).values({Category.id_parent: category.id_parent}))
+    # TODO check/implement proper ON DELETE SET NULL
+    session.execute(update(Transaction).where(Transaction.id_category == id_category).values({Transaction.id_category: None}))
+    session.execute(delete(Category).where(Category.id == id_category))
+    session.commit()
+    return jsonify({'msg': 'success'})
+
+
+@app.route("/category", methods=["POST"])
+def add_category():
+    name = request.json.get("name")
+    id_parent = request.json.get("id_parent")
+    color = request.json.get("color")
+    icon = request.json.get("icon")
+    default = request.json.get("default")
+    income = request.json.get("income")
+
+    if re.match(r"^#[A-Z0-9]{6}$", color, re.IGNORECASE) is None:
+        return error_response("invalid color string '{}'".format(color))
+    if len(name) < 1: 
+        return error_response("emptu category name")
+    
+    session = Session()
+    category = Category(name=name, default=default, income=income, id_parent=id_parent, color=color, icon=icon)
+    session.add(category)
+    session.commit()
+    
+    return jsonify(category.as_dict())
 
 
 @app.route("/upload_files", methods=["POST"])

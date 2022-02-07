@@ -6,7 +6,7 @@
         <p v-else>{{item.name}}</p>
       </b-breadcrumb-item>
     </b-breadcrumb>
-    <p v-else>{{$t('tagging.no_parent')}}</p>
+    <p v-else>{{$t('tagging.tag.no_parent')}}</p>
   </div>
 </template>
 

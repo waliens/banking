@@ -170,7 +170,7 @@ class Transaction(Base):
     metadata_ = Column("metadata", JSON)
     amount = Column(Numeric(2))
     id_currency = Column(Integer, ForeignKey('currency.id'))
-    id_category = Column(Integer, ForeignKey('category.id'), nullable=True)
+    id_category = Column(Integer, ForeignKey('category.id', ondelete='SET NULL'), nullable=True)
     data_source = Column(String)
 
     source = relationship("Account", foreign_keys=[id_source], lazy="joined", back_populates="as_source")
