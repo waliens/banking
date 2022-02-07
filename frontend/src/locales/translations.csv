@@ -87,6 +87,13 @@ tagging.transac_per_page,Transactions per page,Transactions par page
 tagging.validate_page,Validate,Valider
 tagging.tree,Category tree,Arbre de catégories
 tagging.add_new_category,Add new,Créer une nouvelle catégorie
+tagging.tag.name,Name,Nom
+tagging.tag.color,Color,Couleur
+tagging.tag.icon,Icon,Icône
+tagging.tag.default,Default,Défaut
+tagging.tag.income,Income,Rentrée
+tagging.tag.parents,Parents,Parents
+tagging.tag.no_parent,No parent,Pas de parent
 transaction.transactions,Transactions,Transactions
 undefined,N/A,N/D
 upload,Upload,Envoyer

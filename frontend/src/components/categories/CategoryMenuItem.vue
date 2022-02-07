@@ -2,7 +2,7 @@
   <b-menu-item @update:active="() => clicked(category)" :icon="category.icon" :active="!!selected && selected.id == category.id" :expanded="category.children.length > 0 && expanded">
     <template #label>
       {{category.name}}
-      <b-icon class="is-pulled-right" :icon="expanded ? 'menu-up' : 'menu-down'"></b-icon>
+      <b-icon class="is-pulled-right" :icon="expanded ? 'chevron-up' : 'chevron-down'"></b-icon>
     </template>
       <div v-if="category.children.length > 0">
         <category-menu-item 
