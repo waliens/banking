@@ -22,6 +22,9 @@
         <b-navbar-item tag="router-link" :to="{ name: 'models' }">
           {{$t('ml_model.title')}}
         </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ name: 'edit-tag-tree' }">
+          {{$t('tagging.tree')}}
+        </b-navbar-item>
       </b-navbar-dropdown>
     </template>
     <template #end>

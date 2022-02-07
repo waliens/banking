@@ -85,6 +85,7 @@ string.matching.strategy,Strategy,Stratégie
 tagging.title,Tagging,Étiquetage
 tagging.transac_per_page,Transactions per page,Transactions par page
 tagging.validate_page,Validate,Valider
+tagging.tree,Category tree,Arbre de catégories
 transaction.transactions,Transactions,Transactions
 undefined,N/A,N/D
 upload,Upload,Envoyer

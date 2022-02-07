@@ -53,6 +53,11 @@ const routes = [
     path: '/account/merge',
     component: require('./pages/MergeAccountsPage.vue').default  
   },
+  {
+    name: 'edit-tag-tree',
+    path: '/category/tree',
+    component: require('./pages/EditTagTreePage.vue').default  
+  },
   // {
   //   name: 'edit-account-group',
   //   path: '/group/:groupid/edit',
