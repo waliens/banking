@@ -24,9 +24,6 @@
         <b-field :label="$t('tagging.tag.name')" label-position="on-border">
           <b-input v-model="selected.name"></b-input>
         </b-field>
-        <b-field :label="$t('tagging.tag.color')" label-position="on-border">
-          <b-input v-model="selected.color"></b-input>
-        </b-field>
         <b-field :label="$t('tagging.tag.icon')" label-position="on-border">
           <b-input v-model="selected.icon"></b-input>
         </b-field>
@@ -37,12 +34,22 @@
             </option>
           </b-select>
         </b-field>
-        <b-field>
-          <b-checkbox v-model="selected.income">{{$t('tagging.tag.default')}}</b-checkbox>
-        </b-field>
-        <b-field>
-          <b-checkbox v-model="selected.income">{{$t('tagging.tag.income')}}</b-checkbox>
-        </b-field>
+        <div class="level"> 
+          <b-field class="level-item">
+            <b-checkbox v-model="selected.income">{{$t('tagging.tag.default')}}</b-checkbox>
+          </b-field>
+          <b-field class="level-item">
+            <b-checkbox v-model="selected.income">{{$t('tagging.tag.income')}}</b-checkbox>
+          </b-field>
+          <b-field class="level-item" :label="$t('tagging.tag.color')" horizontal narrowed>
+            <verte v-model="selected.color"
+              menuPosition="left"
+              picker="square"
+              model="hex"
+              :enableAlpha="false">
+            </verte>
+          </b-field>
+        </div>
       </section>
     </section>
   </div>
@@ -53,9 +60,11 @@ import { defineComponent } from '@vue/composition-api';
 import Category from '@/utils/api/Category';
 import CategoryMenuItem from '@/components/categories/CategoryMenuItem';
 import CategoryChainBreadcrumb from '@/components/categories/CategoryChainBreadcrumb';
+import Verte from 'verte';
+import 'verte/dist/verte.css';
 
 export default defineComponent({
-  components: {CategoryMenuItem, CategoryChainBreadcrumb},
+  components: {CategoryMenuItem, CategoryChainBreadcrumb, Verte},
   name: "edit-tag-tree-page",
   data() {
     return {
