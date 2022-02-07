@@ -129,7 +129,7 @@ export default defineComponent({
       currentPage: 1,
       isLoading: false,
       sortField: 'when',
-      sortOrder: 'asc',
+      sortOrder: 'desc',
       totalTransactions: 0,
       selectedCategories: {},
       commitedCategories: {},
