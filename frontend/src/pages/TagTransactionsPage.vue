@@ -5,16 +5,24 @@
       <div class="level-right">
         <b-button class="level-item is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button>
         <b-button class="level-item is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button>
-      </div>
-    </section>
-    <section class="level">
-      <div class="level-right">
-        <b-field class="level-item" :label="$t('tagging.transac_per_page')" label-position="on-border" width="is-large">
+        <b-field class="level-item is-small" :label="$t('tagging.transac_per_page')" label-position="on-border" width="is-large">
           <b-select v-model="transactionsPerPage" @input="refreshPage">
             <option v-for="number in perPageNumbers" :key="number" :value="number">{{number}}</option>
           </b-select>
         </b-field>
       </div>
+    </section>
+      <b-collapse animation="slide" :open="false">
+        <template #trigger>
+          <div class="collapseHeader" role="button">
+            <p class="subtitle">{{$t('transaction.filters.title')}}</p>
+          </div>
+        </template>
+        <div class="collapseInner">
+          <transactions-filter-form></transactions-filter-form>
+        </div>
+      </b-collapse>
+    <section>
     </section>
     <section>
       <b-table
@@ -110,18 +118,19 @@
 </template>
 
 <script>
-import { defineComponent } from '@vue/composition-api'
+import Vue from 'vue';
+import Transaction from '@/utils/api/Transaction';
+import TinyPieChartIcon from '../components/icons/TinyPieChartIcon';
+import StringOrNullDisplay from '../components/generic/StringOrNullDisplay';
+import TransactionsFilterForm from '../components/transactions/TransactionsFilterForm';
+import DatetimeDisplay from '@/components/generic/DatetimeDisplay'
+import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import Category from '@/utils/api/Category';
 import { strcurrency } from '@/utils/helpers';
-import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
-import DatetimeDisplay from '@/components/generic/DatetimeDisplay.vue'
-import Transaction from '@/utils/api/Transaction';
-import Vue from 'vue';
-import StringOrNullDisplay from '../components/generic/StringOrNullDisplay.vue';
-import TinyPieChartIcon from '../components/icons/TinyPieChartIcon.vue';
+import { defineComponent } from '@vue/composition-api'
 
 export default defineComponent({
-  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TinyPieChartIcon },
+  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TinyPieChartIcon, TransactionsFilterForm },
   data() {
     return {
       transactions: [],
@@ -134,7 +143,7 @@ export default defineComponent({
       selectedCategories: {},
       commitedCategories: {},
       categories: [],
-      perPageNumbers: [5, 10, 25, 50, 100]
+      perPageNumbers: [5, 10, 25, 50, 100],
     }
   },
   async created() {
@@ -260,7 +269,7 @@ export default defineComponent({
       await this.updateTransactionsWithLoading();
     },
     async validatePage() {
-      let transactions = this.transactions.map(t => {
+      let transactions = this.transaction.map(t => {
         return {id_transaction: t.id, id_category: this.selectedCategories[t.id]};
       });
       await Transaction.setCategories(transactions);
@@ -281,5 +290,24 @@ export default defineComponent({
 .probaPie {
   margin-top: 3px;
 }
-
+section {
+  margin-bottom: 10px;
+}
+.collapseInner {
+  padding: 10px;
+  background-color: $placeholder;
+  border: 1px solid rgba(0, 0, 0, .1);;
+}
+.collapseHeader {
+  background-color: $primary;
+  padding: 5px;
+  padding-left: 10px;
+  border-radius: 5px 5px 0px 0px;
+}
+.collapseHeader > .subtitle {
+  color: $primary-invert;
+}
+.collapse {
+  margin-bottom: 10px;
+}
 </style>

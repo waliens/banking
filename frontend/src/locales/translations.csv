@@ -84,7 +84,7 @@ string.matching.match_score,match score,score du match
 string.matching.matches,Possible matches,Correspondances possibles
 string.matching.strategy,Strategy,Stratégie
 tagging.title,Tagging,Étiquetage
-tagging.transac_per_page,Transactions per page,Transactions par page
+tagging.transac_per_page,Per page,Par page
 tagging.validate_page,Validate,Valider
 tagging.tree,Category tree,Arbre de catégories
 tagging.add_new_category,Add new,Créer une nouvelle catégorie
@@ -95,10 +95,17 @@ tagging.tag.default,Default,Défaut
 tagging.tag.income,Income,Rentrée
 tagging.tag.parent,Parent,Parent
 tagging.tag.no_parent,No parent,Pas de parent
-transaction.transactions,Transactions,Transactions
 tagging.tag_delete_warning.title,Category deletion,Suppression de catégorie
 tagging.tag_delete_warning.with_children,"This action cannot reverted. This category appears to have children categories. These will be moved as children of the parent of the deleted category.","Cette action est irréversible. Cette catégorie semble avoir des catégories filles. Celles-ci seront déplacées comment enfants de la catégorie parente."
 tagging.tag_delete_warning.without_children,"This action cannot reverted.","Cette action est irréversible."
+transaction.transactions,Transactions,Transactionstransactions.filters.enabled
+transaction.filters.enabled,Filters enabled,Filtres activés
+transaction.filters.periodFrom,Period start,Début période
+transaction.filters.periodTo,Period end,Fin période 
+transaction.filters.accountFrom,From account,Depuis le compte
+transaction.filters.accountTo,To account,Vers le compte
+transaction.filters.category,With category,Avec la catégorie
+transaction.filters.title,Filters,Filtres
 undefined,N/A,N/D
 upload,Upload,Envoyer
 january,January,Janvier
