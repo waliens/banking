@@ -80,35 +80,17 @@ export default defineComponent({
       if (this.tree.length == 0) {
         return [];
       }
-      return this.recurGetAllStringBreadcrumbs(this.tree);
+      return Category.getStringBreadcrumbs(this.tree);
     }
   },
   methods: {
-    recurGetAllStringBreadcrumbs(nodes) {
-      if (nodes.length == 0) {
-        return [];
-      }
-      let currentBreadcrumbs = [];
-      for (let nodeIdx in nodes) {
-        let node = nodes[nodeIdx];
-        let childrenBreadcrumbs = this.recurGetAllStringBreadcrumbs(node.children);
-
-        for (let childBrcmbIdx in childrenBreadcrumbs) {
-          let childBrcmb = childrenBreadcrumbs[childBrcmbIdx];
-          childBrcmb.breadcrumb = [node.name, childBrcmb.breadcrumb].join(" > ")
-          currentBreadcrumbs.push(childBrcmb);
-        }
-        currentBreadcrumbs.push({id: node.id, breadcrumb: node.name })
-      }
-      return currentBreadcrumbs;
-    },
     isFormValid() {
       return this.selected.name && this.selected.name.length > 0
-              && this.selected.icon
-              && this.selected.default !== null
-              && this.selected.incom !== null
-              && this.selected.color
-              && this.selected.id_parent;
+        && this.selected.icon
+        && this.selected.default !== null
+        && this.selected.incom !== null
+        && this.selected.color
+        && this.selected.id_parent;
     },
     async saveCategory() {
       await this.successFailureToast(this.selected.save());

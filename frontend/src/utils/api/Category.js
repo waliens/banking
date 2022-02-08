@@ -73,4 +73,30 @@ export default class Category extends Model {
     });
     return Object.values(flattened);
   }
+
+  static getStringBreadcrumbs(tree=[]) {
+    if (!tree || tree.length == 0) {
+      return [];
+    }
+    return Category.getStringBreadcrumbsRecursive(tree);
+  }
+
+  static getStringBreadcrumbsRecursive(nodes) {
+    if (nodes.length == 0) {
+      return [];
+    }
+    let currentBreadcrumbs = [];
+    for (let nodeIdx in nodes) {
+      let node = nodes[nodeIdx];
+      let childrenBreadcrumbs = Category.getStringBreadcrumbsRecursive(node.children);
+
+      for (let childBrcmbIdx in childrenBreadcrumbs) {
+        let childBrcmb = childrenBreadcrumbs[childBrcmbIdx];
+        childBrcmb.breadcrumb = [node.name, childBrcmb.breadcrumb].join(" > ")
+        currentBreadcrumbs.push(childBrcmb);
+      }
+      currentBreadcrumbs.push({id: node.id, breadcrumb: node.name })
+    }
+    return currentBreadcrumbs;
+  }
 }
