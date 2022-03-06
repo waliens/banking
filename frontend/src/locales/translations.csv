@@ -100,6 +100,7 @@ tagging.tag.no_parent,No parent,Pas de parent
 tagging.tag_delete_warning.title,Category deletion,Suppression de catégorie
 tagging.tag_delete_warning.with_children,"This action cannot reverted. This category appears to have children categories. These will be moved as children of the parent of the deleted category.","Cette action est irréversible. Cette catégorie semble avoir des catégories filles. Celles-ci seront déplacées comment enfants de la catégorie parente."
 tagging.tag_delete_warning.without_children,"This action cannot reverted.","Cette action est irréversible."
+tagging.set_all,Set all,Tout changer
 transaction.transactions,Transactions,Transactionstransactions.filters.enabled
 transaction.filters.enabled,Filters enabled,Filtres activés
 transaction.filters.periodFrom,Period start,Début période

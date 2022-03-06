@@ -3,10 +3,20 @@
     <section class="level title-section">
       <div class="level-left"><h3 class="level-item title">{{$t('tagging.title')}}</h3></div>
       <div class="level-right">
-        <b-button class="level-item is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button>
-        <b-button class="level-item is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button>
-        <b-field class="level-item is-small" :label="$t('tagging.transac_per_page')" label-position="on-border" width="is-large">
-          <b-select v-model="transactionsPerPage" @input="refreshPage">
+        <b-field class="level-item is-small"><b-button class="is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button></b-field>
+        <b-field class="level-item is-small"><b-button class="is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button></b-field>
+        <b-field class="level-item is-small" :label="$t('category')" label-position="on-border">
+          <b-select size="is-small" v-model="globalCategory">
+            <optgroup v-for="top_level in categories" :key="top_level.id" :value="top_level.id" :label="top_level.nestedName">
+              <option v-for="bottom_level in top_level.children" :key="bottom_level.id" :value="bottom_level.id">
+                <p>{{bottom_level.name}}</p>
+              </option>
+            </optgroup>
+          </b-select>
+          <b-button class="is-primary is-small" @click="setAllCategories" icon-right="pen">{{$t('tagging.set_all')}}</b-button>
+        </b-field>
+        <b-field class="level-item is-small" :label="$t('tagging.transac_per_page')" label-position="on-border">
+          <b-select size="is-small" v-model="transactionsPerPage" @input="refreshPage">
             <option v-for="number in perPageNumbers" :key="number" :value="number">{{number}}</option>
           </b-select>
         </b-field>
@@ -70,7 +80,6 @@
 
         <b-table-column field="category" :label="$t('category')" v-slot="props">
           <b-field class="level-item">
-            <!-- icon-pack="fas" :icon="categoryMap[selectedCategories[props.row.id]].icon"  -->
             <p class="control" v-if="props.row.ml_category">
               <b-tooltip :label="$t('ml_model.reset_to_predicted')" class="is-secondary is-light">
                 <b-button v-on:click="selectedCategories[props.row.id] = props.row.ml_category.id" icon-right="desktop" size="is-small" :class="getButtonClass(props.row)"></b-button>
@@ -142,6 +151,7 @@ export default defineComponent({
       sortOrder: 'desc',
       formFilters: null, 
       totalTransactions: 0,
+      globalCategory: null,
       selectedCategories: {},
       commitedCategories: {},
       categories: [],
@@ -275,11 +285,16 @@ export default defineComponent({
       await this.updateTransactionsWithLoading();
     },
     async validatePage() {
-      let transactions = this.transaction.map(t => {
+      let transactions = this.transactions.map(t => {
         return {id_transaction: t.id, id_category: this.selectedCategories[t.id]};
       });
       await Transaction.setCategories(transactions);
       await this.refreshPage();
+    },
+    setAllCategories() {
+      this.transactions.map(t => {
+        this.selectedCategories[t.id] = this.globalCategory;
+      });
     },
     async selectFormFilters(filters) {
       this.formFilters = filters;
@@ -297,7 +312,6 @@ export default defineComponent({
       if (!this.formFilters) {
         return filters;
       }
-      console.log(this.formFilters);
       if (this.formFilters.accountTo) {
         filters.account_to = this.formFilters.accountTo.id;
       }
