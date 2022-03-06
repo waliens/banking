@@ -73,7 +73,20 @@ def tag_tree_from_database():
   return TagTree(tags, roots, id_tree)
 
 
-def get_transaction_query(account=None, group=None, has_category=None, sort_by=None, order="desc"):
+def get_transaction_query(account=None, group=None, category=None, sort_by=None, account_to=None, account_from=None, date_from=None, date_to=None, order="desc"):
+  """
+  Params
+  ------
+  account: int (default: None)
+  group: int (default: None)
+  category: int|bool (default: None)
+  sort_by: str (default: None)
+  account_to: int (default: None)
+  account_from: int (default: None)
+  date_from: date (default: None)
+  date_to: date (default: None)
+  order: str (default: "desc)"
+  """
   query = Transaction.query
   filters = []
   if account is not None:
@@ -81,11 +94,22 @@ def get_transaction_query(account=None, group=None, has_category=None, sort_by=N
   if group is not None:
     sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
     filters.append(or_(Transaction.id_source.in_(sel_expr), Transaction.id_dest.in_(sel_expr)))
-  if has_category is not None:
-    if has_category:
-      filters.append(Transaction.id_category != None)
+  if category is not None:
+    if isinstance(category, int):
+      filters.append(Transaction.id_category == category)
     else:
-      filters.append(Transaction.id_category == None)
+      if category:
+        filters.append(Transaction.id_category != None)
+      else:
+        filters.append(Transaction.id_category == None)
+  if date_from is not None:
+    filters.append(Transaction.when >= date_from)
+  if date_to is not None:
+    filters.append(Transaction.when <= date_to)
+  if account_to is not None:
+    filters.append(Transaction.id_dest == account_to)
+  if account_from is not None:
+    filters.append(Transaction.id_source == account_from)
 
   query = Transaction.query.filter(and_(*filters))
 

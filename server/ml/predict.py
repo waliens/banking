@@ -54,4 +54,6 @@ def predict_categories(transactions):
     categories, probas = predict_for_source(transacs_from_source, data_source)
     for i, c, p in zip(indexes, categories, probas):
       out_list[i] = (c, p)
+  if len(out_list) == 0:
+    return [], [] 
   return zip(*out_list)

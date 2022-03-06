@@ -1,3 +1,4 @@
+from datetime import date
 import json
 from locale import currency
 import os
@@ -75,6 +76,12 @@ def bool_type(v):
     return v.lower() in {"1", "true"}
 
 
+def date_type(v):
+    if isinstance(v, date):
+        return v
+    return date.fromisoformat(v)
+
+
 def error_response(msg, code=403):
     response = jsonify({'msg': msg})
     response.status = code
@@ -104,17 +111,36 @@ def get_transactions():
     order = request.args.get("order", type=str, default="desc")
     sort_by = request.args.get("sort_by", type=str, default=None)
     account = request.args.get("account", type=int, default=None)
+    account_to = request.args.get("account_to", type=int, default=None)
+    account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
-    has_category = request.args.get("has_category", type=bool_type, default=None)
+    has_category = request.args.get("category", type=bool_type, default=None)
+    id_category = request.args.get("id_category", type=int, default=None)
     ml_category = request.args.get("ml_category", type=bool_type, default=False)
+    date_from = request.args.get("date_from", type=date_type, default=None)
+    date_to = request.args.get("date_to", type=date_type, default=None)
 
     if account is not None and group is not None:
         return error_response("cannot set both account and account_group when fetching transactions")
     if sort_by is not None and sort_by not in {'when', 'amount'}:
         return error_response("cannot sort by other fields than {'when', 'amount'}")
+    if has_category is not None and not has_category and id_category is not None:
+        return error_response("cannot fetch transactions without categories but with a category id")
+    if date_from is not None and date_to is not None and date_from > date_to:
+        return error_response("cannot have a date from after date_to")
     
     # fetch
-    transactions = get_transaction_query(account=account, group=group, has_category=has_category, sort_by=sort_by, order=order)[start:(start+count)]
+    transactions = get_transaction_query(
+        account=account, 
+        group=group, 
+        category=id_category if id_category is not None else has_category, 
+        sort_by=sort_by, 
+        order=order,
+        account_from=account_from, 
+        account_to=account_to, 
+        date_from=date_from, 
+        date_to=date_to
+    )[start:(start+count)]
     to_return = [t.as_dict() for t in transactions]
 
     if ml_category:
@@ -129,9 +155,31 @@ def get_transactions():
 @app.route("/transactions/count", methods=["GET"])
 def get_transactions_count():
     account = request.args.get("account", type=int, default=None)
+    account_to = request.args.get("account_to", type=int, default=None)
+    account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
-    has_category = request.args.get("has_category", type=bool_type, default=None)
-    query = get_transaction_query(account=account, group=group, has_category=has_category)
+    has_category = request.args.get("category", type=bool_type, default=None)
+    id_category = request.args.get("id_category", type=int, default=None)
+    date_from = request.args.get("date_from", type=date_type, default=None)
+    date_to = request.args.get("date_to", type=date_type, default=None)
+
+    if account is not None and group is not None:
+        return error_response("cannot set both account and account_group when fetching transactions")
+    if has_category is not None and not has_category and id_category is not None:
+        return error_response("cannot fetch transactions without categories but with a category id")
+    if date_from is not None and date_to is not None and date_from > date_to:
+        return error_response("cannot have a date from after date_to")
+    
+    # fetch
+    query = get_transaction_query(
+        account=account, 
+        group=group, 
+        category=id_category if id_category is not None else has_category, 
+        account_from=account_from, 
+        account_to=account_to, 
+        date_from=date_from, 
+        date_to=date_to
+    )
     return jsonify({'count': query.count() })
 
 
