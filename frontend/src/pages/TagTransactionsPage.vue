@@ -19,7 +19,7 @@
           </div>
         </template>
         <div class="collapseInner">
-          <transactions-filter-form></transactions-filter-form>
+          <transactions-filter-form :clearFn="clearFormFilters" :filterFn="selectFormFilters"></transactions-filter-form>
         </div>
       </b-collapse>
     <section>
@@ -131,6 +131,7 @@ import { defineComponent } from '@vue/composition-api'
 
 export default defineComponent({
   components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TinyPieChartIcon, TransactionsFilterForm },
+  name: "TagTransactionPage",
   data() {
     return {
       transactions: [],
@@ -139,6 +140,7 @@ export default defineComponent({
       isLoading: false,
       sortField: 'when',
       sortOrder: 'desc',
+      formFilters: null, 
       totalTransactions: 0,
       selectedCategories: {},
       commitedCategories: {},
@@ -239,15 +241,19 @@ export default defineComponent({
     },
     async updateTransactions() {
       this.transactions = await this.getFilteredTransactions();
-      this.totalTransactions = await Transaction.countAll(this.getFilterParams());
+      this.totalTransactions = await Transaction.countAll(this.getAllParams());
       this.setSelectedCategories();
     },
-    async getFilteredTransactions() {
-      return await Transaction.fetchAll(this.getPaginateParams());
+    async getFilteredTransactions() { 
+      return await Transaction.fetchAll(this.getAllParams());
+    },
+    getAllParams() {
+      return {...this.getFilterParams(), ...this.getPaginateParams()};
     },
     getFilterParams() {
       return {
-        has_category: false
+        has_category: !!this.formFilters && !!this.formFilters.categoryId,
+        ...this.formFiltersForApi()
       };
     },
     getPaginateParams() {
@@ -274,6 +280,40 @@ export default defineComponent({
       });
       await Transaction.setCategories(transactions);
       await this.refreshPage();
+    },
+    async selectFormFilters(filters) {
+      this.formFilters = filters;
+      await this.updateTransactionsWithLoading();
+    },
+    async clearFormFilters() {
+      let needsRefresh = !!this.formFilters; 
+      this.formFilters = null;
+      if (needsRefresh) {
+        await this.updateTransactionsWithLoading();
+      }
+    },
+    formFiltersForApi() {
+      let filters = {};
+      if (!this.formFilters) {
+        return filters;
+      }
+      console.log(this.formFilters);
+      if (this.formFilters.accountTo) {
+        filters.account_to = this.formFilters.accountTo.id;
+      }
+      if (this.formFilters.accountFrom) {
+        filters.account_from = this.formFilters.accountFrom.id;
+      }
+      if (this.formFilters.periodFrom) {
+        filters.date_from = this.formFilters.periodFrom.format("YYYY-MM-DD");
+      }
+      if (this.formFilters.periodTo) {
+        filters.date_to = this.formFilters.periodTo.format("YYYY-MM-DD");
+      }
+      if (this.formFilters.categoryId) {
+        filters.category_id = this.formFilters.categoryId;
+      }
+      return filters;
     }
   }
 })

@@ -40,11 +40,9 @@
       </b-select>
     </b-field>
     <b-field class="level">
-      <div class="level-left">
-      </div>
       <div class="level-right">
-        <b-button class="level-item is-small" @click="clickClear" icon-right="times">{{$t('clear')}}</b-button>
-        <b-button class="level-item is-small" @click="clickFilter" icon-right="filter">{{$t('filter')}}</b-button>
+        <b-button class="level-item is-small is-primary" @click="clickClear" icon-right="times">{{$t('clear')}}</b-button>
+        <b-button class="level-item is-small is-primary" @click="clickFilter" icon-right="filter">{{$t('filter')}}</b-button>
       </div>
     </b-field>
   </div>
@@ -136,10 +134,11 @@ export default defineComponent({
     },
     clickFilter() {
       let filters = {
-        periodFromDate: this.periodFromDate,
-        periodToDate: this.periodToDate,
+        periodFrom: this.periodFrom,
+        periodTo: this.periodTo,
         accountFrom: this.accountFrom,
         accountTo: this.accountTo, 
+        category: this.categoryId
       };
       this.filterFn(filters);
     }

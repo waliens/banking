@@ -32,6 +32,7 @@ account.when,Date,Date
 amount,Amount,Montant
 app_name,Banking,Banking
 balance,Balance,Solde
+clear,Clear,Réinitialiser
 cancel,Cancel,Annuler
 category,Category,Catégorie
 charts.no_data,No data,Pas de données
@@ -48,6 +49,7 @@ data_upload.title,Upload data,Upload des données
 data_upload.upload_file_type,File type,Type de fichier
 date,Date,date
 edit,Edit,Éditer
+filter,Filter,Filtrer
 month,Month,Mois
 year,Year,Année
 description,Description,Description
