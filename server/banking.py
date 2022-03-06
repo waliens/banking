@@ -401,6 +401,8 @@ def update_category(id_category):
     category.default = bool_type(default)
     category.income = bool_type(income)
 
+    session.execute(MLModelFile.invalidate_models_stmt())
+
     session.commit()
     return jsonify(category.as_dict())
 
@@ -413,6 +415,7 @@ def delete_category(id_category):
     # TODO check/implement proper ON DELETE SET NULL
     session.execute(update(Transaction).where(Transaction.id_category == id_category).values({Transaction.id_category: None}))
     session.execute(delete(Category).where(Category.id == id_category))
+    session.execute(MLModelFile.invalidate_models_stmt())
     session.commit()
     return jsonify({'msg': 'success'})
 
