@@ -94,6 +94,7 @@ export default defineComponent({
     },
     async saveCategory() {
       await this.successFailureToast(this.selected.save());
+      await this.refreshTree();
     },
     async deleteCategory() {
       await this.successFailureToast(this.selected.delete());
@@ -117,8 +118,11 @@ export default defineComponent({
         this.$buefy.toast.open({ message: e.message, type: 'is-danger' })
       });
     },
-    async refreshPage() {
+    async refreshTree() {
       this.tree = await Category.getCategoryTree();
+    },
+    async refreshPage() {
+      await this.refreshTree();
       this.selected = this.getDefaultCategory();
     },
     newCategory(parent) {
