@@ -312,7 +312,6 @@ export default defineComponent({
       if (!this.formFilters) {
         return filters;
       }
-      console.log(this.formFilters)
       if (this.formFilters.accountTo) {
         filters.account_to = this.formFilters.accountTo.id;
       }
