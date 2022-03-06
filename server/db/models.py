@@ -266,8 +266,10 @@ class MLModelFile(Base):
     @classmethod
     def invalidate_models_stmt(cls, target=None):
         stmt = update(cls)
+        filters = [cls.state != MLModelState.DELETED]
         if target is not None:
-            stmt = stmt.where(and_(cls.target == target, cls.state != MLModelState.DELETED))
+            filters.append(cls.target == target)
+        stmt = stmt.where(and_(*filters))
         stmt = stmt.values(state=MLModelState.INVALID)
         return stmt
 
