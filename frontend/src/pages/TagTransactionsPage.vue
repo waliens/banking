@@ -262,7 +262,7 @@ export default defineComponent({
     },
     getFilterParams() {
       return {
-        has_category: !!this.formFilters && !!this.formFilters.categoryId,
+        has_category: !!this.formFilters && !!this.formFilters.category,
         ...this.formFiltersForApi()
       };
     },
@@ -312,6 +312,7 @@ export default defineComponent({
       if (!this.formFilters) {
         return filters;
       }
+      console.log(this.formFilters)
       if (this.formFilters.accountTo) {
         filters.account_to = this.formFilters.accountTo.id;
       }
@@ -324,8 +325,8 @@ export default defineComponent({
       if (this.formFilters.periodTo) {
         filters.date_to = this.formFilters.periodTo.format("YYYY-MM-DD");
       }
-      if (this.formFilters.categoryId) {
-        filters.category_id = this.formFilters.categoryId;
+      if (this.formFilters.category) {
+        filters.id_category = this.formFilters.category;
       }
       return filters;
     }
