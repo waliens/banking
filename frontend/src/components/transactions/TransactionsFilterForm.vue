@@ -1,10 +1,5 @@
 <template>
   <div>
-    <b-field>
-      <b-switch v-model="filtersEnabled">
-        {{ $t('transaction.filters.enabled') }}
-      </b-switch>
-    </b-field>
     <b-field grouped>
       <b-field :label="$t('transaction.filters.periodFrom')" label-position="on-border" expanded>
         <b-datepicker
@@ -44,6 +39,14 @@
         </option>
       </b-select>
     </b-field>
+    <b-field class="level">
+      <div class="level-left">
+      </div>
+      <div class="level-right">
+        <b-button class="level-item is-small" @click="clickClear" icon-right="times">{{$t('clear')}}</b-button>
+        <b-button class="level-item is-small" @click="clickFilter" icon-right="filter">{{$t('filter')}}</b-button>
+      </div>
+    </b-field>
   </div>
 </template>
 
@@ -59,18 +62,19 @@ export default defineComponent({
   components: {AccountDropDownSelector},
   name: "TransactionsFilterForm",
   props: {
-    periodFrom: { type: moment, default: () => moment().subtract('1 month') },
-    periodTo: { type: moment, default: () => moment() },
-    accountFrom: { type: Account, default: () => null },
-    accountTo: { type: Account, default: () => null },
-    categoryId: { type: Number, default: () => null },
     accounts: { type: Array, default: () => [] },
-    categories: { type: Array, default: () => [] }
+    categories: { type: Array, default: () => [] },
+    filterFn: { type: Function, default: () => { () => { return; } }},
+    clearFn: { type: Function, default: () => { () => { return; } }}
   },
   data() {
     return {
       // filters
-      filtersEnabled: false,
+      periodFrom: null,
+      periodTo: null,
+      accountFrom:  null,
+      accountTo:  null,
+      categoryId: null,
       periodFromSelected: false,
       periodToSelected: false,
       categories_: [],
@@ -119,6 +123,25 @@ export default defineComponent({
       } else {
         this.periodToDate = null;
       }
+    },
+    clickClear() {
+      this.clearDate(true);
+      this.clearDate(false);
+      this.periodFromDate = null;
+      this.periodToDate = null;
+      this.accountFrom = null;
+      this.accountTo = null;
+      this.categoryId = null;
+      this.clearFn();
+    },
+    clickFilter() {
+      let filters = {
+        periodFromDate: this.periodFromDate,
+        periodToDate: this.periodToDate,
+        accountFrom: this.accountFrom,
+        accountTo: this.accountTo, 
+      };
+      this.filterFn(filters);
     }
   }
 })
