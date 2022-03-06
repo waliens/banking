@@ -227,8 +227,15 @@ export default defineComponent({
     },
     setSelectedCategories() {
       this.selectedCategories = {};
+      let defaultCategory = this.categories[0].children[0].id;
       this.transactions.forEach(transaction => {
-        Vue.set(this.selectedCategories, transaction.id, !transaction.ml_category ? this.categories[0].children[0].id : transaction.ml_category.id);
+        let category = defaultCategory;
+        if (transaction.ml_category) {
+          category = transaction.ml_category.id;
+        } else if (transaction.category) {
+          category = transaction.category.id;
+        }
+        Vue.set(this.selectedCategories, transaction.id, category);
         Vue.set(this.commitedCategories, transaction.id, null);
       });
     },
