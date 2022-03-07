@@ -114,7 +114,7 @@ def get_transactions():
     account_to = request.args.get("account_to", type=int, default=None)
     account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
-    has_category = request.args.get("category", type=bool_type, default=None)
+    has_category = request.args.get("has_category", type=bool_type, default=None)
     id_category = request.args.get("id_category", type=int, default=None)
     ml_category = request.args.get("ml_category", type=bool_type, default=False)
     date_from = request.args.get("date_from", type=date_type, default=None)
@@ -128,7 +128,7 @@ def get_transactions():
         return error_response("cannot fetch transactions without categories but with a category id")
     if date_from is not None and date_to is not None and date_from > date_to:
         return error_response("cannot have a date from after date_to")
-    
+
     # fetch
     transactions = get_transaction_query(
         account=account, 
@@ -158,7 +158,7 @@ def get_transactions_count():
     account_to = request.args.get("account_to", type=int, default=None)
     account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
-    has_category = request.args.get("category", type=bool_type, default=None)
+    has_category = request.args.get("has_category", type=bool_type, default=None)
     id_category = request.args.get("id_category", type=int, default=None)
     date_from = request.args.get("date_from", type=date_type, default=None)
     date_to = request.args.get("date_to", type=date_type, default=None)

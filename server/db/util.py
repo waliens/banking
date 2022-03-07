@@ -95,7 +95,7 @@ def get_transaction_query(account=None, group=None, category=None, sort_by=None,
     sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
     filters.append(or_(Transaction.id_source.in_(sel_expr), Transaction.id_dest.in_(sel_expr)))
   if category is not None:
-    if isinstance(category, int):
+    if not isinstance(category, bool):
       filters.append(Transaction.id_category == category)
     else:
       if category:
