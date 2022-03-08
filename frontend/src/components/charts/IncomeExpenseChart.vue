@@ -22,7 +22,7 @@
 
 <script>
 import moment from 'moment';
-import { strcurrency } from '@/utils/helpers';
+import { strcurrency, monthMap } from '@/utils/helpers';
 import { defineComponent } from '@vue/composition-api';
 import { GChart } from 'vue-google-charts';
 import NoDataBox from '../generic/NoDataBox.vue';
@@ -52,20 +52,7 @@ export default defineComponent({
   },
   computed: {
     monthMap() {
-      return {
-        1: this.$t("january"),
-        2: this.$t("february"),
-        3: this.$t("march"),
-        4: this.$t("april"),
-        5: this.$t("may"),
-        6: this.$t("june"),
-        7: this.$t("july"),
-        8: this.$t("august"),
-        9: this.$t("september"),
-        10: this.$t("october"),
-        11: this.$t("november"),
-        12: this.$t("december")
-      };
+      return monthMap(this);
     }
   },
   methods: {

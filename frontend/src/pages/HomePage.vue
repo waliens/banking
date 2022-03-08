@@ -18,10 +18,15 @@
     <section>
       <account-table :accounts="group.accounts"></account-table>
     </section>
-    <div class="divider" />
-    <section>
-      <income-expense-chart :group="group"></income-expense-chart>
-    </section>
+    <b-tabs>
+      <b-tab-item :label="$t('stats.tabs.inout')">
+        <income-expense-chart :group="group"></income-expense-chart>
+      </b-tab-item>
+      <b-tab-item :label="$t('stats.tabs.category')">
+        <per-category-chart :group="group"></per-category-chart>
+      </b-tab-item>
+    </b-tabs>
+
   </div>
 </template>
 
@@ -32,9 +37,10 @@ import currency from 'currency.js';
 import { strcurrency } from '@/utils/helpers';
 import CurrencyDisplay from '../components/generic/CurrencyDisplay.vue';
 import IncomeExpenseChart from '../components/charts/IncomeExpenseChart.vue';
+import PerCategoryChart from '../components/charts/PerCategoryChart.vue';
 
 export default defineComponent({
-  components: {AccountTable, CurrencyDisplay, IncomeExpenseChart},
+  components: {AccountTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart},
   computed: {
     group() {
       return this.$store.state.currentGroup;
@@ -59,13 +65,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.divider {
-  display: block;
-  position: relative;
-  border-top: 0.1rem solid #dbdbdb;
-  height: 0.1rem;
-  margin: 2rem 0;
-  text-align: center;
-}
+// .divider {
+//   display: block;
+//   position: relative;
+//   border-top: 0.1rem solid #dbdbdb;
+//   height: 0.1rem;
+//   margin: 2rem 0;
+//   text-align: center;
+// }
 
 </style>

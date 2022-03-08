@@ -31,6 +31,7 @@ account.source.number,Number (source),Numéro de compte (source)
 account.when,Date,Date
 amount,Amount,Montant
 app_name,Banking,Banking
+back,Back,Retour
 balance,Balance,Solde
 clear,Clear,Réinitialiser
 cancel,Cancel,Annuler
@@ -81,6 +82,20 @@ save,Save,Enregistrer
 search,Search,Chercher
 selection,Selection,Sélection
 select,Select,Sélectionner
+stats.tabs.inout,In/Out,Entrée/Sortie
+stats.tabs.category,Per category,Par catégorie
+stats.category.period_selector,Period (type),Période (type)
+stats.category.period_trom,From,De,
+stats.category.period_to,To,à,
+stats.category.level_selector,Level,Niveau
+stats.category.coarse_category,Parent category,Catégorie parente
+stats.category.level_finest,Finest,Le plus précis
+stats.category.level_coarsest,Coarsest,Le plus général
+stats.category.period_type_month,Month,Mois
+stats.category.period_type_year,Year,Année
+stats.category.period_type_between,From ... to ...,De ... à ...
+stats.category.unlabeled,Unlabeled,Non catégorisé
+stats.category.category,Category,Catégorie
 string.matching.auto-match,Auto-matching,Matching automatique
 string.matching.match_score,match score,score du match
 string.matching.matches,Possible matches,Correspondances possibles
@@ -110,6 +125,7 @@ transaction.filters.accountTo,To account,Vers le compte
 transaction.filters.category,With category,Avec la catégorie
 transaction.filters.title,Filters,Filtres
 undefined,N/A,N/D
+up,Up,Monter
 upload,Upload,Envoyer
 january,January,Janvier
 february,February,Février

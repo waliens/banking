@@ -50,7 +50,54 @@ export default class Category extends Model {
     });
     return roots.map(id => map[id]);
   }
+ 
+  /**
+   * {
+   *  0: [roots...],
+   *  1: [children at depth 1...],
+   *  2: ...
+   * } 
+   */
+  static async getCategoryTreeByDepth() {
+    let tree = await Category.getCategoryTree();
+    let map = {};
+    let byDepth = {};
+    let collectDepths = (nodes, currDepth) => {
+      if (!byDepth[currDepth]) {
+        byDepth[currDepth] = new Array();
+      }
+      byDepth[currDepth] = [...byDepth[currDepth], ...nodes];
+      nodes.forEach(c => {
+        map[c.id] = c;
+        if (c.id_parent) {
+          c.nestedName = [map[c.id_parent].nestedName, c.name].join(" > ")
+        } else {
+          c.nestedName = c.name;
+        }
+      });
+      nodes.forEach(c => {
+        collectDepths(c.children, currDepth+1);
+      });
+    };
+    collectDepths(tree.filter(c => !c.id_parent), 0);
+    return byDepth; 
+  }
 
+  /**
+   * Example: {
+   *   id1: {
+   *     id: id1,
+   *     name: name1,
+   *     children: [{id: ...}]
+   *   },
+   *   id2: {
+   *     id: id2,
+   *     name: name2,
+   *     children: [{id: ...}]
+   *   },
+   *   [...]
+   * }
+   */
   static async getFlattenedCategoryTree() {
     let categories = await Category.fetchAll();
     let leaves = new Set(categories.map(c => c.id));
