@@ -49,7 +49,7 @@ def make_metadata_serializable(o):
     default = Column(Boolean)
 '''
 
-def tag_tree_from_database():
+def tag_tree_from_database(return_plain_categories=False):
   categories = Category.query.all()
   tags = defaultdict()
   id_tree = defaultdict(set)
@@ -70,7 +70,41 @@ def tag_tree_from_database():
       else:
           roots.add(identifier)
       tags[identifier] = new_tag
-  return TagTree(tags, roots, id_tree)
+  final_tree = TagTree(tags, roots, id_tree)
+  if return_plain_categories:
+    return final_tree, categories
+  else:
+    return final_tree 
+
+
+def get_tags_at_level(level=0, tree=None):
+  if tree is None:
+    tree = tag_tree_from_database()
+
+  def get_at_depth(nodes, depth, curr_depth):
+    if curr_depth > depth:
+      return [] 
+    if curr_depth == depth:
+      return nodes
+    all = list()
+    for node in nodes:
+      all.extend(get_at_depth(tree.get_children(node), depth, curr_depth+1))
+    return all
+
+  return get_at_depth([r.id for r in tree.roots], level, 0)
+
+
+def get_tags_descendants(identifier, tree=None):
+  if tree is None:
+    tree = tag_tree_from_database()
+  
+  def get_children_recur(identifier):
+    children = list()
+    for child in tree.get_children(identifier):
+      children.extend(get_children_recur(child))
+    return tree.get_children(identifier) + children
+
+  return [identifier] + get_children_recur(identifier)
 
 
 def get_transaction_query(account=None, group=None, category=None, sort_by=None, account_to=None, account_from=None, date_from=None, date_to=None, order="desc"):

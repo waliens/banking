@@ -7,6 +7,7 @@ import tempfile
 
 from decimal import Decimal
 from time import sleep
+from xml.etree.ElementInclude import include
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, abort
@@ -27,7 +28,7 @@ from ml.model_train import train_model
 from ml.predict import NoValidModelException, TooManyAvailableModelsException, predict_categories, predict_category
 
 from background.celery_init import make_celery
-from db.stats import incomes_expenses
+from db.stats import incomes_expenses, per_category
 
 # load environment
 load_dotenv()
@@ -353,6 +354,19 @@ def get_group_income_expense(id_group):
     return jsonify({'incomes': incomes, 'expenses': expenses, 'currencies': [c.as_dict() for c in currencies]})
 
 
+@app.route("/account_group/<int:id_group>/stats/percategory")
+def get_group_stats_per_category(id_group):
+    period_from = request.args.get("period_from", type=date_type, default=None)
+    period_to = request.args.get("period_to", type=date_type, default=None)
+    level = request.args.get("level", type=int, default=-1)
+    unlabeled = request.args.get("unlabeled", type=bool_type, default=True)
+    id_category = request.args.get("id_category", type=int, default=None)
+    session = Session()
+    buckets = per_category(session, id_group, period_from=period_from, period_to=period_to, id_category=id_category, include_unlabeled=unlabeled, bucket_level=level)
+    return jsonify(buckets)
+
+
+
 @app.route("/accounts", methods=["GET"])
 def accounts():
     accounts = Account.query.all()
@@ -459,7 +473,6 @@ def upload_data():
             import_belfius_csv(dirname, session)
         elif format == "mastercard_pdf":
             id_mscard_account = request.args.get("id_mscard_account")
-            app.logger.info(id_mscard_account)
             import_mastercard_pdf(dirname, id_mscard_account, session)
         elif format == "mastercard_pdf_preview":
             preview = get_mastercard_preview(dirname)
