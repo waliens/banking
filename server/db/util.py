@@ -107,19 +107,22 @@ def get_tags_descendants(identifier, tree=None):
   return [identifier] + get_children_recur(identifier)
 
 
-def get_transaction_query(account=None, group=None, category=None, sort_by=None, account_to=None, account_from=None, date_from=None, date_to=None, order="desc"):
+def get_transaction_query(account=None, group=None, sort_by=None, account_to=None, account_from=None, date_from=None, date_to=None, order="desc", amount_from=None, amount_to=None, labeled=None):
   """
   Params
   ------
   account: int (default: None)
   group: int (default: None)
-  category: int|bool (default: None)
   sort_by: str (default: None)
   account_to: int (default: None)
   account_from: int (default: None)
   date_from: date (default: None)
   date_to: date (default: None)
-  order: str (default: "desc)"
+  order: str (default: "desc")
+  amount_from: Decimal (default: None)
+  amount_to: Decimal (default: None)
+  include_labeled: bool (default: False)
+  category: int|bool (default: None)
   """
   query = Transaction.query
   filters = []
@@ -128,14 +131,13 @@ def get_transaction_query(account=None, group=None, category=None, sort_by=None,
   if group is not None:
     sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
     filters.append(or_(Transaction.id_source.in_(sel_expr), Transaction.id_dest.in_(sel_expr)))
-  if category is not None:
-    if not isinstance(category, bool):
-      filters.append(Transaction.id_category == category)
+  if labeled is not None:
+    if not isinstance(labeled, bool):
+      filters.append(Transaction.id_category == labeled)
+    elif labeled:
+      filters.append(Transaction.id_category != None)
     else:
-      if category:
-        filters.append(Transaction.id_category != None)
-      else:
-        filters.append(Transaction.id_category == None)
+      filters.append(Transaction.id_category == None)
   if date_from is not None:
     filters.append(Transaction.when >= date_from)
   if date_to is not None:
@@ -144,7 +146,11 @@ def get_transaction_query(account=None, group=None, category=None, sort_by=None,
     filters.append(Transaction.id_dest == account_to)
   if account_from is not None:
     filters.append(Transaction.id_source == account_from)
-
+  if amount_to is not None:
+    filters.append(Transaction.amount <= amount_to)
+  if amount_from is not None:
+    filters.append(Transaction.amount >= amount_from)
+    
   query = Transaction.query.filter(and_(*filters))
 
   if sort_by is not None:

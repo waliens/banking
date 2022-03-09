@@ -77,6 +77,13 @@ def bool_type(v):
     return v.lower() in {"1", "true"}
 
 
+def bool_or_int_type(v):
+    if v.isnumeric():
+        return int(v)
+    else:
+        return bool_type(v)
+
+
 def date_type(v):
     if isinstance(v, date):
         return v
@@ -115,32 +122,35 @@ def get_transactions():
     account_to = request.args.get("account_to", type=int, default=None)
     account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
-    has_category = request.args.get("has_category", type=bool_type, default=None)
-    id_category = request.args.get("id_category", type=int, default=None)
+    labeled = request.args.get("labeled", type=bool_or_int_type, default=None)
     ml_category = request.args.get("ml_category", type=bool_type, default=False)
     date_from = request.args.get("date_from", type=date_type, default=None)
     date_to = request.args.get("date_to", type=date_type, default=None)
+    amount_from = request.args.get("amount_from", type=Decimal, default=None)
+    amount_to = request.args.get("amount_to", type=Decimal, default=None)
 
     if account is not None and group is not None:
         return error_response("cannot set both account and account_group when fetching transactions")
     if sort_by is not None and sort_by not in {'when', 'amount'}:
-        return error_response("cannot sort by other fields than {'when', 'amount'}")
-    if has_category is not None and not has_category and id_category is not None:
         return error_response("cannot fetch transactions without categories but with a category id")
     if date_from is not None and date_to is not None and date_from > date_to:
-        return error_response("cannot have a date from after date_to")
+        return error_response("cannot have a date_from after date_to")
+    if amount_from is not None and amount_to is not None and amount_from > amount_to:
+        return error_response("cannot have a amount_from greater than amount_to")
 
     # fetch
     transactions = get_transaction_query(
         account=account, 
         group=group, 
-        category=id_category if id_category is not None else has_category, 
+        labeled=labeled,
         sort_by=sort_by, 
         order=order,
         account_from=account_from, 
         account_to=account_to, 
         date_from=date_from, 
-        date_to=date_to
+        date_to=date_to,
+        amount_from=amount_from,
+        amount_to=amount_to
     )[start:(start+count)]
     to_return = [t.as_dict() for t in transactions]
 
@@ -159,27 +169,32 @@ def get_transactions_count():
     account_to = request.args.get("account_to", type=int, default=None)
     account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
-    has_category = request.args.get("has_category", type=bool_type, default=None)
-    id_category = request.args.get("id_category", type=int, default=None)
+    labeled = request.args.get("labeled", type=bool_or_int_type, default=None)
     date_from = request.args.get("date_from", type=date_type, default=None)
     date_to = request.args.get("date_to", type=date_type, default=None)
+    amount_from = request.args.get("amount_from", type=Decimal, default=None)
+    amount_to = request.args.get("amount_to", type=Decimal, default=None)
+
+    app.logger.info(labeled)
 
     if account is not None and group is not None:
         return error_response("cannot set both account and account_group when fetching transactions")
-    if has_category is not None and not has_category and id_category is not None:
-        return error_response("cannot fetch transactions without categories but with a category id")
     if date_from is not None and date_to is not None and date_from > date_to:
         return error_response("cannot have a date from after date_to")
+    if amount_from is not None and amount_to is not None and amount_from > amount_to:
+        return error_response("cannot have a amount_from greater than amount_to")
     
     # fetch
     query = get_transaction_query(
         account=account, 
         group=group, 
-        category=id_category if id_category is not None else has_category, 
+        labeled=labeled,
         account_from=account_from, 
         account_to=account_to, 
         date_from=date_from, 
-        date_to=date_to
+        date_to=date_to,
+        amount_from=amount_from,
+        amount_to=amount_to,
     )
     return jsonify({'count': query.count() })
 

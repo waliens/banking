@@ -116,6 +116,8 @@ tagging.tag_delete_warning.title,Category deletion,Suppression de catégorie
 tagging.tag_delete_warning.with_children,"This action cannot reverted. This category appears to have children categories. These will be moved as children of the parent of the deleted category.","Cette action est irréversible. Cette catégorie semble avoir des catégories filles. Celles-ci seront déplacées comment enfants de la catégorie parente."
 tagging.tag_delete_warning.without_children,"This action cannot reverted.","Cette action est irréversible."
 tagging.set_all,Set all,Tout changer
+tagging.current_category_is,"Current category: '{categName}' (click to reset in dropdown)","Catégorie actuelle: '{categName}' (cliquer pour appliquer au menu déroulant)" 
+tagging.no_category,"No category for this transaction","Pas de catégorie pour cette transaction"
 transaction.transactions,Transactions,Transactionstransactions.filters.enabled
 transaction.filters.enabled,Filters enabled,Filtres activés
 transaction.filters.periodFrom,Period start,Début période
@@ -124,6 +126,7 @@ transaction.filters.accountFrom,From account,Depuis le compte
 transaction.filters.accountTo,To account,Vers le compte
 transaction.filters.category,With category,Avec la catégorie
 transaction.filters.title,Filters,Filtres
+transaction.filters.include_labeled,Include labeled,Inclure non-catégorisés
 undefined,N/A,N/D
 up,Up,Monter
 upload,Upload,Envoyer

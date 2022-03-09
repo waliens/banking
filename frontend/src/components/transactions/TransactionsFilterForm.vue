@@ -1,5 +1,8 @@
 <template>
   <div>
+    <b-field :label="$t('amount')" class="amountRangeField">
+      <amount-range-log-slider v-model="amountRange" expanded></amount-range-log-slider>
+    </b-field>
     <b-field grouped>
       <b-field :label="$t('transaction.filters.periodFrom')" label-position="on-border" expanded>
         <b-datepicker
@@ -33,11 +36,22 @@
       </b-field>
     </b-field>
     <b-field :label="$t('transaction.filters.category')" label-position="on-border" expanded>
-      <b-select v-model="categoryId" expanded>
-        <option v-for="breadcrumb in breadcrumbs" :key="breadcrumb.id" :value="breadcrumb.id">
-          {{breadcrumb.breadcrumb}}
-        </option>
-      </b-select>
+      <b-field grouped>
+        <b-select v-model="categoryId" @input="categoryUpdated" expanded>
+          <option v-for="breadcrumb in breadcrumbs" :key="breadcrumb.id" :value="breadcrumb.id">
+            {{breadcrumb.breadcrumb}}
+          </option>
+          <p class="control">
+            <b-button icon-right="multiply" @click="categoryId = null"></b-button>
+          </p>
+        </b-select>
+        <b-field>
+          <b-switch v-model="includeLabeled" @input="includeLabeledUpdated">
+            {{ $t('transaction.filters.include_labeled') }}
+          </b-switch>
+        </b-field>
+      </b-field>
+
     </b-field>
     <b-field class="level">
       <div class="level-right">
@@ -53,11 +67,12 @@ import moment from 'moment';
 import Account from '@/utils/api/Account';
 import Category from '@/utils/api/Category';
 import AccountDropDownSelector from '@/components/accounts/AccountDropDownSelector';
+import AmountRangeLogSlider from '@/components/generic/AmountRangeLogSlider';
 import { defineComponent } from '@vue/composition-api';
 
 
 export default defineComponent({
-  components: {AccountDropDownSelector},
+  components: {AccountDropDownSelector, AmountRangeLogSlider},
   name: "TransactionsFilterForm",
   props: {
     accounts: { type: Array, default: () => [] },
@@ -68,6 +83,8 @@ export default defineComponent({
   data() {
     return {
       // filters
+      includeLabeled: false,
+      amountRange: [0, 999999],
       periodFrom: null,
       periodTo: null,
       accountFrom:  null,
@@ -130,6 +147,8 @@ export default defineComponent({
       this.accountFrom = null;
       this.accountTo = null;
       this.categoryId = null;
+      this.includeLabeled = false;
+      this.amountRange = [0, 999999];
       this.clearFn();
     },
     clickFilter() {
@@ -138,10 +157,30 @@ export default defineComponent({
         periodTo: this.periodTo,
         accountFrom: this.accountFrom,
         accountTo: this.accountTo, 
-        category: this.categoryId
+        category: this.categoryId,
+        amountFrom: this.amountRange[0],
+        amountTo: this.amountRange[1],
+        includeLabeled: this.includeLabeled
       };
       this.filterFn(filters);
+    },
+    categoryUpdated(newValue, oldValue) {
+      if (newValue != oldValue && newValue) {
+        this.includeLabeled = true;
+      }
+    },
+    includeLabeledUpdated(newValue, oldValue) {
+      if (newValue != oldValue) {
+        this.categoryId = null;        
+      }
     }
   }
 })
 </script>
+
+<style lang="scss" scoped>
+.amountRangeField {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+</style>

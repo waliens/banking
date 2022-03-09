@@ -86,6 +86,11 @@
               </b-tooltip>
             </p>
             <p class="control">
+              <b-tooltip :label="props.row.id_category ? $t('tagging.current_category_is', {categName: props.row.category.name}): $t('tagging.no_category')" class="is-secondary">
+                <b-button v-on:click="() => clickOnCurrentCategoryButton(props.row)"  :icon-right="getCurrentCategoryIcon(props.row)" :disabled="!props.row.id_category" size="is-small"></b-button>
+              </b-tooltip>
+            </p>
+            <p class="control">
               <b-tooltip :label="conditionalSuggestedLabel(props.row.ml_category && selectedCategories[props.row.id] == props.row.ml_category.id, props.row.ml_proba)" class="is-secondary is-light">
                 <b-button :icon-right="getSelectedIcon(props.row)" size="is-small" :class="getSelectedIconClass(props.row)"></b-button>
               </b-tooltip>
@@ -193,6 +198,13 @@ export default defineComponent({
       }
       return this.categoryMap[selected].icon;
     },
+    getCurrentCategoryIcon(transaction) {
+      if (transaction.id_category) {
+        return transaction.category.icon;
+      } else {
+        return 'times';
+      }
+    },
     getSelectedIconClass(transaction) {
       let selected = this.selectedCategories[transaction.id];
       if (!selected || !this.categoryMap[selected]) {
@@ -269,7 +281,6 @@ export default defineComponent({
     },
     getFilterParams() {
       return {
-        has_category: !!this.formFilters && !!this.formFilters.category,
         ...this.formFiltersForApi()
       };
     },
@@ -285,8 +296,11 @@ export default defineComponent({
     },
     async saveLabel(transaction) {
       let model = new Transaction(transaction);
-      await model.setCategory(this.selectedCategories[model.id]);
+      let categoryId = this.selectedCategories[model.id];
+      await model.setCategory(categoryId);
       this.commitedCategories[model.id] = model.category; 
+      transaction.id_category = categoryId;
+      transaction.category = this.categoryMap[categoryId];
     },
     async refreshPage() {
       await this.updateTransactionsWithLoading();
@@ -314,8 +328,13 @@ export default defineComponent({
         await this.updateTransactionsWithLoading();
       }
     },
+    clickOnCurrentCategoryButton(transaction) {
+      if (transaction.id_category) {
+        this.selectedCategories[transaction.id] = transaction.id_category;
+      }
+    },
     formFiltersForApi() {
-      let filters = {};
+      let filters = {labeled: false};
       if (!this.formFilters) {
         return filters;
       }
@@ -332,7 +351,15 @@ export default defineComponent({
         filters.date_to = this.formFilters.periodTo.format("YYYY-MM-DD");
       }
       if (this.formFilters.category) {
-        filters.id_category = this.formFilters.category;
+        filters.labeled = this.formFilters.category;
+      } else if (this.formFilters.includeLabeled) {
+        filters.labeled = undefined;
+      }
+      if (this.formFilters.amountFrom) {
+        filters.amount_from = this.formFilters.amountFrom;
+      }
+      if (this.formFilters.amountTo) {
+        filters.amount_to = this.formFilters.amountTo;
       }
       return filters;
     }
