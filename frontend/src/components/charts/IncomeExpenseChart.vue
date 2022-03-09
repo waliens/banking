@@ -96,7 +96,7 @@ export default defineComponent({
         if (!month_data) {
           month_data = {};
         }
-        data.push(new Array(`${this.monthMap[month]}`, ...[map[month].income || 0, map[month].expense || 0]));
+        data.push(new Array(`${this.monthMap[month - 1]}`, ...[map[month].income || 0, map[month].expense || 0]));
       })
       return data;
     },
