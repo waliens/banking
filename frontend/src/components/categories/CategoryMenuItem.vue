@@ -1,7 +1,8 @@
 <template>
-  <b-menu-item @click="() => clicked(category)" :icon="category.icon" :expanded="category.children.length > 0 && expanded">
+  <b-menu-item @click="() => clicked(category)" :icon="category.icon" :expanded="category.children.length > 0 && expanded" >
     <template #label>
-      {{category.name}}
+      <span class="icon"><i class="fas fa-circle" :style="`color: ${category.color}`"></i></span> 
+      {{category.name}} 
       <b-icon class="is-pulled-right" :icon="expanded ? 'chevron-up' : 'chevron-down'"></b-icon>
     </template>
       <div v-if="category.children.length > 0">
