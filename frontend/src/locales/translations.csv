@@ -12,6 +12,11 @@ account_group.update,Account group update,Mise à jour d'un groupe
 account.accounts,Accounts,Comptes
 account.alias,Alias,Alias
 account.aliases,Aliases,Alias
+account.alias_already_exists
+account.new_alias,New alias,Nouvel alias
+account.alias_name,Alias name,Nom de l'alias
+account.alias_number,Alias number,Numéro de l'alias
+account.add_alias,Add alias,Ajouter un alias
 account.balance,Balance,Solde
 account.dest.name,Name (dest),Nom (dest)
 account.dest.number,Number (dest),Numéro de compte (dest)

@@ -2,12 +2,14 @@ from datetime import date
 import json
 from locale import currency
 import os
+from platform import machine
 import re
 import tempfile
 
 from decimal import Decimal
 from time import sleep
 from xml.etree.ElementInclude import include
+from xxlimited import new
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, abort
@@ -263,6 +265,23 @@ def update_account(id_account):
     session.commit()
     return jsonify(account.as_dict())
 
+
+@app.route("/account/<int:id_account>/alias", methods=["POST"])
+def add_alias(id_account):
+    name = request.json.get("name", None)
+    number = request.json.get("number", None)
+    session = Session()
+    account = Account.query.get(id_account)
+    all_aliases = [(account.name, account.number), *[(alias.name, alias.number) for alias in account.aliases]]
+    matching = [_ for a in all_aliases if a == (name, number)]
+    app.logger.info(all_aliases)
+    app.logger.info((name, number))
+    if len(matching) > 0:
+        return error_response("cannot add this alias, already exists")
+    new_alias = AccountAlias(name=name, number=number, id_account=id_account)
+    session.add(new_alias)
+    session.commit()
+    return new_alias.as_dict() 
 
 @app.route('/account/merge', methods=["PUT"])
 def merge_accounts():

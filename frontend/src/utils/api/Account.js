@@ -46,6 +46,11 @@ export default class Account extends Model {
     return result.data;
   }
 
+  async newAlias({name, number}) {
+    let {data} = await axios.post(`${this.uri}/alias`, {'name': name, 'number': number});
+    return data;
+  }
+
   formatName(ctx) {
     return Account.formatNameByObj(this, ctx)
   }
