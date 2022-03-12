@@ -273,7 +273,7 @@ def add_alias(id_account):
     session = Session()
     account = Account.query.get(id_account)
     all_aliases = [(account.name, account.number), *[(alias.name, alias.number) for alias in account.aliases]]
-    matching = [_ for a in all_aliases if a == (name, number)]
+    matching = [a for a in all_aliases if a == (name, number)]
     app.logger.info(all_aliases)
     app.logger.info((name, number))
     if len(matching) > 0:
