@@ -141,7 +141,7 @@ export default defineComponent({
         representative: this.selected.length > 0 ? this.selected[0] : undefined,
         initial: this.initial
       });
-      this.$router.push({name: 'view-account', params: {accountId: this.accountId}});
+      this.$router.push({name: 'view-account', params: {accountid: this.accountId}});
     },
     openNewAliasModal() {
       this.newAliasModalActive = true;

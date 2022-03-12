@@ -85,7 +85,7 @@ export default defineComponent({
       return Account.formatNameByObj(alias, this);
     },
     goToEditEvent() {
-      this.$router.push({'name': 'edit-account', params: {'accountId': this.accountId}});
+      this.$router.push({'name': 'edit-account', params: {accountid: this.accountId}});
     }
   }
 })

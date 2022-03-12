@@ -80,7 +80,7 @@ export default defineComponent({
   },
   methods: {
     goToAccount(id) {
-      this.$router.push({'name': 'view-account', params: {'accountId': id}});
+      this.$router.push({'name': 'view-account', params: {'accountid': id}});
     },
     getSignedAmount(t) {
       if (!!this.referenceAccount && t.source.id == this.referenceAccount.id) {
