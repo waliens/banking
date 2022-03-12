@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="visible">
     <section class="level">
       <div class="level-item level-center" >
         <b-field :label="$t('year')" label-position="on-border">
@@ -29,14 +29,16 @@ import NoDataBox from '../generic/NoDataBox.vue';
 
 export default defineComponent({
   components: {GChart, NoDataBox},
-  props: {'group': Object},
+  // visible: to allow rendering only when the graph is visible to avoid relative with issue when component is not on the page
+  props: {'group': Object, 'visible': {type: Boolean, default: true} },
   data() {
     return {
       selectedYear: this.getCurrentYear(),
       chartData: [],
       options: {
         title: this.$t('charts.incomeexpense.title'),
-        chartArea: {width: '80%'},
+        chartArea: {width: '80%', height: 400},
+        height: 500,
         hAxis: {
           minValue: Math.max(...this.getYears()),
         },

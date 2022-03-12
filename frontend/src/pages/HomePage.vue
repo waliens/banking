@@ -1,7 +1,12 @@
 <template>
   <div>
-    <h1 class="title">Group <em>{{group.name}}</em></h1>
     <section class="level">
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">{{$t('group')}}</p>
+          <p class="title">{{group.name}}</p>
+        </div>
+      </div>
       <div class="level-item has-text-centered">
         <div>
           <p class="heading">{{$t('account_group.number_accounts')}}</p>
@@ -16,17 +21,18 @@
       </div>
     </section>
     <section>
-      <account-table :accounts="group.accounts"></account-table>
+      <b-tabs v-model="activetTab">
+        <b-tab-item :label="$t('account.accounts')">
+          <account-table :accounts="group.accounts"></account-table>
+        </b-tab-item>
+        <b-tab-item :label="$t('stats.tabs.inout')">
+          <income-expense-chart :group="group" :visible="activetTab==1"></income-expense-chart>
+        </b-tab-item>
+        <b-tab-item :label="$t('stats.tabs.category')">
+          <per-category-chart :group="group" :visible="activetTab==2"></per-category-chart>
+        </b-tab-item>
+      </b-tabs>
     </section>
-    <b-tabs>
-      <b-tab-item :label="$t('stats.tabs.inout')">
-        <income-expense-chart :group="group"></income-expense-chart>
-      </b-tab-item>
-      <b-tab-item :label="$t('stats.tabs.category')">
-        <per-category-chart :group="group"></per-category-chart>
-      </b-tab-item>
-    </b-tabs>
-
   </div>
 </template>
 
@@ -41,6 +47,11 @@ import PerCategoryChart from '../components/charts/PerCategoryChart.vue';
 
 export default defineComponent({
   components: {AccountTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart},
+  data() {
+    return {
+      activetTab: 0
+    }
+  },
   computed: {
     group() {
       return this.$store.state.currentGroup;

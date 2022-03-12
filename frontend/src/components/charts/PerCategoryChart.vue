@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="visible">
     <section class="columns">
       <div class="column">
 
@@ -51,6 +51,11 @@
       </div>
       <div class="column">
         <b-field grouped>
+          <b-field>
+            <b-tooltip :label="$t('up')">
+              <b-button icon-right="angle-up" :disabled="detailLevel <= minDetailLevel" @click="goUpOneLevel"></b-button>
+            </b-tooltip>
+          </b-field>
           <b-field  :label="$t('stats.category.level_selector')" label-position="on-border">
             <b-select v-model="detailLevel" @input="updateLevelSelector">
               <option v-for="level in detailLevelOptions" :key="level.value" :value="level.value">
@@ -64,11 +69,6 @@
                 {{category.nestedName}}
               </option>
             </b-select>
-          </b-field>
-          <b-field>
-            <b-tooltip :label="$t('up')">
-              <b-button icon-right="angle-up" v-if="detailLevel > minDetailLevel" @click="goUpOneLevel"></b-button>
-            </b-tooltip>
           </b-field>
         </b-field>
       </div>
@@ -97,7 +97,8 @@ import Category from '@/utils/api/Category';
 
 export default defineComponent({
   components: {GChart, NoDataBox},
-  props: {'group': Object},
+  // visible: to allow rendering only when the graph is visible to avoid relative with issue when component is not on the page
+  props: {'group': Object, 'visible': {type: Boolean, default: true} },
   name: "PerCategoryChart",
   data() {
     return {
@@ -108,7 +109,7 @@ export default defineComponent({
       detailLevelOptions: [],
       coarseCategoryId: null,
       categories: {},
-      periodType: 'year',
+      periodType: 'between',
       periodTypeOptions: [
         {id: 'month', name: this.$t('stats.category.period_type_month') },
         {id: 'year', name: this.$t('stats.category.period_type_year') },
@@ -129,7 +130,7 @@ export default defineComponent({
   async created() {
     this.selectedYear = this.getCurrentYear();
     this.selectedMonth = this.getCurrentMonth();
-    this.periodFrom = moment().subtract(1, "months");
+    this.periodFrom = moment().subtract(10, "years");
     this.periodTo = moment().add(1, "day");
     this.categories = await Category.getCategoryTreeByDepth();
 
@@ -253,8 +254,8 @@ export default defineComponent({
       let options = {
         'slices': {},
         title: this.coarseCategoryId ? this.coarseCategory.nestedName : "",
-        chartArea: {width: '80%', height: 500},
-        height: 700,
+        chartArea: {width: '80%', height: 400},
+        height: 500,
         sliceVisibilityThreshold: 0.02
       };
       let sliceToCategory = {};
