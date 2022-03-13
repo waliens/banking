@@ -2,7 +2,7 @@
   <b-navbar class="is-primary">
     <template #brand>
       <b-navbar-item tag="router-link" :to="{ name: 'home' }">
-        {{$t("app_name")}}
+        <strong>{{$t("app_name")}}</strong>
       </b-navbar-item>
     </template>
     <template #start>
@@ -26,6 +26,9 @@
           {{$t('tagging.tree')}}
         </b-navbar-item>
       </b-navbar-dropdown>
+      <b-navbar-item tag="router-link" :to="{ name: 'help' }">
+        {{$t("help")}}
+      </b-navbar-item>
     </template>
     <template #end>
         <b-navbar-item tag="router-link" :to="{ name: 'select-account-group' }">

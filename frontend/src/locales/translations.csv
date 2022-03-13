@@ -64,6 +64,7 @@ double-table-select.selected-too-many,"Too many elements selected (selected: {se
 drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
 explore,Explore,Explorer
 group,Group,Groupe
+help,Help,Aide
 merge,Merge,Fusionner
 ml_model.label_suggested_by_ml,"This category was suggested by a machine learning model with {proba}% confidence.","Cette catégorie a été suggérée par une modèle de machine learning avec une confiance de {proba}%."
 ml_model.metadata,Metadata,Méta-données

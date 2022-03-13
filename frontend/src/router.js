@@ -74,6 +74,11 @@ const routes = [
     component: require('./pages/EditAccountPage.vue').default
   },
   {
+    name: 'help',
+    path: '/help',
+    component: require('./pages/HelpPage.vue').default
+  },
+  {
     name: 'not-found',
     path: '*',
     component: require('./pages/NotFoundPage.vue').default,
