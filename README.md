@@ -11,3 +11,10 @@ Services:
 Data:
 - machine learning model files stored in docker `models_volume` volume
 - sqlite database stored in docker `db_volume` volume
+
+
+# Future features
+
+- automated integration of data from Splitwise/Tricount to correct repayment values
+- automated integration of investments data (pension savings, stocks, crypto)
+- more reports (montly report per category)
