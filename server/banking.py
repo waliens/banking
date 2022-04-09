@@ -397,8 +397,19 @@ def get_group_stats_per_category(id_group):
     id_category = request.args.get("id_category", type=int, default=None)
     session = Session()
     buckets = per_category(session, id_group, period_from=period_from, period_to=period_to, id_category=id_category, include_unlabeled=unlabeled, bucket_level=level)
-    return jsonify(buckets)
+    return jsonify(buckets[-1])
 
+
+@app.route("/account_group/<int:id_group>/stats/percategorymonthly")
+def get_group_stats_per_category_monthly(id_group):
+    period_from = request.args.get("period_from", type=date_type, default=None)
+    period_to = request.args.get("period_to", type=date_type, default=None)
+    level = request.args.get("level", type=int, default=-1)
+    unlabeled = request.args.get("unlabeled", type=bool_type, default=True)
+    id_category = request.args.get("id_category", type=int, default=None)
+    session = Session()
+    buckets = per_category(session, id_group, period_from=period_from, period_to=period_to, id_category=id_category, include_unlabeled=unlabeled, bucket_level=level, period_bucket="month")
+    return jsonify(buckets)
 
 
 @app.route("/accounts", methods=["GET"])

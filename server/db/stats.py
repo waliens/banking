@@ -2,7 +2,7 @@ from collections import defaultdict
 from decimal import Decimal
 from sqlalchemy import and_, func, or_, select
 from db.models import AccountGroup, Category, Currency, Transaction
-from db.util import tag_tree_from_database, get_tags_descendants, get_tags_at_level 
+from db.util import month_func, tag_tree_from_database, get_tags_descendants, get_tags_at_level, year_func 
   
 import logging
 
@@ -67,7 +67,7 @@ def incomes_expenses(session, id_group, year=None, month=None):
   return d_expenses, d_incomes, currencies
 
 
-def per_category(session, group=None, period_from=None, period_to=None, id_category=None, bucket_level=-1, include_unlabeled=False):
+def per_category(session, group=None, period_from=None, period_to=None, id_category=None, bucket_level=-1, include_unlabeled=False, period_bucket=None):
   ##########
   # Filter #
   ##########
@@ -82,6 +82,15 @@ def per_category(session, group=None, period_from=None, period_to=None, id_categ
     filters.append(Transaction.when >= period_from)
   if period_to is not None:
     filters.append(Transaction.when <= period_to)
+  if period_bucket is not None:
+    if period_bucket == "month":
+      bucket_fn = month_func
+    elif period_bucket == "year":
+      bucket_fn = year_func
+    else:
+      raise ValueError("incorrect period bucket name '{}'".format(period_bucket))
+    fields.append(bucket_fn(Transaction.when).label(period_bucket))
+    group_bys.append(bucket_fn(Transaction.when))
 
   tag_tree, categories = tag_tree_from_database(return_plain_categories=True)
   categories = {c.id: c.as_dict() for c in categories}
@@ -100,14 +109,20 @@ def per_category(session, group=None, period_from=None, period_to=None, id_categ
   # Buckets #
   ###########
     
-  raw_buckets = session.execute(select(*fields).where(and_(*filters)).group_by(*group_bys))
-  raw_buckets = [{
-    "id_category": raw_bucket["id_category"], 
-    "amount": Decimal(raw_bucket.amount), 
-    "category": categories.get(raw_bucket.id_category, None),
-    "id_currency": raw_bucket["id_currency"],
-    "currency": currencies.get(raw_bucket["id_currency"], None)
-  } for raw_bucket in raw_buckets]
+  results = session.execute(select(*fields).where(and_(*filters)).group_by(*group_bys))
+  raw_buckets = defaultdict(list)
+  for raw_entry in results:
+    actual_data = {
+      "id_category": raw_entry["id_category"], 
+      "amount": Decimal(raw_entry.amount), 
+      "category": categories.get(raw_entry.id_category, None),
+      "id_currency": raw_entry["id_currency"],
+      "currency": currencies.get(raw_entry["id_currency"], None),
+    }
+    if period_bucket is None:  # only one list stored at index -1
+      raw_buckets[-1].append(actual_data)
+    else:
+      raw_buckets[raw_entry[period_bucket]].append(actual_data)
 
   if bucket_level == -1:
     return raw_buckets
@@ -127,21 +142,23 @@ def per_category(session, group=None, period_from=None, period_to=None, id_categ
 
   # fill buckets
   # if categ_id is missing
-  buckets = dict()
-  for raw_bucket in raw_buckets:
-    # determine reference category identifier
-    raw_bucket_id_category = raw_bucket["id_category"]
-    if raw_bucket_id_category not in categ2bucket:
-      # leaf category higher than 'level' in the hierarchy -> create a new bucket
-      categ2bucket[raw_bucket_id_category] = raw_bucket_id_category
-    bucket_ref_id_category = categ2bucket[raw_bucket_id_category]
-    bucket_key = (bucket_ref_id_category, raw_bucket["id_currency"])
-    if bucket_key not in buckets:
-      buckets[bucket_key] = raw_bucket
-      if raw_bucket_id_category != bucket_ref_id_category:
-        buckets[bucket_key]["category"] = categories.get(bucket_ref_id_category, None)
-        buckets[bucket_key]["id_category"] = bucket_ref_id_category
-    else:
-      buckets[bucket_key]["amount"] += raw_bucket["amount"]
+  buckets = defaultdict(dict)
+  for top_level_bucket_key, bottom_level_buckets in raw_buckets.items():
+    curr_buckets = buckets[top_level_bucket_key]
+    for bottom_level_bucket in bottom_level_buckets:
+      # determine reference category identifier
+      bottom_level_bucket_id_category = bottom_level_bucket["id_category"]
+      if bottom_level_bucket_id_category not in categ2bucket:
+        # leaf category higher than 'level' in the hierarchy -> create a new bucket
+        categ2bucket[bottom_level_bucket_id_category] = bottom_level_bucket_id_category
+      bucket_ref_id_category = categ2bucket[bottom_level_bucket_id_category]
+      bucket_key = (bucket_ref_id_category, bottom_level_bucket["id_currency"])
+      if bucket_key not in curr_buckets:
+        curr_buckets[bucket_key] = bottom_level_bucket
+        if bottom_level_bucket_id_category != bucket_ref_id_category:
+          curr_buckets[bucket_key]["category"] = categories.get(bucket_ref_id_category, None)
+          curr_buckets[bucket_key]["id_category"] = bucket_ref_id_category
+      else:
+        curr_buckets[bucket_key]["amount"] += bottom_level_bucket["amount"]
 
-  return list(buckets.values())
+  return {k: list(v.values()) for k, v in buckets.items()}

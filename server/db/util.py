@@ -1,5 +1,5 @@
 from collections import defaultdict
-from sqlalchemy import Float, and_, cast, or_, select
+from sqlalchemy import Float, and_, or_, select, func, cast, Integer
 from sqlalchemy.orm import sessionmaker
 
 from parsing.util import UnionFind
@@ -165,3 +165,13 @@ def get_transaction_query(account=None, group=None, sort_by=None, account_to=Non
     query = query.order_by(sort_expr)
 
   return query
+
+
+def month_func(field):
+  """sqlite comptatible month function"""
+  return cast(func.strftime('%m', field), Integer)
+
+
+def year_func(field):
+  """sqlite comptatible month function"""
+  return cast(func.strftime('%Y', field), Integer)
