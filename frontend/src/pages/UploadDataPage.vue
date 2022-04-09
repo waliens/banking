@@ -57,6 +57,10 @@
           <currency-display :currency="props.row.currency" :amount="props.row.amount" :doColor="true"></currency-display>
         </b-table-column>
 
+        <b-table-column v-slot="props">
+          <b-tooltip v-if="props.row.duplicate" :label="$t('data_upload.duplicate')" class="is-danger" ><b-icon icon="copy" type="is-danger"></b-icon></b-tooltip>
+        </b-table-column>
+
       </b-table>
     </section>
   </div>

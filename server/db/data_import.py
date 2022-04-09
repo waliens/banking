@@ -124,11 +124,14 @@ def make_mscard_metadata(t):
   return serializer.serialize(t)
 
 
-def get_mastercard_preview(dirname):
+def get_mastercard_preview(dirname, sess):
   _, transactions, account_names, account2currency = parse_folder(dirname)
   to_create, all_accounts = check_existing_mastercard_accounts(account_names)
   logging.getLogger('banking').info("found {} transaction(s) in pdf file(s)".format(len(transactions)))
 
+  existing = sess.execute(select(Transaction.custom_id).where(Transaction.data_source == "mastercard"))
+  existing_mcard_ids = {t["custom_id"] for t in existing}
+ 
   currencies = {c.short_name: c for c in Currency.query.all()}
   for t in transactions:
     account_name = t["account"]
@@ -137,10 +140,11 @@ def get_mastercard_preview(dirname):
     t["currency"] = currencies[t["currency"]]
     if "original_currency" in t:
       t["original_currency"] = currencies[t["original_currency"]]
+    t["duplicate"] = ms_identifier(t) in existing_mcard_ids
 
   toisoformat = lambda v: v.isoformat()
   serializer = AsDictSerializer(
-    "account_name", "country_code", "country_or_site", "rate_to_final",
+    "account_name", "country_code", "country_or_site", "rate_to_final", "duplicate",
     closing_date=toisoformat, debit_date=toisoformat,
     when=toisoformat, value_date=toisoformat, amount=str, 
     original_amount=(lambda v: None if v is None else str(v)),
@@ -165,15 +169,21 @@ def import_mastercard_pdf(dirname, id_mc_account, sess):
 
   all_accounts.update(new_accounts)
 
+  existing = sess.execute(select(Transaction.custom_id).where(Transaction.data_source == "mastercard"))
+  existing_mcard_ids = {t["custom_id"] for t in existing}
+
   new_transactions = list()
   for t in transactions:
+    custom_id = ms_identifier(t)
+    if custom_id in existing_mcard_ids:
+      continue 
     amount = t["amount"]
     id_source, id_dest = id_mc_account, all_accounts[t["account"]].id
     if amount > 0:  # income
       id_source, id_dest = id_dest, id_source
     logging.getLogger().info((make_mscard_metadata(t), id_source, id_dest))
     new_transactions.append(Transaction(
-      custom_id=ms_identifier(t),
+      custom_id=custom_id,
       id_source=id_source, id_dest=id_dest,
       when=t["when"], amount=amount.copy_abs(),
       metadata_=make_mscard_metadata(t),

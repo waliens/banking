@@ -53,6 +53,7 @@ data_upload.mastercard_account,MasterCard account,Compte MasterCard
 data_upload.mastercard_preview,MasterCard preview,Preview MasterCard
 data_upload.title,Upload data,Upload des données
 data_upload.upload_file_type,File type,Type de fichier
+data_upload.duplicate,Duplicate,Doublon
 date,Date,date
 edit,Edit,Éditer
 filter,Filter,Filtrer

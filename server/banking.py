@@ -520,7 +520,7 @@ def upload_data():
             id_mscard_account = request.args.get("id_mscard_account")
             import_mastercard_pdf(dirname, id_mscard_account, session)
         elif format == "mastercard_pdf_preview":
-            preview = get_mastercard_preview(dirname)
+            preview = get_mastercard_preview(dirname, session)
             return jsonify(preview)
         else:
             return Response({"error": "unsupported format", "status": 401})

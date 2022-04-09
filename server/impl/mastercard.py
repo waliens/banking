@@ -11,13 +11,15 @@ from pdfminer.pdfpage import PDFPage
 from pdfminer.converter import HTMLConverter
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 
+from db.models import Account
+
 SMALL_DATE_PATTERN = r"^[0-9]{2}/[0-9]{2}$"
 
 
 def ms_identifier(t):
   return re.sub(r"\s+", "", "mastercard/{}/{}/{}/{}/{}/{}/{}/{}".format(
     t["amount"],
-    t["account"],
+    t["account"].name if isinstance(t["account"], Account) else t["account"],
     t["closing_date"].isoformat(),
     t["debit_date"].isoformat(),
     t["when"].isoformat(),
