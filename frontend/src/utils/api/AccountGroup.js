@@ -34,4 +34,12 @@ export default class AccountGroup extends Model {
     let {data} = await axios.get(`${this.uri}/stats/percategory`, { params });
     return data;
   }
+
+  /**
+   * @param {period_from, period_to, id_category, level, unlabeled} params 
+   */
+  async getPerCategoryMonthlyStats(params) {
+    let {data} = await axios.get(`${this.uri}/stats/percategorymonthly`, { params });
+    return data;
+  }
 }

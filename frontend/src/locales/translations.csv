@@ -90,6 +90,7 @@ selection,Selection,Sélection
 select,Select,Sélectionner
 stats.tabs.inout,In/Out,Entrée/Sortie
 stats.tabs.category,Per category,Par catégorie
+stats.tabs.category_monthly,Per category (monthly),Par catégorie (mensuel)
 stats.category.period_selector,Period (type),Période (type)
 stats.category.period_trom,From,De,
 stats.category.period_to,To,à,

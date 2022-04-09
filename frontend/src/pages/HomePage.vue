@@ -21,15 +21,18 @@
       </div>
     </section>
     <section>
-      <b-tabs v-model="activetTab">
+      <b-tabs v-model="activeTab">
         <b-tab-item :label="$t('account.accounts')">
           <account-table :accounts="group.accounts"></account-table>
         </b-tab-item>
         <b-tab-item :label="$t('stats.tabs.inout')">
-          <income-expense-chart :group="group" :visible="activetTab==1"></income-expense-chart>
+          <income-expense-chart :group="group" :visible="activeTab==1"></income-expense-chart>
         </b-tab-item>
         <b-tab-item :label="$t('stats.tabs.category')">
-          <per-category-chart :group="group" :visible="activetTab==2"></per-category-chart>
+          <per-category-chart :group="group" :visible="activeTab==2"></per-category-chart>
+        </b-tab-item>
+        <b-tab-item :label="$t('stats.tabs.category_monthly')">
+          <per-category-monthly-chart :group="group" :visible="activeTab==3"></per-category-monthly-chart>
         </b-tab-item>
       </b-tabs>
     </section>
@@ -44,12 +47,13 @@ import { strcurrency } from '@/utils/helpers';
 import CurrencyDisplay from '../components/generic/CurrencyDisplay.vue';
 import IncomeExpenseChart from '../components/charts/IncomeExpenseChart.vue';
 import PerCategoryChart from '../components/charts/PerCategoryChart.vue';
+import PerCategoryMonthlyChart from '../components/charts/PerCategoryMonthlyChart.vue';
 
 export default defineComponent({
-  components: {AccountTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart},
+  components: {AccountTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart, PerCategoryMonthlyChart},
   data() {
     return {
-      activetTab: 0
+      activeTab: 0
     }
   },
   computed: {
