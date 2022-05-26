@@ -8,17 +8,23 @@ services:
       - 5000:5000
     command: "flask run"
     environment:
-      FLASK_APP: banking
-      FLASK_RUN_HOST: 0.0.0.0
-      DB_FILE: /data/db.db
-      MODEL_PATH: /models
-      FLASK_ENV: development
-      REDIS_HOST: redis-dev
-      REDIS_PORT: 6379
+      - FLASK_APP=banking
+      - FLASK_RUN_HOST=0.0.0.0
+      - DB_HOST=database
+      - DB_PORT=5432 
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_NAME=banking_dev
+      - MODEL_PATH=/models
+      - FLASK_ENV=development
+      - REDIS_HOST=redis-dev
+      - REDIS_PORT=6379
+    restart: always
     volumes:
       - ./server/:/app  # to share code and having refresh on update
-      - ~/data/banking/db:/data
       - ~/data/banking/models:/models
+    depends_on:
+      - postgres-dev
 
   # vue client
   frontend-dev:
@@ -38,6 +44,18 @@ services:
     ports: 
       - 6379:6379
 
+  database:
+    image: postgres:14.3-alpine
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=banking_dev
+      - POSTGRES_PASSWORD=password
+      - PGDATA=/data
+    volumes:
+      - ~/data/debug/db:/data
+    ports:
+      - 5432:5432
+    
   # worker for celery background tasks
   celery_worker-dev:
     build:
@@ -45,16 +63,21 @@ services:
       dockerfile: Dockerfile
     command: "celery -A banking.celery worker"
     environment:
-      FLASK_APP: banking
-      FLASK_RUN_HOST: 0.0.0.0
-      DB_FILE: /data/db.db
-      MODEL_PATH: /models
-      FLASK_ENV: development
-      REDIS_HOST: redis-dev
-      REDIS_PORT: 6379
+      - FLASK_APP=banking
+      - FLASK_RUN_HOST=0.0.0.0
+      - DB_HOST=database
+      - DB_PORT=5432 
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_NAME=banking_dev
+      - MODEL_PATH=/models
+      - FLASK_ENV=development
+      - REDIS_HOST=redis-dev
+      - REDIS_PORT=6379
+    restart: always
     depends_on:
       - redis-dev
       - server-dev
-    volumes:      
-      - ~/data/banking/db:/data
+      - postgres-dev
+    volumes:
       - ~/data/banking/models:/models

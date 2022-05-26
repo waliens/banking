@@ -1,8 +1,9 @@
 from collections import defaultdict
 from decimal import Decimal
-from sqlalchemy import and_, func, or_, select
+from functools import partial
+from sqlalchemy import and_, extract, func, or_, select
 from db.models import AccountGroup, Category, Currency, Transaction
-from db.util import month_func, tag_tree_from_database, get_tags_descendants, get_tags_at_level, year_func 
+from db.util import tag_tree_from_database, get_tags_descendants, get_tags_at_level 
   
 import logging
 
@@ -84,9 +85,9 @@ def per_category(session, group=None, period_from=None, period_to=None, id_categ
     filters.append(Transaction.when <= period_to)
   if period_bucket is not None:
     if period_bucket == "month":
-      bucket_fn = month_func
+      bucket_fn = partial(extract, 'month')
     elif period_bucket == "year":
-      bucket_fn = year_func
+      bucket_fn = partial(extract, 'year')
     else:
       raise ValueError("incorrect period bucket name '{}'".format(period_bucket))
     fields.append(bucket_fn(Transaction.when).label(period_bucket))

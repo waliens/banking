@@ -177,8 +177,6 @@ def get_transactions_count():
     amount_from = request.args.get("amount_from", type=Decimal, default=None)
     amount_to = request.args.get("amount_to", type=Decimal, default=None)
 
-    app.logger.info(labeled)
-
     if account is not None and group is not None:
         return error_response("cannot set both account and account_group when fetching transactions")
     if date_from is not None and date_to is not None and date_from > date_to:
@@ -397,7 +395,7 @@ def get_group_stats_per_category(id_group):
     id_category = request.args.get("id_category", type=int, default=None)
     session = Session()
     buckets = per_category(session, id_group, period_from=period_from, period_to=period_to, id_category=id_category, include_unlabeled=unlabeled, bucket_level=level)
-    return jsonify(buckets[-1])
+    return jsonify(buckets[-1] if len(buckets) > 0 else {})
 
 
 @app.route("/account_group/<int:id_group>/stats/percategorymonthly")

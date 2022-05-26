@@ -165,13 +165,3 @@ def get_transaction_query(account=None, group=None, sort_by=None, account_to=Non
     query = query.order_by(sort_expr)
 
   return query
-
-
-def month_func(field):
-  """sqlite comptatible month function"""
-  return cast(func.strftime('%m', field), Integer)
-
-
-def year_func(field):
-  """sqlite comptatible month function"""
-  return cast(func.strftime('%Y', field), Integer)

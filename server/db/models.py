@@ -90,7 +90,7 @@ class Account(Base):
     id = Column(Integer, primary_key=True)
     number = Column(String(63), nullable=True)
     name = Column(String(255), nullable=True)
-    initial = Column(Numeric(2), nullable=True)
+    initial = Column(Numeric(20, 2), nullable=True)
     id_currency = Column(Integer, ForeignKey('currency.id'))
 
     as_source = relationship(lambda: Transaction, foreign_keys=lambda: Transaction.id_source, back_populates="source")
@@ -168,7 +168,7 @@ class Transaction(Base):
     id_dest = Column(Integer, ForeignKey('account.id'))
     when = Column(Date)
     metadata_ = Column("metadata", JSON)
-    amount = Column(Numeric(2))
+    amount = Column(Numeric(20, 2))
     id_currency = Column(Integer, ForeignKey('currency.id'))
     id_category = Column(Integer, ForeignKey('category.id', ondelete='SET NULL'), nullable=True)
     data_source = Column(String)
