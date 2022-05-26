@@ -4,20 +4,26 @@ services:
     build:
       context: server/
       dockerfile: Dockerfile
+    restart: always
     ports:
       - 5000:5000
     command: "flask run"
     environment:
-      FLASK_APP: banking
-      FLASK_RUN_HOST: 0.0.0.0
-      DB_FILE: /data/db.db
-      MODEL_PATH: /models
-      FLASK_ENV: production
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      - FLASK_APP=banking
+      - FLASK_RUN_HOST=0.0.0.0
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_NAME=banking
+      - MODEL_PATH=/models
+      - FLASK_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     volumes:
-      - db_volume:/data
       - models_volume:/models
+    depends_on:
+      - database
 
   # vue client
   frontend:
@@ -36,6 +42,19 @@ services:
     ports: 
       - 6379:6379
 
+  database:
+    image: postgres:14.3-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=banking
+      - POSTGRES_PASSWORD=password
+      - PGDATA=/data
+    ports:
+      - 5432:5432
+    volumes:
+      - db_volume_pg:/data
+
   # worker for celery background tasks
   celery_worker:
     build:
@@ -43,20 +62,24 @@ services:
       dockerfile: Dockerfile
     command: "celery -A banking.celery worker"
     environment:
-      FLASK_APP: banking
-      FLASK_RUN_HOST: 0.0.0.0
-      DB_FILE: /data/db.db
-      MODEL_PATH: /models
-      FLASK_ENV: production
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      - FLASK_APP=banking
+      - FLASK_RUN_HOST=0.0.0.0
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_NAME=banking
+      - MODEL_PATH=/models
+      - FLASK_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - redis
       - server
+      - database
     volumes:
-      - db_volume:/data
       - models_volume:/models
 
 volumes:
-  db_volume:
+  db_volume_pg:
   models_volume:

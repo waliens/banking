@@ -10,7 +10,7 @@ services:
     environment:
       - FLASK_APP=banking
       - FLASK_RUN_HOST=0.0.0.0
-      - DB_HOST=database
+      - DB_HOST=database-dev
       - DB_PORT=5432 
       - DB_USER=admin
       - DB_PASSWORD=password
@@ -44,7 +44,7 @@ services:
     ports: 
       - 6379:6379
 
-  database:
+  database-dev:
     image: postgres:14.3-alpine
     environment:
       - POSTGRES_USER=admin
@@ -65,7 +65,7 @@ services:
     environment:
       - FLASK_APP=banking
       - FLASK_RUN_HOST=0.0.0.0
-      - DB_HOST=database
+      - DB_HOST=database-dev
       - DB_PORT=5432 
       - DB_USER=admin
       - DB_PASSWORD=password
