@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - 5000:5000
-    command: "alembic revision --autogenerate"
+    command: "alembic revision --autogenerate && alembic upgrade head"
     environment:
       - FLASK_APP=banking
       - FLASK_RUN_HOST=0.0.0.0
@@ -23,7 +23,7 @@ services:
       - ./server/:/app  # to share code and having refresh on update
       - ~/data/banking/models:/models
     depends_on:
-      - postgres-db-revision
+      - database-db-revision
 
   database-db-revision:
     image: postgres:14.3-alpine
