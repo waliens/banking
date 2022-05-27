@@ -1,0 +1,38 @@
+services:
+  # flask server
+  server-db-revision:
+    build:
+      context: server/
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    command: "alembic revision --autogenerate"
+    environment:
+      - FLASK_APP=banking
+      - FLASK_RUN_HOST=0.0.0.0
+      - DB_HOST=database-db-revision
+      - DB_PORT=5432 
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_NAME=banking_dev
+      - MODEL_PATH=/models
+      - FLASK_ENV=development
+      - REDIS_HOST=redis-db-revision
+      - REDIS_PORT=6379
+    volumes:
+      - ./server/:/app  # to share code and having refresh on update
+      - ~/data/banking/models:/models
+    depends_on:
+      - postgres-db-revision
+
+  database-db-revision:
+    image: postgres:14.3-alpine
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=banking_dev
+      - POSTGRES_PASSWORD=password
+      - PGDATA=/data
+    volumes:
+      - ~/data/debug/db:/data
+    ports:
+      - 5432:5432

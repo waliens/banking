@@ -55,12 +55,11 @@ def init_db():
     setcontext(context)
 
     # create all if necessary
-    Base.metadata.create_all(bind=engine)
-
-    is_new_database = not inspect(engine).has_table("alembic_version")
+    is_new_database = not inspect(engine).has_table("category")
     alembic_cfg = Config("/app/alembic.ini")
 
     if is_new_database:
+        Base.metadata.create_all(bind=engine)
         command.stamp(alembic_cfg, "head")
         add_tags(sess=db_session)
         add_currencies(sess=db_session)

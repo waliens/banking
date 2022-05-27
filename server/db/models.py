@@ -172,6 +172,7 @@ class Transaction(Base):
     id_currency = Column(Integer, ForeignKey('currency.id'))
     id_category = Column(Integer, ForeignKey('category.id', ondelete='SET NULL'), nullable=True)
     data_source = Column(String)
+    is_rewrite = Column(Boolean, default=False)
 
     source = relationship("Account", foreign_keys=[id_source], lazy="joined", back_populates="as_source")
     dest = relationship("Account", foreign_keys=[id_dest], lazy="joined", back_populates="as_dest")
@@ -275,3 +276,15 @@ class MLModelFile(Base):
 
     def as_dict(self):
         return AsDictSerializer("id", "filename", "target", "metadata_", state=lambda v: v.name).serialize(self)
+
+
+class RewriteGroup(Base):
+    __tablename__ = "rewrite_group"
+    id = Column(Integer, primary_key=True)
+    id_group = Column(Integer, ForeignKey('group.id'), primary_key=True)
+
+
+class RewriteGroupTransaction(Base):
+    __tablename__ = "rewrite_group_transaction"
+    id_rewrite_group = Column(Integer, ForeignKey('group.id'), primary_key=True)
+    id_transaction = Column(Integer, ForeignKey('group.id'), primary_key=True)
