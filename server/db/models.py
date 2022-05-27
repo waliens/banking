@@ -282,6 +282,7 @@ class RewriteGroup(Base):
     __tablename__ = "rewrite_group"
     id = Column(Integer, primary_key=True)
     id_group = Column(Integer, ForeignKey('group.id'), primary_key=True)
+    name = Column(String)
 
 
 class RewriteGroupTransaction(Base):
