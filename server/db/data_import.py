@@ -91,7 +91,8 @@ def import_belfius_csv(dirname, sess):
       metadata_=make_metadata_serializable(t.metadata),
       amount=t.amount,
       id_currency=[c for c in currencies if t.currency == c.short_name][0].id,
-      id_category=None)
+      id_category=None,
+      data_source="belfius")
     )
   
   logging.getLogger("banking").info("uploading {} new transaction(s)".format(len(transacs)))
