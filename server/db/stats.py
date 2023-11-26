@@ -114,16 +114,16 @@ def per_category(session, group=None, period_from=None, period_to=None, id_categ
   raw_buckets = defaultdict(list)
   for raw_entry in results:
     actual_data = {
-      "id_category": raw_entry["id_category"], 
+      "id_category": raw_entry.id_category, 
       "amount": Decimal(raw_entry.amount), 
       "category": categories.get(raw_entry.id_category, None),
-      "id_currency": raw_entry["id_currency"],
-      "currency": currencies.get(raw_entry["id_currency"], None),
+      "id_currency": raw_entry.id_currency,
+      "currency": currencies.get(raw_entry.id_currency, None),
     }
     if period_bucket is None:  # only one list stored at index -1
       raw_buckets[-1].append(actual_data)
     else:
-      raw_buckets[raw_entry[period_bucket]].append(actual_data)
+      raw_buckets[getattr(raw_entry, period_bucket)].append(actual_data)
 
   if bucket_level == -1:
     return raw_buckets
@@ -145,7 +145,7 @@ def per_category(session, group=None, period_from=None, period_to=None, id_categ
   # if categ_id is missing
   buckets = defaultdict(dict)
   for top_level_bucket_key, bottom_level_buckets in raw_buckets.items():
-    curr_buckets = buckets[top_level_bucket_key]
+    curr_buckets = buckets[int(top_level_bucket_key)]
     for bottom_level_bucket in bottom_level_buckets:
       # determine reference category identifier
       bottom_level_bucket_id_category = bottom_level_bucket["id_category"]
