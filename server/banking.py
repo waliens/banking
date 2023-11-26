@@ -407,6 +407,12 @@ def get_group_stats_per_category_monthly(id_group):
     id_category = request.args.get("id_category", type=int, default=None)
     session = Session()
     buckets = per_category(session, id_group, period_from=period_from, period_to=period_to, id_category=id_category, include_unlabeled=unlabeled, bucket_level=level, period_bucket="month")
+
+    # convert decimals
+    for bot_buckets in buckets.values():
+        for curr_bucket in bot_buckets:
+            curr_bucket["amount"] = float(curr_bucket["amount"])
+    
     return jsonify(buckets)
 
 
