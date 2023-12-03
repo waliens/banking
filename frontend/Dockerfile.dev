@@ -8,7 +8,7 @@ WORKDIR /app
 
 RUN apk add --no-cache bash
 
-COPY ./yarn.lock ./package.json /app/
+COPY ./yarn.lock ./package.json ./vue.config.js /app/
   
 # installe les dépendances du projet
 RUN yarn install
