@@ -6,7 +6,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - 5000:5000
-    command: "flask run"
+    entrypoint: /bin/sh
+    stdin_open: true 
+    tty: true
     environment:
       - FLASK_APP=banking
       - FLASK_RUN_HOST=0.0.0.0
