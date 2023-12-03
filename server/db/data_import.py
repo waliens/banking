@@ -34,7 +34,7 @@ def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
     # update references of to-be deleted accounts in other tables
     update_id_dest_stmt = update(Transaction).where(Transaction.id_dest == bindparam('old_id')).values({Transaction.id_dest: bindparam('new_id')})
     update_id_src_stmt = update(Transaction).where(Transaction.id_source == bindparam('old_id')).values({Transaction.id_source: bindparam('new_id')})
-    update_id_in_group_stmt = update(AccountGroup).where(AccountGroup.c.id_account == bindparam('old_id')).values({AccountGroup.c.id_account: bindparam('new_id')})
+    update_id_in_group_stmt = update(AccountGroup).where(AccountGroup.id_account == bindparam('old_id')).values({AccountGroup.id_account: bindparam('new_id')})
 
     sess.execute(update_id_dest_stmt, old_new_ids)
     sess.execute(update_id_src_stmt, old_new_ids)
@@ -99,6 +99,7 @@ def import_belfius_csv(dirname, sess):
     
   save(transacs, sess=sess)
 
+  return transacs
 
 
 ########## MASTERCARD ###########
@@ -195,3 +196,5 @@ def import_mastercard_pdf(dirname, id_mc_account, sess):
   
   sess.bulk_save_objects(new_transactions)
   sess.commit()
+
+  return new_transactions

@@ -24,6 +24,7 @@ from sqlalchemy.util import immutabledict
 from db.database import init_db
 from db.models import AccountAlias, AccountGroup, AsDictSerializer, Category, Group, MLModelFile, MLModelState, Transaction, Account
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
+from db.transactions import auto_attribute_partial_transaction_to_groups
 from db.util import get_transaction_query
 
 from ml.model_train import train_model
@@ -532,18 +533,25 @@ def upload_data():
             file.save(filepath) 
         
         session = Session()
-        if format == "belfius":
-            with open(os.path.join(dirname, "accounts.json"), "w+", encoding="utf8") as jsonfile:
-                json.dump({}, jsonfile)
-            import_belfius_csv(dirname, session)
-        elif format == "mastercard_pdf":
-            id_mscard_account = request.args.get("id_mscard_account")
-            import_mastercard_pdf(dirname, id_mscard_account, session)
-        elif format == "mastercard_pdf_preview":
-            preview = get_mastercard_preview(dirname, session)
-            return jsonify(preview)
+        # actual upload
+        if format in {"belfius", "mastercard_pdf"}:
+            if format == "belfius":
+                with open(os.path.join(dirname, "accounts.json"), "w+", encoding="utf8") as jsonfile:
+                    json.dump({}, jsonfile)
+                transactions = import_belfius_csv(dirname, session)
+            elif format == "mastercard_pdf":
+                id_mscard_account = request.args.get("id_mscard_account")
+                transactions = import_mastercard_pdf(dirname, id_mscard_account, session)
+        
+            # auto attribute these new transactions to groups that match them
+            auto_attribute_partial_transaction_to_groups(session, transactions)
+        # preview
+        elif format in {"mastercard_pdf_preview"}:
+            if format == "mastercard_pdf_preview":
+                preview = get_mastercard_preview(dirname, session)
+                return jsonify(preview)
         else:
-            return Response({"error": "unsupported format", "status": 401})
+            return error_response("unsupported upload format", 401)
 
     return jsonify({"status": "ok"})
 

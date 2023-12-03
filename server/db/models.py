@@ -228,6 +228,12 @@ class TransactionGroup(Base):
     id_transaction = Column(Integer, ForeignKey('transaction.id'), primary_key=True)
     contribution_ratio = Column(Float, default=1.0)
 
+    transactions = relationship("Transaction")
+
+    def as_dict(self):
+        return AsDictSerializer(
+            "id_group", "id_transaction", "contribution_ratio", transactions=AsDictSerializer.as_dict_fn()).serialize(self)
+
 
 class Group(Base):
     __tablename__ = "group"
@@ -237,7 +243,7 @@ class Group(Base):
     description = Column(String(1024))
     
     account_groups = relationship("AccountGroup", lazy="joined")
-    transactions = relationship("Transaction", secondary='transaction_group')
+    transactions = relationship("TransactionGroup")
 
     def as_dict(self):
         return AsDictSerializer(
