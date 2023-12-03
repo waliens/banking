@@ -53,6 +53,19 @@
       </b-field>
 
     </b-field>
+    <b-field grouped>
+      <b-field label-position="on-border">
+        <template #label>
+          <b-tooltip :label="$t('transaction.filters.in_group_tooltip')">{{$t('transaction.filters.in_group')}}</b-tooltip>
+        </template>
+        <b-select v-model="keepCurrentGroup">
+          <option v-for="option in inCurrentGroupOptions" :key="option" :value="option">
+            {{ $t(`transaction.filters.in_group_options.${option}`) }}
+          </option> 
+        </b-select>
+      </b-field>
+    </b-field>
+
     <b-field class="level">
       <div class="level-right">
         <b-button class="level-item is-small is-primary" @click="clickClear" icon-right="times">{{$t('clear')}}</b-button>
@@ -84,6 +97,7 @@ export default defineComponent({
     return {
       // filters
       includeLabeled: false,
+      keepCurrentGroup: "only_in_group",
       amountRange: [0, 999999],
       periodFrom: null,
       periodTo: null,
@@ -93,7 +107,12 @@ export default defineComponent({
       periodFromSelected: false,
       periodToSelected: false,
       categories_: [],
-      accounts_: [] 
+      accounts_: [],
+      inCurrentGroupOptions: [
+        "only_in_group",
+        "only_out_group",
+        "both_in_out_group"
+      ]
     }
   },
   async created() {
@@ -160,7 +179,8 @@ export default defineComponent({
         category: this.categoryId,
         amountFrom: this.amountRange[0],
         amountTo: this.amountRange[1],
-        includeLabeled: this.includeLabeled
+        includeLabeled: this.includeLabeled,
+        keepCurrentGroup: this.keepCurrentGroup
       };
       this.filterFn(filters);
     },

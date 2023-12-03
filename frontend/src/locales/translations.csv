@@ -10,8 +10,11 @@ account_group.selection,Profile selection,Sélection d'un profil
 account_group.tag,Profile,Profil
 account_group.update,Profile update,Mise à jour d'un profil
 account_group.contribution_ratio,Contribution ratio,Coefficient de contribution
+account_group.individual_contribution_ratio_tooltip,"Individual contribution ratio. Note that a global contribution ratio can also be applied at the account level and is not taken into account here.","Coefficient de contribution. Note qu'un coefficient de contribution global peut également être appliqué au niveau du compte et n'est pas pris en compte ici."
 account_group.edit.info-accounts,"Edit the selection of accounts of which the transactions will automatically be linked to the current profile. The contribution ratio determines which part of the incomes and expenses moving through this account should be considered as due to/by the current profile. The table below list the accounts currently associated with the current profile.","Sélectionne les comptes dont les transactions seront automatiquement associées au profile actuel. Le coefficient de contribution détermine quelle partie des revenus et des dépenses transitant par ce compte doit être considérée comme étant due au/par profil actuel. Le tableau ci-dessous répertorie les comptes actuellement associés au profil actuel."
 account_group.edit.add_account,"Add account","Ajouter le compte"
+account_group.in_group_tooltip,"Linked to current profile, click to unlink","Lié au profil actuel, cliques pour délier"
+account_group.not_in_group_tooltip,"Not linked to current profile, click to link","Pas lié au profil actuel, cliques pour lier"
 account.accounts,Accounts,Comptes
 account.alias,Alias,Alias
 account.aliases,Aliases,Alias
@@ -139,6 +142,11 @@ transaction.filters.accountTo,To account,Vers le compte
 transaction.filters.category,With category,Avec la catégorie
 transaction.filters.title,Filters,Filtres
 transaction.filters.include_labeled,Include labeled,Inclure non-catégorisés
+transaction.filters.in_group_tooltip,Filter to include or exclude transactions already linked to the current profile,Filtre pour inclure ou exclure les transactions déjà liées au profile actuel 
+transaction.filters.in_group,Profile,Profil
+transaction.filters.in_group_options.only_in_group,Keep linked only,Liées uniquement
+transaction.filters.in_group_options.both_in_out_group,Keep all,Toutes
+transaction.filters.in_group_options.only_out_group,Keep not linked only,Non-liées uniquement
 undefined,N/A,N/D
 up,Up,Monter
 upload,Upload,Envoyer

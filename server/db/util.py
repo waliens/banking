@@ -3,7 +3,7 @@ from sqlalchemy import Float, and_, or_, select, func, cast, Integer
 from sqlalchemy.orm import sessionmaker
 
 from parsing.util import UnionFind
-from db.models import Account, AccountGroup, Category, Transaction
+from db.models import Account, AccountGroup, Category, Transaction, TransactionGroup
 from parsing.tags import Tag, TagTree
 
 Session = sessionmaker()
@@ -107,7 +107,7 @@ def get_tags_descendants(identifier, tree=None):
   return [identifier] + get_children_recur(identifier)
 
 
-def get_transaction_query(account=None, group=None, sort_by=None, account_to=None, account_from=None, date_from=None, date_to=None, order="desc", amount_from=None, amount_to=None, labeled=None):
+def get_transaction_query(account=None, group=None, in_group=None, sort_by=None, account_to=None, account_from=None, date_from=None, date_to=None, order="desc", amount_from=None, amount_to=None, labeled=None):
   """
   Params
   ------
@@ -124,13 +124,15 @@ def get_transaction_query(account=None, group=None, sort_by=None, account_to=Non
   include_labeled: bool (default: False)
   category: int|bool (default: None)
   """
-  query = Transaction.query
   filters = []
   if account is not None:
     filters.append(or_(Transaction.id_source == account, Transaction.id_dest == account))
-  if group is not None:
-    sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
-    filters.append(or_(Transaction.id_source.in_(sel_expr), Transaction.id_dest.in_(sel_expr)))
+  if group is not None and in_group is not None:
+    sel_expr = select(TransactionGroup.id_transaction).where(TransactionGroup.id_group == group)
+    if in_group:
+      filters.append(Transaction.id.in_(sel_expr))
+    else:  # not in group
+      filters.append(Transaction.id.not_in(sel_expr))
   if labeled is not None:
     if not isinstance(labeled, bool):
       filters.append(Transaction.id_category == labeled)
@@ -150,7 +152,7 @@ def get_transaction_query(account=None, group=None, sort_by=None, account_to=Non
     filters.append(Transaction.amount <= amount_to)
   if amount_from is not None:
     filters.append(Transaction.amount >= amount_from)
-    
+
   query = Transaction.query.filter(and_(*filters))
 
   if sort_by is not None:

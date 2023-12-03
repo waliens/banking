@@ -22,7 +22,7 @@ from sqlalchemy.sql.expression import select, update, or_, and_, delete, cast
 from sqlalchemy.util import immutabledict
 
 from db.database import init_db
-from db.models import AccountAlias, AccountGroup, AsDictSerializer, Category, Group, MLModelFile, MLModelState, Transaction, Account
+from db.models import AccountAlias, AccountGroup, AsDictSerializer, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
 from db.transactions import auto_attribute_partial_transaction_to_groups
 from db.util import get_transaction_query
@@ -117,6 +117,7 @@ def account_transactions(id_account):
 
 @app.route("/transactions", methods=["GET"])
 def get_transactions():
+    # filters
     start = request.args.get("start", type=int, default=0)
     count = request.args.get("count", type=int, default=50)
     order = request.args.get("order", type=str, default="desc")
@@ -125,13 +126,19 @@ def get_transactions():
     account_to = request.args.get("account_to", type=int, default=None)
     account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
+    in_group = request.args.get("in_group", type=int, default=1)
     labeled = request.args.get("labeled", type=bool_or_int_type, default=None)
-    ml_category = request.args.get("ml_category", type=bool_type, default=False)
     date_from = request.args.get("date_from", type=date_type, default=None)
     date_to = request.args.get("date_to", type=date_type, default=None)
     amount_from = request.args.get("amount_from", type=Decimal, default=None)
     amount_to = request.args.get("amount_to", type=Decimal, default=None)
 
+    ## conditional content
+    # add fields: ml_category (object), ml_proba (float) 
+    ml_category = request.args.get("ml_category", type=bool_type, default=False)
+    # group id needs to be provided, add fields: in_group (bool), contribution_ratio (float) 
+    group_data = request.args.get("group_data", type=bool_type, default=False) 
+    
     if account is not None and group is not None:
         return error_response("cannot set both account and account_group when fetching transactions")
     if sort_by is not None and sort_by not in {'when', 'amount'}:
@@ -140,11 +147,18 @@ def get_transactions():
         return error_response("cannot have a date_from after date_to")
     if amount_from is not None and amount_to is not None and amount_from > amount_to:
         return error_response("cannot have a amount_from greater than amount_to")
+    if (group_data or in_group is not None) and group is None:
+        return error_response("group id must be provided if group_data or in_group is requested")
+    
+    # not filtering by group
+    if in_group == -1:
+        in_group = None
 
     # fetch
     transactions = get_transaction_query(
         account=account, 
-        group=group, 
+        group=group,
+        in_group=in_group,
         labeled=labeled,
         sort_by=sort_by, 
         order=order,
@@ -163,6 +177,20 @@ def get_transactions():
             t_dict["ml_category"] = c.as_dict() if c is not None else None
             t_dict["ml_proba"] = p if c is not None else 0
     
+    if group_data:
+        transaction_groups = TransactionGroup.query.where(and_(
+            TransactionGroup.id_group == group,
+            TransactionGroup.id_transaction.in_([t.id for t in transactions])
+        )).all()
+        tg_map = {tg.id_transaction: tg for tg in transaction_groups}
+        for t_dict in to_return:
+            if t_dict["id"] in tg_map:
+                t_dict["in_group"] = True
+                t_dict["contribution_ratio"] = tg_map[t_dict["id"]].contribution_ratio
+            else:
+                t_dict["in_group"] = False
+                t_dict["contribution_ratio"] = None
+            
     return jsonify(to_return)
 
 
@@ -172,11 +200,13 @@ def get_transactions_count():
     account_to = request.args.get("account_to", type=int, default=None)
     account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
+    in_group = request.args.get("in_group", type=int, default=1)
     labeled = request.args.get("labeled", type=bool_or_int_type, default=None)
     date_from = request.args.get("date_from", type=date_type, default=None)
     date_to = request.args.get("date_to", type=date_type, default=None)
     amount_from = request.args.get("amount_from", type=Decimal, default=None)
     amount_to = request.args.get("amount_to", type=Decimal, default=None)
+     
 
     if account is not None and group is not None:
         return error_response("cannot set both account and account_group when fetching transactions")
@@ -184,11 +214,18 @@ def get_transactions_count():
         return error_response("cannot have a date from after date_to")
     if amount_from is not None and amount_to is not None and amount_from > amount_to:
         return error_response("cannot have a amount_from greater than amount_to")
-    
+    if in_group is not None and group is None:
+        return error_response("group id must be provided if group_data or in_group is requested")
+
+    # not filtering by group
+    if in_group == -1:
+        in_group = None
+
     # fetch
     query = get_transaction_query(
         account=account, 
-        group=group, 
+        group=group,
+        in_group=in_group,
         labeled=labeled,
         account_from=account_from, 
         account_to=account_to, 

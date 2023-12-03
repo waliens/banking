@@ -58,24 +58,47 @@
           <datetime-display :asdate="true" :datetime="props.row.when"></datetime-display>
         </b-table-column>
         
-        <b-table-column :label="$t('account.source.name')" field="source.number" v-slot="props">
+        <b-table-column :label="$t('account.source.number')" field="source.number" v-slot="props">
           <string-or-null-display :value="props.row.source.number"></string-or-null-display>
         </b-table-column>
 
-        <b-table-column :label="$t('account.source.number')" field="source.name" v-slot="props">
+        <b-table-column :label="$t('account.source.name')" field="source.name" v-slot="props">
           <string-or-null-display :value="props.row.source.name"></string-or-null-display>
         </b-table-column>
 
-        <b-table-column :label="$t('account.dest.name')" field="dest.number" v-slot="props">
+        <b-table-column :label="$t('account.dest.number')" field="dest.number" v-slot="props">
           <string-or-null-display :value="props.row.dest.number"></string-or-null-display>
         </b-table-column>
 
-        <b-table-column :label="$t('account.dest.number')" field="dest.name" v-slot="props">
+        <b-table-column :label="$t('account.dest.name')" field="dest.name" v-slot="props">
           <string-or-null-display :value="props.row.dest.name"></string-or-null-display>
         </b-table-column>
 
         <b-table-column field="amount" :label="$t('amount')" v-slot="props" sortable>
           <currency-display :currency="props.row.currency" :amount="getAmountWithCurrency(props.row.amount)" :do-color="false"></currency-display>
+        </b-table-column>
+
+        <b-table-column field="group_options" :label="$t('account_group.tag')" v-slot="props">
+          <div class="level">
+            <div class="level-item">
+              <b-tooltip 
+                :label="props.row.in_group ? $t('account_group.in_group_tooltip') : $t('account_group.not_in_group_tooltip')"
+                :type="props.row.in_group ? 'is-info' : 'is-warning' "
+              >
+                <b-button 
+                  :icon-right="props.row.in_group ? 'link' : 'unlink'" 
+                  :type="props.row.in_group ? 'is-info' : 'is-warning'"
+                  class="is-small"
+                />
+              </b-tooltip>
+            </div>
+            <div class="level-item group-info-level-item" v-if="props.row.contribution_ratio">
+              <b-tooltip :label="$t('account_group.individual_contribution_ratio_tooltip')">
+                <b-tag type="is-info">{{100 * props.row.contribution_ratio}} %</b-tag>
+              </b-tooltip>
+            </div>
+          </div>
+           
         </b-table-column>
 
         <b-table-column field="category" :label="$t('category')" v-slot="props">
@@ -334,7 +357,11 @@ export default defineComponent({
       }
     },
     formFiltersForApi() {
-      let filters = {labeled: false};
+      let filters = {
+        labeled: false,
+        group_data: true,
+        group: this.$store.state.currentGroup.id
+      };
       if (!this.formFilters) {
         return filters;
       }
@@ -360,6 +387,19 @@ export default defineComponent({
       }
       if (this.formFilters.amountTo) {
         filters.amount_to = this.formFilters.amountTo;
+      }
+      if (this.formFilters.keepCurrentGroup) {
+        switch(this.formFilters.keepCurrentGroup) {
+          case "only_in_group":
+            // same as default
+            break;
+          case "only_out_group":
+            filters.in_group = 0;
+            break;
+          case "both_in_out_group":
+            filters.in_group = -1;
+            break;
+        }
       }
       return filters;
     }
@@ -397,5 +437,9 @@ section {
 }
 .collapse {
   margin-bottom: 10px;
+}
+
+.group-info-level-item {
+  margin-left: 2px;
 }
 </style>
