@@ -6,7 +6,7 @@
         <h3 class="title" v-if="groupId">{{$t('account_group.update')}}</h3>
       </div>
       <div class="level-left">
-        <b-button v-on:click="send" class="level-item is-small" icon-right="plus" type="is-info">{{$t('save')}}</b-button>
+        <b-button v-on:click="send" class="level-item is-small" icon-right="save" type="is-info">{{$t('save')}}</b-button>
       </div>
     </section>
 
