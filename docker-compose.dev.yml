@@ -1,6 +1,6 @@
 services:
   # flask server
-  server-dev:
+  server:
     build:
       context: server/
       dockerfile: Dockerfile
@@ -10,24 +10,24 @@ services:
     environment:
       - FLASK_APP=banking
       - FLASK_RUN_HOST=0.0.0.0
-      - DB_HOST=database-dev
+      - DB_HOST=database
       - DB_PORT=5432 
       - DB_USER=admin
       - DB_PASSWORD=password
       - DB_NAME=banking_dev
       - MODEL_PATH=/models
       - FLASK_ENV=development
-      - REDIS_HOST=redis-dev
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
     restart: always
     volumes:
       - ./server/:/app  # to share code and having refresh on update
-      - ~/data/banking/models:/models
+      - models:/models
     depends_on:
-      - postgres-dev
+      - database
 
   # vue client
-  frontend-dev:
+  frontend:
     build:
       context: frontend/
       dockerfile: Dockerfile.dev
@@ -39,12 +39,12 @@ services:
       - ./frontend/src:/app/src  # to share code and having refresh on update
 
   # message broker for background tasks
-  redis-dev:
+  redis:
     image: redis:6-alpine
     ports: 
       - 6379:6379
 
-  database-dev:
+  database:
     image: postgres:14.3-alpine
     environment:
       - POSTGRES_USER=admin
@@ -52,12 +52,12 @@ services:
       - POSTGRES_PASSWORD=password
       - PGDATA=/data
     volumes:
-      - ~/data/debug/db:/data
+      - db:/data
     ports:
       - 5432:5432
     
   # worker for celery background tasks
-  celery_worker-dev:
+  celery_worker:
     build:
       context: server/
       dockerfile: Dockerfile
@@ -65,19 +65,23 @@ services:
     environment:
       - FLASK_APP=banking
       - FLASK_RUN_HOST=0.0.0.0
-      - DB_HOST=database-dev
+      - DB_HOST=database
       - DB_PORT=5432 
       - DB_USER=admin
       - DB_PASSWORD=password
       - DB_NAME=banking_dev
       - MODEL_PATH=/models
       - FLASK_ENV=development
-      - REDIS_HOST=redis-dev
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
     restart: always
     depends_on:
-      - redis-dev
-      - server-dev
-      - postgres-dev
+      - redis
+      - server
+      - database
     volumes:
-      - ~/data/banking/models:/models
+      - models:/models
+
+volumes:
+  db:
+  models:
