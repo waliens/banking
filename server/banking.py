@@ -1,28 +1,22 @@
 from datetime import date
 import json
-from locale import currency
 import os
-from platform import machine
 import re
 import tempfile
 
 from decimal import Decimal
-from time import sleep
-from xml.etree.ElementInclude import include
-from xxlimited import new
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, abort
-from flask.wrappers import Response
 from flask_cors import CORS
-from numpy import isin, sort
 
-from sqlalchemy import Float, bindparam
-from sqlalchemy.sql.expression import select, update, or_, and_, delete, cast
+from sqlalchemy import bindparam
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.sql.expression import select, update, or_, and_, delete
 from sqlalchemy.util import immutabledict
 
 from db.database import init_db
-from db.models import AccountAlias, AccountGroup, AsDictSerializer, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup
+from db.models import AccountAlias, AccountGroup, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
 from db.transactions import auto_attribute_partial_transaction_to_groups
 from db.util import get_transaction_query
@@ -428,7 +422,35 @@ def get_account_group(id_group):
     group = Group.query.get(id_group)
     if group is None:
         abort(404)
-    return jsonify(group.as_dict())    
+    return jsonify(group.as_dict())
+
+
+@app.route("/account_group/<int:id_group>/transactions", methods=["PUT"])
+def link_transactions(id_group):
+    sess = Session()
+    stmt = insert(TransactionGroup).values({
+        TransactionGroup.id_group: bindparam('id_group'),
+        TransactionGroup.id_transaction: bindparam('id_transaction'),
+        TransactionGroup.contribution_ratio: bindparam("ratio")
+    }).on_conflict_do_nothing()
+    sess.execute(stmt, [
+        {'id_group': id_group, "id_transaction": tid, "ratio": 1.0}
+        for tid in request.json.get("transactions", [])
+    ])
+    sess.commit()
+    return jsonify({'msg': 'success'})
+
+
+@app.route("/account_group/<int:id_group>/transactions", methods=["DELETE"])
+def unlink_transactions(id_group):
+    sess = Session()
+    stmt = delete(TransactionGroup).where(and_(
+        TransactionGroup.id_group == id_group,
+        TransactionGroup.id_transaction.in_(request.json.get("transactions", []))
+    ))
+    sess.execute(stmt)
+    sess.commit()
+    return jsonify({'msg': 'success'})
 
 
 @app.route("/account_group/<int:id_group>/stats/incomeexpense")

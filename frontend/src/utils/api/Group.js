@@ -22,6 +22,16 @@ export default class Group extends Model {
     return data;
   }
 
+  async linkTransactions(transactions) {
+    let {data} = await axios.put(`${this.uri}/transactions`, {'transactions': transactions});
+    return data;
+  }
+
+  async unlinkTransactions(transactions) {
+    let {data} = await axios.delete(`${this.uri}/transactions`, {data: {'transactions': transactions}});
+    return data;
+  }
+
   async getIncomesExpensesStats(year, month) {
     let {data} = await axios.get(`${this.uri}/stats/incomeexpense`, { params: {year, month} });
     return data;

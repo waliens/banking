@@ -89,6 +89,7 @@
                   :icon-right="props.row.in_group ? 'link' : 'unlink'" 
                   :type="props.row.in_group ? 'is-info' : 'is-warning'"
                   class="is-small"
+                  v-on:click="() => { updateGroupLink(props.row); }"
                 />
               </b-tooltip>
             </div>
@@ -98,7 +99,6 @@
               </b-tooltip>
             </div>
           </div>
-           
         </b-table-column>
 
         <b-table-column field="category" :label="$t('category')" v-slot="props">
@@ -163,6 +163,7 @@ import TransactionsFilterForm from '../components/transactions/TransactionsFilte
 import DatetimeDisplay from '@/components/generic/DatetimeDisplay'
 import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import Category from '@/utils/api/Category';
+import Group from '@/utils/api/Group';
 import { strcurrency } from '@/utils/helpers';
 import { defineComponent } from '@vue/composition-api'
 
@@ -324,6 +325,20 @@ export default defineComponent({
       this.commitedCategories[model.id] = model.category; 
       transaction.id_category = categoryId;
       transaction.category = this.categoryMap[categoryId];
+    },
+    async updateGroupLink(transaction) {
+      let currentGroup = new Group({id: this.$store.state.currentGroup.id});
+      if (transaction.in_group) {
+        await currentGroup.unlinkTransactions([transaction.id]).then(() => {
+          transaction.in_group = false;
+          transaction.contribution_ratio = null;
+        });
+      } else {
+        await currentGroup.linkTransactions([transaction.id]).then(() => {
+          transaction.in_group = true;
+          transaction.contribution_ratio = 1.0;
+        });
+      }
     },
     async refreshPage() {
       await this.updateTransactionsWithLoading();
