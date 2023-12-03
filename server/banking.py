@@ -341,34 +341,47 @@ def account_groups():
 def create_group():
     name = request.json.get("name", "").strip()
     desc = request.json.get("description", "")
-    accounts = request.json.get("accounts", [])
-    if len(name) == 0 or len(accounts) == 0:
+    account_groups = request.json.get("account_groups", [])
+    if len(name) == 0 or len(account_groups) == 0:
         raise ValueError("empty name or accounts")
-    if any([not 0 < float(acc["contribution_ratio"]) <= 1 for acc in accounts]):
+    if any([not 0 < float(ag["contribution_ratio"]) <= 1 for ag in account_groups]):
         return error_response("one or several invalid contribution ratio")
+    if any([ag.get("id_account") is None for ag in account_groups]):
+        return error_response("one or several missing account id for account group")
 
-    sess = Session()
-    with sess.begin():
+    session = Session()
+    with session.begin():
         grp = Group(name=name, description=desc)
-        sess.add(grp)
-        sess.flush()
-        accounts = [AccountGroup(id_account=acc["id"], id_group=grp.id, contribution_ratio=acc.get("contribution_ratio", 1)) for acc in accounts]
-        sess.add_all(accounts)
-        sess.commit()
+        session.add(grp)
+        session.flush()
+        account_groups = [
+            AccountGroup(
+                id_account=ag["id_account"],
+                id_group=grp.id,
+                contribution_ratio=ag.get("contribution_ratio", 1)
+            ) 
+            for ag in account_groups
+        ]
+        session.add_all(account_groups)
+        session.commit()
 
     return jsonify(grp.as_dict())
 
 @app.route("/account_group/<int:id_group>", methods=["PUT"])
 def update_group(id_group):
     session = Session()
-    group = Group.query.get(id_group)
-    group.name = request.json.get("name", group.name).strip()
-    group.description = request.json.get("description", group.description).strip()
-    session.execute(delete(AccountGroup).where(AccountGroup.id_group==id_group))
-    session.bulk_save_objects([AccountGroup(
-        id_account=acc["id"], id_group=id_group
-    ) for acc in request.json.get('accounts')])
-    session.commit()
+    with session.begin():
+        group = Group.query.get(id_group)
+        group.name = request.json.get("name", group.name).strip()
+        group.description = request.json.get("description", group.description).strip()
+        # TODO evalute diff for auto-update of TransactionGroup
+        session.execute(delete(AccountGroup).where(AccountGroup.id_group==id_group))
+        session.bulk_save_objects([AccountGroup(
+            id_account=ag["id_account"],
+            id_group=id_group, 
+            contribution_ratio=ag.get("contribution_ratio", 1)
+        ) for ag in request.json.get('account_groups')])
+        session.commit()
     return jsonify(group.as_dict())
 
 

@@ -2,7 +2,7 @@
 import Model from './Model';
 import axios from 'axios';
 
-export default class AccountGroup extends Model {
+export default class Group extends Model {
   /** @inheritdoc */
   static get className() {
     return 'account_group';
@@ -14,7 +14,7 @@ export default class AccountGroup extends Model {
 
     this.name = null;
     this.description = null;
-    this.accounts = [];
+    this.account_groups = [];
   }
 
   static async fetchGroups() {

@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 Vue.use(Vuex);
 
-import AccountGroup from '@/utils/api/AccountGroup';
+import Group from '@/utils/api/Group';
 
 const state = {
   currentGroupId: null,
@@ -55,7 +55,7 @@ const actions = {
     let group = null;
 
     try {
-      group = await AccountGroup.fetch(groupId);
+      group = await Group.fetch(groupId);
     }
     catch (e) {
       console.log('Error while fetching group.');

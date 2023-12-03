@@ -3,8 +3,8 @@
     <section class="level title-section">
       <div class="level-left"><h3 class="level-item title">{{$t('account_group.selection')}}</h3></div>
       <div class="level-right">
-        <b-button v-if="selectedAccountGroup" class="level-item is-small is-secondary" @click="editGroup" icon-right="pen">{{$t('edit')}}</b-button>
-        <b-button v-if="selectedAccountGroup" class="level-item is-small is-secondary" @click="selectGroup" icon-right="hand-pointer">{{$t('select')}}</b-button>
+        <b-button v-if="selectedGroup" class="level-item is-small is-secondary" @click="editGroup" icon-right="pen">{{$t('edit')}}</b-button>
+        <b-button v-if="selectedGroup" class="level-item is-small is-secondary" @click="selectGroup" icon-right="hand-pointer">{{$t('select')}}</b-button>
         <b-button @click="createGroup" class="level-item is-small" icon-right="plus">{{$t('account_group.create_account_group')}}</b-button>
       </div>
     </section>
@@ -14,7 +14,7 @@
       <div class="field is-grouped">
         <div class="control">
           <b-field :label="$t('account_group.tag')" label-position="on-border">
-            <b-select v-model="selectedAccountGroup" :placeholder="$t('account_group.select_one')">
+            <b-select v-model="selectedGroup" :placeholder="$t('account_group.select_one')">
               <option
                 v-for="grp in accountGroups"
                 :value="grp"
@@ -27,8 +27,8 @@
       </div>
 
       <!-- Group selected display accounts -->
-      <div v-if="selectedAccountGroup">
-        <account-table :accounts="selectedAccountGroup.accounts" :title="$t('account.accounts')"></account-table>
+      <div v-if="selectedGroup">
+        <account-group-table :accountGroups="selectedGroup.account_groups" :title="$t('account.accounts')"></account-group-table>
       </div>
     </section>
 
@@ -45,16 +45,16 @@
 
 <script>
 import { defineComponent } from '@vue/composition-api';
-import AccountGroup from '@/utils/api/AccountGroup';
-import AccountTable from '../components/accounts/AccountTable.vue';
+import Group from '@/utils/api/Group';
+import AccountGroupTable from '../components/accounts/AccountGroupTable.vue';
 
 export default defineComponent({
-  components: {AccountTable},
+  components: {AccountGroupTable},
 
   data() {
     return {
       accountGroups: null,
-      selectedAccountGroup: null
+      selectedGroup: null
     }
   },
   async created() {
@@ -62,11 +62,11 @@ export default defineComponent({
   },
   methods: {
     async fetchAccountGroups() {
-      await AccountGroup.fetchGroups().then(groups => { this.accountGroups = groups; });
+      await Group.fetchGroups().then(groups => { this.accountGroups = groups; });
     },
     selectGroup() {
-      if (this.selectedAccountGroup) {
-        this.$store.dispatch('setCurrentGroup', new AccountGroup(this.selectedAccountGroup));
+      if (this.selectedGroup) {
+        this.$store.dispatch('setCurrentGroup', new Group(this.selectedGroup));
         this.$router.push({ name: 'home' });
       }
     },
@@ -74,7 +74,7 @@ export default defineComponent({
       this.$router.push({ name: 'create-account-group' });
     },
     editGroup() {
-      this.$router.push({ name: 'edit-account-group', params: { groupid: this.selectedAccountGroup.id }});
+      this.$router.push({ name: 'edit-account-group', params: { groupid: this.selectedGroup.id }});
     }
   }
 })

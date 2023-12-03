@@ -215,7 +215,12 @@ class AccountGroup(Base):
     id_group = Column(Integer, ForeignKey('group.id'), primary_key=True)
     id_account = Column(Integer, ForeignKey('account.id'), primary_key=True)
     contribution_ratio = Column(Float, default=1.0)
+    
+    account = relationship("Account", lazy="joined")
 
+    def as_dict(self):
+        return AsDictSerializer(
+            "id_group", "id_account", "contribution_ratio", account=AsDictSerializer.as_dict_fn()).serialize(self)
 
 class TransactionGroup(Base):
     __tablename__ = 'transaction_group'
@@ -230,12 +235,13 @@ class Group(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     description = Column(String(1024))
-    accounts = relationship("Account", secondary='account_group', lazy="joined")
+    
+    account_groups = relationship("AccountGroup", lazy="joined")
     transactions = relationship("Transaction", secondary='transaction_group')
 
     def as_dict(self):
         return AsDictSerializer(
-            "id", "name", "description", accounts=AsDictSerializer.iter_as_dict_fn()).serialize(self)
+            "id", "name", "description", account_groups=AsDictSerializer.iter_as_dict_fn()).serialize(self)
 
 
 class MLModelState(enum.Enum):

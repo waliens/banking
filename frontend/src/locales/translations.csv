@@ -9,6 +9,9 @@ account_group.select_one,Select a profile,Sélectionne un profil
 account_group.selection,Profile selection,Sélection d'un profil
 account_group.tag,Profile,Profil
 account_group.update,Profile update,Mise à jour d'un profil
+account_group.contribution_ratio,Contribution ratio,Coefficient de contribution
+account_group.edit.info-accounts,"Edit the selection of accounts of which the transactions will automatically be linked to the current profile. The contribution ratio determines which part of the incomes and expenses moving through this account should be considered as due to/by the current profile. The table below list the accounts currently associated with the current profile.","Sélectionne les comptes dont les transactions seront automatiquement associées au profile actuel. Le coefficient de contribution détermine quelle partie des revenus et des dépenses transitant par ce compte doit être considérée comme étant due au/par profil actuel. Le tableau ci-dessous répertorie les comptes actuellement associés au profil actuel."
+account_group.edit.add_account,"Add account","Ajouter le compte"
 account.accounts,Accounts,Comptes
 account.alias,Alias,Alias
 account.aliases,Aliases,Alias
