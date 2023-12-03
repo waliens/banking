@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "translations": "node ./bin/export_i18n_csv.mjs ./src/locales/translations.csv ./src/locales/json",
-    "serve": "yarn translations && vue-cli-service serve",
-    "build": "yarn translations && vue-cli-service build --target app",
+    "translations-csv2json": "node ./bin/export_i18n_csv.mjs ./src/locales/translations.csv ./src/locales/json",
+    "watch-translations": "onchange -i 'src/locales/translations.csv' -- yarn translations-csv2json",
+    "serve": "yarn watch-translations & vue-cli-service serve",
+    "build": "yarn translations-csv2json && vue-cli-service build --target app",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -35,6 +36,7 @@
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "babel-eslint": "^10.1.0",
+    "onchange": "^5.2.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "vue-template-compiler": "^2.6.11"
