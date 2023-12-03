@@ -25,8 +25,6 @@ services:
     volumes:
       - ./server/:/app  # to share code and having refresh on update
       - models:/models
-    depends_on:
-      - database
 
   # vue client
   frontend:
@@ -43,8 +41,6 @@ services:
   # message broker for background tasks
   redis:
     image: redis:6-alpine
-    ports: 
-      - 6379:6379
 
   database:
     image: postgres:14.3-alpine
@@ -79,7 +75,6 @@ services:
     restart: always
     depends_on:
       - redis
-      - server
       - database
     volumes:
       - models:/models
