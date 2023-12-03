@@ -133,6 +133,8 @@ tagging.tag_delete_warning.without_children,"This action cannot reverted.","Cett
 tagging.set_all,Set all,Tout changer
 tagging.current_category_is,"Current category: '{categName}' (click to reset in dropdown)","Catégorie actuelle: '{categName}' (cliquer pour appliquer au menu déroulant)" 
 tagging.no_category,"No category for this transaction","Pas de catégorie pour cette transaction"
+tagging.link_all,Link all,Lier tout
+tagging.unlink_all,Unlink all,Délier tout
 transaction.transactions,Transactions,Transactionstransactions.filters.enabled
 transaction.filters.enabled,Filters enabled,Filtres activés
 transaction.filters.periodFrom,Period start,Début période

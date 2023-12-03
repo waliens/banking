@@ -3,6 +3,8 @@
     <section class="level title-section">
       <div class="level-left"><h3 class="level-item title">{{$t('tagging.title')}}</h3></div>
       <div class="level-right">
+        <b-field class="level-item is-small"><b-button class="is-small" icon-right="link" type="is-info" v-on:click="linkAll">{{$t('tagging.link_all')}}</b-button></b-field>
+        <b-field class="level-item is-small"><b-button class="is-small" icon-right="unlink" type="is-warning" v-on:click="unlinkAll">{{$t('tagging.unlink_all')}}</b-button></b-field>
         <b-field class="level-item is-small"><b-button class="is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button></b-field>
         <b-field class="level-item is-small"><b-button class="is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button></b-field>
         <b-field class="level-item is-small" :label="$t('category')" label-position="on-border">
@@ -326,20 +328,6 @@ export default defineComponent({
       transaction.id_category = categoryId;
       transaction.category = this.categoryMap[categoryId];
     },
-    async updateGroupLink(transaction) {
-      let currentGroup = new Group({id: this.$store.state.currentGroup.id});
-      if (transaction.in_group) {
-        await currentGroup.unlinkTransactions([transaction.id]).then(() => {
-          transaction.in_group = false;
-          transaction.contribution_ratio = null;
-        });
-      } else {
-        await currentGroup.linkTransactions([transaction.id]).then(() => {
-          transaction.in_group = true;
-          transaction.contribution_ratio = 1.0;
-        });
-      }
-    },
     async refreshPage() {
       await this.updateTransactionsWithLoading();
     },
@@ -355,6 +343,45 @@ export default defineComponent({
         this.selectedCategories[t.id] = this.globalCategory;
       });
     },
+    
+    /** LINK with GROUPS */
+    resetTransactionForUnlink(transaction) {
+      transaction.in_group = false;
+      transaction.contribution_ratio = null;
+    },
+    resetTransactionForLink(transaction) {
+      transaction.in_group = true;
+      transaction.contribution_ratio = 1.0;
+    },
+    async updateGroupLink(transaction) {
+      let currentGroup = new Group({id: this.$store.state.currentGroup.id});
+      if (transaction.in_group) {
+        await currentGroup.unlinkTransactions([transaction.id]).then(() => {
+          this.resetTransactionForUnlink();
+        });
+      } else {
+        await currentGroup.linkTransactions([transaction.id]).then(() => {
+          this.resetTransactionForLink();
+        });
+      }
+    },
+    async unlinkAll() {
+      let currentGroup = new Group({id: this.$store.state.currentGroup.id});
+      await currentGroup.unlinkTransactions(this.transactions.map(t => t.id)).then(() => {
+        this.transactions.forEach(t => {
+          this.resetTransactionForUnlink(t);
+        })
+      });
+    },
+    async linkAll() {
+      let currentGroup = new Group({id: this.$store.state.currentGroup.id});
+      await currentGroup.linkTransactions(this.transactions.map(t => t.id)).then(() => {
+        this.transactions.forEach(t => {
+          this.resetTransactionForLink(t);
+        })
+      });
+    },
+    /** **************** */
     async selectFormFilters(filters) {
       this.formFilters = filters;
       await this.updateTransactionsWithLoading();
