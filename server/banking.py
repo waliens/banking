@@ -339,19 +339,22 @@ def account_groups():
 
 @app.route("/account_group", methods=["POST"])
 def create_group():
-    session = Session()
     name = request.json.get("name", "").strip()
     desc = request.json.get("description", "")
     accounts = request.json.get("accounts", [])
     if len(name) == 0 or len(accounts) == 0:
         raise ValueError("empty name or accounts")
+    if any([not 0 < float(acc["contribution_ratio"]) <= 1 for acc in accounts]):
+        return error_response("one or several invalid contribution ratio")
 
-    grp = Group(name=name, description=desc)
-    session.add(grp)
-    session.commit()
-    accounts = [AccountGroup(id_account=acc["id"], id_group=grp.id) for acc in accounts]
-    session.bulk_save_objects(accounts)
-    session.commit()
+    sess = Session()
+    with sess.begin():
+        grp = Group(name=name, description=desc)
+        sess.add(grp)
+        sess.flush()
+        accounts = [AccountGroup(id_account=acc["id"], id_group=grp.id, contribution_ratio=acc.get("contribution_ratio", 1)) for acc in accounts]
+        sess.add_all(accounts)
+        sess.commit()
 
     return jsonify(grp.as_dict())
 
