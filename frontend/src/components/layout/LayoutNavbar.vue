@@ -33,7 +33,7 @@
     <template #end>
         <b-navbar-item tag="router-link" :to="{ name: 'select-account-group' }">
           <div class="group info">
-            <b-tag :type="tag_class">Group: <em>{{!!group ? group.name : $t('account_group.not_selected')}}</em></b-tag>
+            <b-tag :type="tag_class">{{$t('profile')}}: <em>{{!!group ? group.name : $t('account_group.not_selected')}}</em></b-tag>
           </div>
         </b-navbar-item>
     </template>

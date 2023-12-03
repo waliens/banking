@@ -1,14 +1,14 @@
 key,en,fr
-account_group.groups,Account groups,Groupes de comptes
-account_group.create_account_group,Create a group,Créer un groupe
-account_group.creation,Account group creation,Création d'un groupe
-account_group.no_account_group_message,"You have no account group currently registered on the app. If you have already added some transactions and accounts, please create an account group. If you have not added any data yet, please upload transactions from your bank and then create account groups.","Tu n'as pas encore ajouté de groupe sur l'application. Si tu as déjà uploadé des transactions et des comptes, crée un group en suivant le lien ci-dessous. Si tu n'as pas encore uploadé des données, ajoutes-en en suivant l'autre lien."
-account_group.not_selected,group not selected,Aucun groupe sélectionné
+account_group.groups,Profiles,Profils
+account_group.create_account_group,Create a profile,Créer un profil
+account_group.creation,Profile creation,Création d'un profil
+account_group.no_account_group_message,"You have no profile currently registered on the app. If you have already added some transactions and accounts, please create an profile. If you have not added any data yet, please upload transactions from your bank and then create profiles.","Tu n'as pas encore ajouté de profil sur l'application. Si tu as déjà uploadé des transactions et des comptes, crée un profil en suivant le lien ci-dessous. Si tu n'as pas encore uploadé des données, ajoutes-en en suivant l'autre lien."
+account_group.not_selected,profile not selected,pas de profil sélectionné
 account_group.number_accounts,Number of accounts,Nombre de comptes
-account_group.select_one,Select an account group,Sélectionne un groupe de comptes
-account_group.selection,Account group selection,Sélection d'un groupe de comptes
-account_group.tag,Account group,Groupe de comptes
-account_group.update,Account group update,Mise à jour d'un groupe
+account_group.select_one,Select a profile,Sélectionne un profil
+account_group.selection,Profile selection,Sélection d'un profil
+account_group.tag,Profile,Profil
+account_group.update,Profile update,Mise à jour d'un profil
 account.accounts,Accounts,Comptes
 account.alias,Alias,Alias
 account.aliases,Aliases,Alias
@@ -65,6 +65,7 @@ double-table-select.selected-too-many,"Too many elements selected (selected: {se
 drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
 explore,Explore,Explorer
 group,Group,Groupe
+profile,Profile,Profil
 help,Help,Aide
 merge,Merge,Fusionner
 ml_model.label_suggested_by_ml,"This category was suggested by a machine learning model with {proba}% confidence.","Cette catégorie a été suggérée par une modèle de machine learning avec une confiance de {proba}%."
