@@ -1,158 +1,171 @@
 <template>
   <div>
-    <section class="level title-section">
-      <div class="level-left"><h3 class="level-item title">{{$t('tagging.title')}}</h3></div>
-      <div class="level-right">
-        <b-field class="level-item is-small"><b-button class="is-small" icon-right="link" type="is-info" v-on:click="linkAll">{{$t('tagging.link_all')}}</b-button></b-field>
-        <b-field class="level-item is-small"><b-button class="is-small" icon-right="unlink" type="is-warning" v-on:click="unlinkAll">{{$t('tagging.unlink_all')}}</b-button></b-field>
-        <b-field class="level-item is-small"><b-button class="is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button></b-field>
-        <b-field class="level-item is-small"><b-button class="is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button></b-field>
-        <b-field class="level-item is-small" :label="$t('category')" label-position="on-border">
-          <b-select size="is-small" v-model="globalCategory">
-            <optgroup v-for="top_level in categories" :key="top_level.id" :value="top_level.id" :label="top_level.nestedName">
-              <option v-for="bottom_level in top_level.children" :key="bottom_level.id" :value="bottom_level.id">
-                <p>{{bottom_level.name}}</p>
-              </option>
-            </optgroup>
-          </b-select>
-          <b-button class="is-primary is-small" @click="setAllCategories" icon-right="pen">{{$t('tagging.set_all')}}</b-button>
-        </b-field>
-        <b-field class="level-item is-small" :label="$t('tagging.transac_per_page')" label-position="on-border">
-          <b-select size="is-small" v-model="transactionsPerPage" @input="refreshPage">
-            <option v-for="number in perPageNumbers" :key="number" :value="number">{{number}}</option>
-          </b-select>
-        </b-field>
-      </div>
+    <section v-if="!groupSelected">
+      <b-message 
+        :has-icon="true"
+        :icon="info-circle"
+        icon-size="small"
+        :title="$t('account_group.errors.not_selected.title')"
+        type="is-danger"
+      >
+        {{$t('account_group.errors.not_selected.message')}}
+      </b-message>
     </section>
-      <b-collapse animation="slide" :open="false">
-        <template #trigger>
-          <div class="collapseHeader" role="button">
-            <p class="subtitle">{{$t('transaction.filters.title')}}</p>
-          </div>
-        </template>
-        <div class="collapseInner">
-          <transactions-filter-form :clearFn="clearFormFilters" :filterFn="selectFormFilters"></transactions-filter-form>
-        </div>
-      </b-collapse>
-    <section>
-    </section>
-    <section>
-      <b-table
-        :data="transactions"
-        paginated
-        :backend-pagination="true"
-        @page-change="onPageChange"
-        :total="totalTransactions"
-        :backend-sorting="true"
-        @sort="onSort"
-        :per-page="transactionsPerPage"
-        :current-page="currentPage"
-        :loading="isLoading"
-        detailed
-        detail-key="id"
-        detail-transition="fade"
-        :aria-next-label="$t('next-page')"
-        :aria-previous-label="$t('previous-page')"
-        :aria-page-label="$t('page')"
-        :aria-current-label="$t('current-page')">
-
-        <b-table-column field="when" :label="$t('account.when')" v-slot="props" sortable>
-          <datetime-display :asdate="true" :datetime="props.row.when"></datetime-display>
-        </b-table-column>
-        
-        <b-table-column :label="$t('account.source.number')" field="source.number" v-slot="props">
-          <string-or-null-display :value="props.row.source.number"></string-or-null-display>
-        </b-table-column>
-
-        <b-table-column :label="$t('account.source.name')" field="source.name" v-slot="props">
-          <string-or-null-display :value="props.row.source.name"></string-or-null-display>
-        </b-table-column>
-
-        <b-table-column :label="$t('account.dest.number')" field="dest.number" v-slot="props">
-          <string-or-null-display :value="props.row.dest.number"></string-or-null-display>
-        </b-table-column>
-
-        <b-table-column :label="$t('account.dest.name')" field="dest.name" v-slot="props">
-          <string-or-null-display :value="props.row.dest.name"></string-or-null-display>
-        </b-table-column>
-
-        <b-table-column field="amount" :label="$t('amount')" v-slot="props" sortable>
-          <currency-display :currency="props.row.currency" :amount="getAmountWithCurrency(props.row.amount)" :do-color="false"></currency-display>
-        </b-table-column>
-
-        <b-table-column field="group_options" :label="$t('account_group.tag')" v-slot="props">
-          <div class="level">
-            <div class="level-item">
-              <b-tooltip 
-                :label="props.row.in_group ? $t('account_group.in_group_tooltip') : $t('account_group.not_in_group_tooltip')"
-                :type="props.row.in_group ? 'is-info' : 'is-warning' "
-              >
-                <b-button 
-                  :icon-right="props.row.in_group ? 'link' : 'unlink'" 
-                  :type="props.row.in_group ? 'is-info' : 'is-warning'"
-                  class="is-small"
-                  v-on:click="() => { updateGroupLink(props.row); }"
-                />
-              </b-tooltip>
-            </div>
-            <div class="level-item group-info-level-item" v-if="props.row.contribution_ratio">
-              <b-tooltip :label="$t('account_group.individual_contribution_ratio_tooltip')">
-                <b-tag type="is-info">{{100 * props.row.contribution_ratio}} %</b-tag>
-              </b-tooltip>
-            </div>
-          </div>
-        </b-table-column>
-
-        <b-table-column field="category" :label="$t('category')" v-slot="props">
-          <b-field class="level-item">
-            <p class="control" v-if="props.row.ml_category">
-              <b-tooltip :label="$t('ml_model.reset_to_predicted')" class="is-secondary is-light">
-                <b-button v-on:click="selectedCategories[props.row.id] = props.row.ml_category.id" icon-right="desktop" size="is-small" :class="getButtonClass(props.row)"></b-button>
-              </b-tooltip>
-            </p>
-            <p class="control">
-              <b-tooltip :label="props.row.id_category ? $t('tagging.current_category_is', {categName: props.row.category.name}): $t('tagging.no_category')" class="is-secondary">
-                <b-button v-on:click="() => clickOnCurrentCategoryButton(props.row)"  :icon-right="getCurrentCategoryIcon(props.row)" :disabled="!props.row.id_category" size="is-small"></b-button>
-              </b-tooltip>
-            </p>
-            <p class="control">
-              <b-tooltip :label="conditionalSuggestedLabel(props.row.ml_category && selectedCategories[props.row.id] == props.row.ml_category.id, props.row.ml_proba)" class="is-secondary is-light">
-                <b-button :icon-right="getSelectedIcon(props.row)" size="is-small" :class="getSelectedIconClass(props.row)"></b-button>
-              </b-tooltip>
-            </p>
-            <b-select v-model="selectedCategories[props.row.id]" size="is-small">
+    <div v-else>
+      <section class="level title-section" >
+        <div class="level-left"><h3 class="level-item title">{{$t('tagging.title')}}</h3></div>
+        <div class="level-right">
+          <b-field class="level-item is-small"><b-button class="is-small" icon-right="link" type="is-info" v-on:click="linkAll">{{$t('tagging.link_all')}}</b-button></b-field>
+          <b-field class="level-item is-small"><b-button class="is-small" icon-right="unlink" type="is-warning" v-on:click="unlinkAll">{{$t('tagging.unlink_all')}}</b-button></b-field>
+          <b-field class="level-item is-small"><b-button class="is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button></b-field>
+          <b-field class="level-item is-small"><b-button class="is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button></b-field>
+          <b-field class="level-item is-small" :label="$t('category')" label-position="on-border">
+            <b-select size="is-small" v-model="globalCategory">
               <optgroup v-for="top_level in categories" :key="top_level.id" :value="top_level.id" :label="top_level.nestedName">
                 <option v-for="bottom_level in top_level.children" :key="bottom_level.id" :value="bottom_level.id">
                   <p>{{bottom_level.name}}</p>
                 </option>
               </optgroup>
             </b-select>
-            <p class="control">
-              <b-tooltip :label="$t('save')" class="is-secondary is-light">
-                <b-button v-on:click="() => { saveLabel(props.row); }" icon-right="check" size="is-small" :class="getButtonClass(props.row)"></b-button>
-              </b-tooltip>
-            </p>
+            <b-button class="is-primary is-small" @click="setAllCategories" icon-right="pen">{{$t('tagging.set_all')}}</b-button>
           </b-field>
-        </b-table-column>
+          <b-field class="level-item is-small" :label="$t('tagging.transac_per_page')" label-position="on-border">
+            <b-select size="is-small" v-model="transactionsPerPage" @input="refreshPage">
+              <option v-for="number in perPageNumbers" :key="number" :value="number">{{number}}</option>
+            </b-select>
+          </b-field>
+        </div>
+      </section >
+        <b-collapse animation="slide" :open="false">
+          <template #trigger>
+            <div class="collapseHeader" role="button">
+              <p class="subtitle">{{$t('transaction.filters.title')}}</p>
+            </div>
+          </template>
+          <div class="collapseInner">
+            <transactions-filter-form :clearFn="clearFormFilters" :filterFn="selectFormFilters"></transactions-filter-form>
+          </div>
+        </b-collapse>
+      <section>
+      </section>
+      <section>
+        <b-table
+          :data="transactions"
+          paginated
+          :backend-pagination="true"
+          @page-change="onPageChange"
+          :total="totalTransactions"
+          :backend-sorting="true"
+          @sort="onSort"
+          :per-page="transactionsPerPage"
+          :current-page="currentPage"
+          :loading="isLoading"
+          detailed
+          detail-key="id"
+          detail-transition="fade"
+          :aria-next-label="$t('next-page')"
+          :aria-previous-label="$t('previous-page')"
+          :aria-page-label="$t('page')"
+          :aria-current-label="$t('current-page')">
 
-        <b-table-column field="proba" label="" v-slot="props">
-          <b-tooltip v-if="props.row.ml_category" :label="`${probaToPercentage(props.row.ml_proba)} %`" class="is-secondary is-light">
-            <tiny-pie-chart-icon class="probaPie" :ratio="props.row.ml_proba"></tiny-pie-chart-icon>
-          </b-tooltip>
-        </b-table-column>
+          <b-table-column field="when" :label="$t('account.when')" v-slot="props" sortable>
+            <datetime-display :asdate="true" :datetime="props.row.when"></datetime-display>
+          </b-table-column>
+          
+          <b-table-column :label="$t('account.source.number')" field="source.number" v-slot="props">
+            <string-or-null-display :value="props.row.source.number"></string-or-null-display>
+          </b-table-column>
 
-        <template #detail="props">
-          <table class="table">
-            <tbody>
-               <tr v-for="(value, key) in props.row.metadata_" :key="key" :value="value">
-                <th>{{humanReadable(key)}}</th>
-                <td>{{value}}</td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
-      </b-table>
-    </section>
+          <b-table-column :label="$t('account.source.name')" field="source.name" v-slot="props">
+            <string-or-null-display :value="props.row.source.name"></string-or-null-display>
+          </b-table-column>
+
+          <b-table-column :label="$t('account.dest.number')" field="dest.number" v-slot="props">
+            <string-or-null-display :value="props.row.dest.number"></string-or-null-display>
+          </b-table-column>
+
+          <b-table-column :label="$t('account.dest.name')" field="dest.name" v-slot="props">
+            <string-or-null-display :value="props.row.dest.name"></string-or-null-display>
+          </b-table-column>
+
+          <b-table-column field="amount" :label="$t('amount')" v-slot="props" sortable>
+            <currency-display :currency="props.row.currency" :amount="getAmountWithCurrency(props.row.amount)" :do-color="false"></currency-display>
+          </b-table-column>
+
+          <b-table-column field="group_options" :label="$t('account_group.tag')" v-slot="props">
+            <div class="level">
+              <div class="level-item">
+                <b-tooltip 
+                  :label="props.row.in_group ? $t('account_group.in_group_tooltip') : $t('account_group.not_in_group_tooltip')"
+                  :type="props.row.in_group ? 'is-info' : 'is-warning' "
+                >
+                  <b-button 
+                    :icon-right="props.row.in_group ? 'link' : 'unlink'" 
+                    :type="props.row.in_group ? 'is-info' : 'is-warning'"
+                    class="is-small"
+                    v-on:click="() => { updateGroupLink(props.row); }"
+                  />
+                </b-tooltip>
+              </div>
+              <div class="level-item group-info-level-item" v-if="props.row.contribution_ratio">
+                <b-tooltip :label="$t('account_group.individual_contribution_ratio_tooltip')">
+                  <b-tag type="is-info">{{100 * props.row.contribution_ratio}} %</b-tag>
+                </b-tooltip>
+              </div>
+            </div>
+          </b-table-column>
+
+          <b-table-column field="category" :label="$t('category')" v-slot="props">
+            <b-field class="level-item">
+              <p class="control" v-if="props.row.ml_category">
+                <b-tooltip :label="$t('ml_model.reset_to_predicted')" class="is-secondary is-light">
+                  <b-button v-on:click="selectedCategories[props.row.id] = props.row.ml_category.id" icon-right="desktop" size="is-small" :class="getButtonClass(props.row)"></b-button>
+                </b-tooltip>
+              </p>
+              <p class="control">
+                <b-tooltip :label="props.row.id_category ? $t('tagging.current_category_is', {categName: props.row.category.name}): $t('tagging.no_category')" class="is-secondary">
+                  <b-button v-on:click="() => clickOnCurrentCategoryButton(props.row)"  :icon-right="getCurrentCategoryIcon(props.row)" :disabled="!props.row.id_category" size="is-small"></b-button>
+                </b-tooltip>
+              </p>
+              <p class="control">
+                <b-tooltip :label="conditionalSuggestedLabel(props.row.ml_category && selectedCategories[props.row.id] == props.row.ml_category.id, props.row.ml_proba)" class="is-secondary is-light">
+                  <b-button :icon-right="getSelectedIcon(props.row)" size="is-small" :class="getSelectedIconClass(props.row)"></b-button>
+                </b-tooltip>
+              </p>
+              <b-select v-model="selectedCategories[props.row.id]" size="is-small">
+                <optgroup v-for="top_level in categories" :key="top_level.id" :value="top_level.id" :label="top_level.nestedName">
+                  <option v-for="bottom_level in top_level.children" :key="bottom_level.id" :value="bottom_level.id">
+                    <p>{{bottom_level.name}}</p>
+                  </option>
+                </optgroup>
+              </b-select>
+              <p class="control">
+                <b-tooltip :label="$t('save')" class="is-secondary is-light">
+                  <b-button v-on:click="() => { saveLabel(props.row); }" icon-right="check" size="is-small" :class="getButtonClass(props.row)"></b-button>
+                </b-tooltip>
+              </p>
+            </b-field>
+          </b-table-column>
+
+          <b-table-column field="proba" label="" v-slot="props">
+            <b-tooltip v-if="props.row.ml_category" :label="`${probaToPercentage(props.row.ml_proba)} %`" class="is-secondary is-light">
+              <tiny-pie-chart-icon class="probaPie" :ratio="props.row.ml_proba"></tiny-pie-chart-icon>
+            </b-tooltip>
+          </b-table-column>
+
+          <template #detail="props">
+            <table class="table">
+              <tbody>
+                <tr v-for="(value, key) in props.row.metadata_" :key="key" :value="value">
+                  <th>{{humanReadable(key)}}</th>
+                  <td>{{value}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+        </b-table>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -190,12 +203,17 @@ export default defineComponent({
     }
   },
   async created() {
-    this.isLoading = true;
-    this.categories = await Category.getFlattenedCategoryTree();
-    await this.updateTransactions();
-    this.isLoading = false; 
+    if (this.groupSelected) {
+      this.isLoading = true;
+      this.categories = await Category.getFlattenedCategoryTree();
+      await this.updateTransactions();
+      this.isLoading = false; 
+    }
   },
   computed: {
+    groupSelected() {
+      return !!this.$store.state.currentGroup;
+    },
     pageStart() {
       return (this.currentPage - 1) * this.transactionsPerPage;
     },

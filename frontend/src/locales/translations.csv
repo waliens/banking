@@ -15,6 +15,8 @@ account_group.edit.info-accounts,"Edit the selection of accounts of which the tr
 account_group.edit.add_account,"Add account","Ajouter le compte"
 account_group.in_group_tooltip,"Linked to current profile, click to unlink","Lié au profil actuel, cliques pour délier"
 account_group.not_in_group_tooltip,"Not linked to current profile, click to link","Pas lié au profil actuel, cliques pour lier"
+account_group.errors.not_selected.title,Profile error,Erreur liée au profil
+account_group.errors.not_selected.message,Profile not selected,Profil non-sélectionné
 account.accounts,Accounts,Comptes
 account.alias,Alias,Alias
 account.aliases,Aliases,Alias
