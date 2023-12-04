@@ -151,6 +151,8 @@ transaction.filters.in_group,Profile,Profil
 transaction.filters.in_group_options.only_in_group,Keep linked only,Liées uniquement
 transaction.filters.in_group_options.both_in_out_group,Keep all,Toutes
 transaction.filters.in_group_options.only_out_group,Keep not linked only,Non-liées uniquement
+transaction.filters.include_intra_profile,Include internal,Inclure internes
+transaction.filters.include_intra_profile_tooltip,Also include transactions internal to the profile,Inclure aussi les transactions internes au profil
 undefined,N/A,N/D
 up,Up,Monter
 upload,Upload,Envoyer

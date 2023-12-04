@@ -64,6 +64,14 @@
           </option> 
         </b-select>
       </b-field>
+      <b-field>
+        <b-tooltip :label="$t('transaction.filters.include_intra_profile_tooltip')">
+          <b-switch v-model="includeIntraProfile">
+            {{ $t('transaction.filters.include_intra_profile') }}
+          </b-switch>
+        </b-tooltip>
+      </b-field>
+
     </b-field>
 
     <b-field class="level">
@@ -97,6 +105,7 @@ export default defineComponent({
     return {
       // filters
       includeLabeled: false,
+      includeIntraProfile: false,
       keepCurrentGroup: "only_in_group",
       amountRange: [0, 999999],
       periodFrom: null,
@@ -168,6 +177,8 @@ export default defineComponent({
       this.categoryId = null;
       this.includeLabeled = false;
       this.amountRange = [0, 999999];
+      this.includeIntraProfile = false;
+      this.inCurrentGroupOptions = "only_in_group";
       this.clearFn();
     },
     clickFilter() {
@@ -179,6 +190,7 @@ export default defineComponent({
         category: this.categoryId,
         amountFrom: this.amountRange[0],
         amountTo: this.amountRange[1],
+        includeIntraProfile: this.includeIntraProfile,
         includeLabeled: this.includeLabeled,
         keepCurrentGroup: this.keepCurrentGroup
       };

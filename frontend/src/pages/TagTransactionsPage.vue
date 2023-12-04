@@ -420,7 +420,8 @@ export default defineComponent({
       let filters = {
         labeled: false,
         group_data: true,
-        group: this.$store.state.currentGroup.id
+        group: this.$store.state.currentGroup.id,
+        group_external_only: true
       };
       if (!this.formFilters) {
         return filters;
@@ -460,6 +461,9 @@ export default defineComponent({
             filters.in_group = -1;
             break;
         }
+      }
+      if (this.formFilters.includeIntraProfile) {
+        filters.group_external_only = false;
       }
       return filters;
     }

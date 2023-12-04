@@ -120,6 +120,7 @@ def get_transactions():
     account_to = request.args.get("account_to", type=int, default=None)
     account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
+    group_external_only = request.args.get("group_external_only", type=bool_type, default=False)
     in_group = request.args.get("in_group", type=int, default=1)
     labeled = request.args.get("labeled", type=bool_or_int_type, default=None)
     date_from = request.args.get("date_from", type=date_type, default=None)
@@ -141,8 +142,8 @@ def get_transactions():
         return error_response("cannot have a date_from after date_to")
     if amount_from is not None and amount_to is not None and amount_from > amount_to:
         return error_response("cannot have a amount_from greater than amount_to")
-    if (group_data or in_group is not None) and group is None:
-        return error_response("group id must be provided if group_data or in_group is requested")
+    if (group_data or in_group is not None or group_external_only) and group is None:
+        return error_response("group id must be provided if group_data or in_group or group_external_only is requested")
     
     # not filtering by group
     if in_group == -1:
@@ -152,6 +153,7 @@ def get_transactions():
     transactions = get_transaction_query(
         account=account, 
         group=group,
+        group_external_only=group_external_only,
         in_group=in_group,
         labeled=labeled,
         sort_by=sort_by, 
@@ -194,6 +196,7 @@ def get_transactions_count():
     account_to = request.args.get("account_to", type=int, default=None)
     account_from = request.args.get("account_from", type=int, default=None)
     group = request.args.get("group", type=int, default=None)
+    group_external_only = request.args.get("group_external_only", type=bool_type, default=False)
     in_group = request.args.get("in_group", type=int, default=1)
     labeled = request.args.get("labeled", type=bool_or_int_type, default=None)
     date_from = request.args.get("date_from", type=date_type, default=None)
@@ -208,8 +211,8 @@ def get_transactions_count():
         return error_response("cannot have a date from after date_to")
     if amount_from is not None and amount_to is not None and amount_from > amount_to:
         return error_response("cannot have a amount_from greater than amount_to")
-    if in_group is not None and group is None:
-        return error_response("group id must be provided if group_data or in_group is requested")
+    if (in_group is not None or group_external_only) and group is None:
+        return error_response("group id must be provided if group_data or in_group or group_external_only is requested")
 
     # not filtering by group
     if in_group == -1:
@@ -219,6 +222,7 @@ def get_transactions_count():
     query = get_transaction_query(
         account=account, 
         group=group,
+        group_external_only=group_external_only,
         in_group=in_group,
         labeled=labeled,
         account_from=account_from, 

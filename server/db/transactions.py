@@ -21,7 +21,7 @@ def auto_attribute_transaction_to_groups(session: Session, transactions):
     account_ids = {ag.id_account for ag in group.account_groups}
     for transaction in transactions:
       transaction: Transaction = transaction
-      if (transaction.id_source in account_ids) ^ (transaction.id_dest in account_ids):
+      if (transaction.id_source in account_ids) or (transaction.id_dest in account_ids):
         group_transaction_map[group.id].add(transaction.id)
   
   return _create_transaction_groups(
@@ -36,7 +36,7 @@ def auto_attribute_transaction_to_groups(session: Session, transactions):
     # the transaction-level contribution ratio is changed later
     default_contribution_ratio=1.0
   )
-  
+
 
 def auto_attribute_transaction_to_groups_by_accounts(session: Session, account_ids: Iterable[int]):
   full_transactions = Transaction.query.where(or_(

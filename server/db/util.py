@@ -107,12 +107,27 @@ def get_tags_descendants(identifier, tree=None):
   return [identifier] + get_children_recur(identifier)
 
 
-def get_transaction_query(account=None, group=None, in_group=None, sort_by=None, account_to=None, account_from=None, date_from=None, date_to=None, order="desc", amount_from=None, amount_to=None, labeled=None):
+def get_transaction_query(
+    account=None,
+    group=None,
+    group_external_only=False,
+    in_group=None,
+    sort_by=None,
+    account_to=None,
+    account_from=None,
+    date_from=None,
+    date_to=None,
+    order="desc",
+    amount_from=None,
+    amount_to=None,
+    labeled=None
+  ):
   """
   Params
   ------
   account: int (default: None)
   group: int (default: None)
+  group_external_only: bool (default: False)
   sort_by: str (default: None)
   account_to: int (default: None)
   account_from: int (default: None)
@@ -127,12 +142,16 @@ def get_transaction_query(account=None, group=None, in_group=None, sort_by=None,
   filters = []
   if account is not None:
     filters.append(or_(Transaction.id_source == account, Transaction.id_dest == account))
-  if group is not None and in_group is not None:
-    sel_expr = select(TransactionGroup.id_transaction).where(TransactionGroup.id_group == group)
-    if in_group:
-      filters.append(Transaction.id.in_(sel_expr))
-    else:  # not in group
-      filters.append(Transaction.id.not_in(sel_expr))
+  if group is not None:
+    if in_group is not None:
+      sel_expr = select(TransactionGroup.id_transaction).where(TransactionGroup.id_group == group)
+      if in_group:
+        filters.append(Transaction.id.in_(sel_expr))
+      else:  # not in group
+        filters.append(Transaction.id.not_in(sel_expr))
+    if group_external_only:
+      accounts_sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
+      filters.append(Transaction.id_dest.in_(accounts_sel_expr) != Transaction.id_source.in_(accounts_sel_expr))
   if labeled is not None:
     if not isinstance(labeled, bool):
       filters.append(Transaction.id_category == labeled)
