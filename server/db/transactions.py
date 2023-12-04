@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Iterable, Tuple
 
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import or_
 
 from db.models import Group, Transaction, TransactionGroup
 
@@ -35,6 +36,14 @@ def auto_attribute_transaction_to_groups(session: Session, transactions):
     # the transaction-level contribution ratio is changed later
     default_contribution_ratio=1.0
   )
+  
+
+def auto_attribute_transaction_to_groups_by_accounts(session: Session, account_ids: Iterable[int]):
+  full_transactions = Transaction.query.where(or_(
+    Transaction.id_dest.in_(account_ids),
+    Transaction.id_source.in_(account_ids)
+  )).all()
+  auto_attribute_transaction_to_groups(session, full_transactions)
 
 
 def _create_transaction_groups(

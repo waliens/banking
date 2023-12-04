@@ -18,7 +18,7 @@ from sqlalchemy.util import immutabledict
 from db.database import init_db
 from db.models import AccountAlias, AccountGroup, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
-from db.transactions import auto_attribute_partial_transaction_to_groups
+from db.transactions import auto_attribute_partial_transaction_to_groups, auto_attribute_transaction_to_groups_by_accounts
 from db.util import get_transaction_query
 
 from ml.model_train import train_model
@@ -386,7 +386,7 @@ def create_group():
         grp = Group(name=name, description=desc)
         session.add(grp)
         session.flush()
-        account_groups = [
+        ag_models = [
             AccountGroup(
                 id_account=ag["id_account"],
                 id_group=grp.id,
@@ -394,8 +394,10 @@ def create_group():
             ) 
             for ag in account_groups
         ]
-        session.add_all(account_groups)
+        session.add_all(ag_models)
         session.commit()
+
+    auto_attribute_transaction_to_groups_by_accounts(session, {ag['id_account'] for ag in account_groups})
 
     return jsonify(grp.as_dict())
 
