@@ -10,7 +10,7 @@
       <div class="level-item has-text-centered">
         <div>
           <p class="heading">{{$t('account_group.number_accounts')}}</p>
-          <p class="title">{{group.accounts.length}}</p>
+          <p class="title">{{group.account_groups.length}}</p>
         </div>
       </div>
       <div class="level-item has-text-centered">
@@ -23,7 +23,7 @@
     <section>
       <b-tabs v-model="activeTab">
         <b-tab-item :label="$t('account.accounts')">
-          <account-table :accounts="group.accounts"></account-table>
+          <account-group-table :account-groups="group.account_groups"></account-group-table>
         </b-tab-item>
         <b-tab-item :label="$t('stats.tabs.inout')">
           <income-expense-chart :group="group" :visible="activeTab==1"></income-expense-chart>
@@ -41,7 +41,7 @@
 
 <script>
 import { defineComponent } from '@vue/composition-api'
-import AccountTable from '../components/accounts/AccountTable.vue';
+import AccountGroupTable from '../components/accounts/AccountGroupTable.vue';
 import currency from 'currency.js';
 import { strcurrency } from '@/utils/helpers';
 import CurrencyDisplay from '../components/generic/CurrencyDisplay.vue';
@@ -50,7 +50,7 @@ import PerCategoryChart from '../components/charts/PerCategoryChart.vue';
 import PerCategoryMonthlyChart from '../components/charts/PerCategoryMonthlyChart.vue';
 
 export default defineComponent({
-  components: {AccountTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart, PerCategoryMonthlyChart},
+  components: {AccountGroupTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart, PerCategoryMonthlyChart},
   data() {
     return {
       activeTab: 0
@@ -62,11 +62,11 @@ export default defineComponent({
     },
     overallBalance() {
       let balance = currency(0);
-      return this.group.accounts.map(a => strcurrency(a.balance)).reduce((o, b) => o.add(b), balance);
+      return this.group.account_groups.map(ag => strcurrency(ag.account.balance)).reduce((o, b) => o.add(b), balance);
     },
     currency() {
       // if all accounts currencies are the same, pick this one. Otherwise, do not display it (TODO make something smarter)
-      let currencies = this.group.accounts.map(a => a.currency);
+      let currencies = this.group.account_groups.map(ag => ag.account.currency);
       let defaultCurrency = currencies[0];
       let matches = currencies.slice(1).filter(c => c.id == defaultCurrency.id);
       if (matches.length != currencies.length - 1) {
