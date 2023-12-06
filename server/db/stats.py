@@ -1,49 +1,71 @@
+from typing import Optional
 from collections import defaultdict
 from decimal import Decimal
 from functools import partial
-from sqlalchemy import and_, extract, func, or_, select
-from db.models import AccountGroup, Category, Currency, Transaction
+from sqlalchemy import and_, extract, func, or_, select, case
+from sqlalchemy.orm import aliased
+from db.models import AccountGroup, Category, Currency, Transaction, TransactionGroup
 from db.util import tag_tree_from_database, get_tags_descendants, get_tags_at_level 
   
 import logging
 
 
-def group_boundary_transactions_filter(out, sel_group_stmt):
-  if out:
-    return and_(Transaction.id_source.in_(sel_group_stmt), Transaction.id_dest.notin_(sel_group_stmt))
+
+def _build_period_aggregate_transactions_by_group_query(
+  id_group: int,
+  expenses: Optional[bool]=None,
+  year: Optional[int]=None,
+  month: Optional[int]=None
+):
+  filters = [TransactionGroup.id_group == id_group]
+  fields = [Transaction.id_currency]
+  group_bys = [Transaction.id_currency]
+  if year is None:
+    fields.append(Transaction.when_year)
+    group_bys.append(Transaction.when_year)
   else:
-    return and_(Transaction.id_dest.in_(sel_group_stmt), Transaction.id_source.notin_(sel_group_stmt))
+    filters.append(Transaction.when_year==year)
 
-
-def incomes_expenses(session, id_group, year=None, month=None):
-  sel_group_stmt = select(AccountGroup.id_account).where(AccountGroup.id_group==id_group)
-
-  def make_query(out):
-    fields = [func.sum(Transaction.amount).label('total'), Transaction.id_currency]
-    group_bys = [Transaction.id_currency]
-    filters = []
-    
-    if year is None:
-      fields.append(Transaction.when_year)
-      group_bys.append(Transaction.when_year)
+  if month is None:
+    fields.append(Transaction.when_month)
+    group_bys.append(Transaction.when_month)
+  else:
+    filters.append(Transaction.when_month==month)
+  
+  # contribution ratios
+  AccountGroupDest = aliased(AccountGroup)
+  AccountGroupSource = aliased(AccountGroup)
+  dest_cr_label = case((AccountGroupDest.id_account != None, AccountGroupDest.contribution_ratio), else_=0.0).label("dest_contribution_ratio")
+  src_cr_label = case((AccountGroupSource.id_account != None, AccountGroupSource.contribution_ratio), else_=0.0).label("source_contribution_ratio")
+  
+  if expenses is not None:
+    if expenses:
+      filters.append(src_cr_label > dest_cr_label)
     else:
-      filters.append(Transaction.when_year==year)
+      filters.append(src_cr_label < dest_cr_label)
 
-    if month is None:
-      fields.append(Transaction.when_month)
-      group_bys.append(Transaction.when_month)
-    else:
-      filters.append(Transaction.when_month==month)
+  query = select(func.sum(TransactionGroup.contribution_ratio * func.abs(dest_cr_label - src_cr_label) * Transaction.amount).label("total")) \
+    .add_columns(*fields) \
+    .outerjoin(AccountGroupDest, Transaction.id_dest == AccountGroupDest.id_account) \
+    .outerjoin(AccountGroupSource, Transaction.id_source == AccountGroupSource.id_account) \
+    .join(TransactionGroup, TransactionGroup.id_transaction == Transaction.id) \
+    .where(*filters) \
+    .group_by(*group_bys)
+  
+  # compute value expr
+  return query
 
-    filters.append(group_boundary_transactions_filter(out, sel_group_stmt))
-
-    query = session.query(*fields)
-    query = query.filter(and_(*filters))
-    query = query.group_by(*group_bys)    
-    
-    return query 
-
-  currency_ids = set() 
+def incomes_expenses(
+  session,
+  id_group: int,
+  year: Optional[int]=None,
+  month: Optional[int]=None
+):
+  """"""
+  expense_query = _build_period_aggregate_transactions_by_group_query(id_group, expenses=True, year=year, month=month)
+  income_query = _build_period_aggregate_transactions_by_group_query(id_group, expenses=False, year=year, month=month)
+  
+  currency_ids = set()
 
   def to_dict(results):
     to_return = list()
@@ -60,12 +82,20 @@ def incomes_expenses(session, id_group, year=None, month=None):
     return to_return
 
   # incomes
-  expenses = make_query(True).all()
-  incomes = make_query(False).all()
+  expenses = session.execute(expense_query).all()
+  incomes = session.execute(income_query).all()
+
   d_expenses, d_incomes = to_dict(expenses), to_dict(incomes)
   currencies = Currency.query.filter(Currency.id.in_(currency_ids)).all()
 
   return d_expenses, d_incomes, currencies
+
+
+def group_boundary_transactions_filter(out, sel_group_stmt):
+  if out:
+    return and_(Transaction.id_source.in_(sel_group_stmt), Transaction.id_dest.notin_(sel_group_stmt))
+  else:
+    return and_(Transaction.id_dest.in_(sel_group_stmt), Transaction.id_source.notin_(sel_group_stmt))
 
 
 def per_category(session, group=None, period_from=None, period_to=None, id_category=None, bucket_level=-1, include_unlabeled=False, period_bucket=None):
