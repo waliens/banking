@@ -254,11 +254,8 @@ export default defineComponent({
       if (!selected || !this.categoryMap[selected]) {
         return "";
       }
-      if (this.categoryMap[selected].income) {
-        return "incomeClass";
-      } else {
-        return "expenseClass";
-      }
+      // TODO determine if expense or income based on group 
+      return "";
     },
     getButtonClass(transaction) {
       let commited = this.commitedCategories[transaction.id];
