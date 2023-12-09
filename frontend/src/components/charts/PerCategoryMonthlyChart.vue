@@ -2,6 +2,19 @@
   <div v-if="visible">
     <section class="columns">
       <div class="column">
+        <b-field>
+          <b-switch
+            v-model="showIncomes"
+            type="is-success"
+            passive-type='is-danger'
+            @input="switchedShowIncomes"
+            >
+            <span v-if="showIncomes">{{ $t('stats.switch.incomes') }}</span>
+            <span v-else>{{ $t('stats.switch.expenses') }}</span>
+          </b-switch>
+        </b-field>
+      </div>
+      <div class="column">
         <b-field :label="$t('year')" label-position="on-border">
           <b-select v-model="selectedYear" @input="updateGraph">
             <option v-for="year in getYears()" :key="year" :value="year">
@@ -63,6 +76,8 @@ export default defineComponent({
   name: "PerCategoryChart",
   data() {
     return {
+      // income expense switch
+      showIncomes: true,
       includeUnlabeled: false,
       detailLevel: 0,
       minDetailLevel: 0,
@@ -128,6 +143,7 @@ export default defineComponent({
     getStatsQueryParams() {
       return {
         ... this.getPeriodRange(),
+        income_only: this.showIncomes,
         level: this.detailLevel,
         id_category: this.coarseCategoryId,
         unlabeled: this.includeUnlabeled
@@ -149,6 +165,7 @@ export default defineComponent({
       await this.updateGraph();
     },
     async getRawStats() {
+      console.log(this.getStatsQueryParams());
       return await this.group.getPerCategoryMonthlyStats(this.getStatsQueryParams());
     },
     async generateChartDataAndOptions() {
@@ -220,6 +237,9 @@ export default defineComponent({
         this.coarseCategoryId = this.coarseCategory.id_parent || null;
       }
       this.detailLevel = parseInt(this.detailLevel) - 1;
+      await this.updateGraph();
+    },
+    async switchedShowIncomes() {
       await this.updateGraph();
     }
   }

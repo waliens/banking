@@ -38,7 +38,7 @@ export default class Group extends Model {
   }
 
   /**
-   * @param {period_from, period_to, id_category, level, unlabeled} params 
+   * @param {period_from, period_to, id_category, level, unlabeled, income_only} params 
    */
   async getPerCategoryStats(params) {
     let {data} = await axios.get(`${this.uri}/stats/percategory`, { params });
@@ -46,7 +46,7 @@ export default class Group extends Model {
   }
 
   /**
-   * @param {period_from, period_to, id_category, level, unlabeled} params 
+   * @param {period_from, period_to, id_category, level, unlabeled, income_only} params 
    */
   async getPerCategoryMonthlyStats(params) {
     let {data} = await axios.get(`${this.uri}/stats/percategorymonthly`, { params });
