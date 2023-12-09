@@ -27,8 +27,6 @@ export default class Category extends Model {
     this.name = null;
     this.id_parent = null;
     this.color = null;
-    this.income = null; 
-    this.default = null; 
     this.icon = null; 
   }
 
@@ -110,7 +108,15 @@ export default class Category extends Model {
     });
     let flattened = {};
     leaves.forEach(cid => {
-      let parent = map[map[cid].id_parent];
+      let current = map[cid];
+      let parent = map[current.id_parent];
+      // if a leave with no parent 
+      if (!parent) {
+        current.children = new Array();
+        current.nestedName = current.name;
+        flattened[current.id] = current;
+        return;
+      }
       if (!flattened[parent.id]) {
         flattened[parent.id] = parent;
         parent.children = new Array();

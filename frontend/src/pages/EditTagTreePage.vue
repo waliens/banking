@@ -35,12 +35,6 @@
           </b-select>
         </b-field>
         <div class="level"> 
-          <b-field class="level-item">
-            <b-checkbox v-model="selected.default">{{$t('tagging.tag.default')}}</b-checkbox>
-          </b-field>
-          <b-field class="level-item">
-            <b-checkbox v-model="selected.income">{{$t('tagging.tag.income')}}</b-checkbox>
-          </b-field>
           <b-field class="level-item" :label="$t('tagging.tag.color')" horizontal narrowed>
             <verte v-model="selected.color"
               menuPosition="left"
@@ -87,8 +81,6 @@ export default defineComponent({
     isFormValid() {
       return this.selected.name && this.selected.name.length > 0
         && this.selected.icon
-        && this.selected.default !== null
-        && this.selected.incom !== null
         && this.selected.color
         && this.selected.id_parent;
     },
@@ -133,8 +125,6 @@ export default defineComponent({
     getDefaultCategory() {
       let newCategory = new Category();
       newCategory.color = "#000000";
-      newCategory.income = false;
-      newCategory.default = false;
       newCategory.name = "";
       newCategory.icon = "tag";
       return newCategory;

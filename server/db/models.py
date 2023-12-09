@@ -50,8 +50,6 @@ class Category(Base):
     name = Column(String(255))
     id_parent = Column(Integer, ForeignKey('category.id'), nullable=True)
     color = Column(String(255))
-    income = Column(Boolean)
-    default = Column(Boolean)
     icon = Column(String)
 
     def __repr__(self):
@@ -59,7 +57,7 @@ class Category(Base):
             self.id, self.name, self.id_parent, self.color)
 
     def as_dict(self):
-        return AsDictSerializer("id", "name", "id_parent", "color", "income", "default", "icon").serialize(self)
+        return AsDictSerializer("id", "name", "id_parent", "color", "icon").serialize(self)
 
 
 class Currency(Base):

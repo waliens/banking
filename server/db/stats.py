@@ -9,8 +9,6 @@ from db.util import tag_tree_from_database, get_tags_descendants, get_tags_at_le
   
 import logging
 
-
-
 def _build_period_aggregate_transactions_by_group_query(
   id_group: int,
   expenses: Optional[bool]=None,

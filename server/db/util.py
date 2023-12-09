@@ -61,8 +61,6 @@ def tag_tree_from_database(return_plain_categories=False):
         identifier=identifier,
         parent_id=category.id_parent,
         color=category.color,
-        income=category.income,
-        default=category.default,
         icon=category.icon
       )
       if new_tag.parent_id is not None:

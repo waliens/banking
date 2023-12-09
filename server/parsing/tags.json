@@ -1,255 +1,138 @@
 [
   {
-    "categoryId": 1, 
-    "description": "Dépenses", 
-    "parentId": null, 
-    "deleted": false, 
-    "color": "#F38639", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "minus"
-  }, 
-  {
-    "categoryId": 2, 
-    "description": "Revenus", 
-    "parentId": null, 
-    "deleted": false, 
-    "color": "#8C0D95", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "plus"
-  }, 
-  {
     "categoryId": 100, 
     "description": "Automobile & Transport", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#BFEAED", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#BFEAED",
     "icon": "car"
   }, 
   {
     "categoryId": 101, 
     "description": "Enfants", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#0FABE3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#0FABE3",
     "icon": "child"
   }, 
   {
     "categoryId": 102, 
     "description": "Loisirs", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#D0E527", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D0E527",
     "icon": "glass-cheers"
   }, 
   {
     "categoryId": 103, 
     "description": "Vie quotidienne", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#384EA7", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#384EA7",
     "icon": "calendar-day"
   }, 
   {
     "categoryId": 104, 
     "description": "Energie", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#FFFF2D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FFFF2D",
     "icon": "bolt"
   }, 
   {
     "categoryId": 105, 
     "description": "Télécom", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#75CC28", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#75CC28",
     "icon": "broadcast-tower"
   }, 
   {
     "categoryId": 106, 
     "description": "Soins de santé", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#7B4C23", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#7B4C23",
     "icon": "medkit"
   }, 
   {
     "categoryId": 107, 
     "description": "Habillement et beauté", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#F38639", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#F38639",
     "icon": "tshirt"
   }, 
   {
     "categoryId": 108, 
-    "description": "Imp\u00f4ts et taxes", 
-    "parentId": 1, 
+    "description": "Fiscalité", 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#8C0D95", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#8C0D95",
     "icon": "coins"
   }, 
   {
     "categoryId": 109, 
     "description": "Assurances", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#39CCC5", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#39CCC5",
     "icon": "hard-hat"
   }, 
   {
     "categoryId": 110, 
-    "description": "Pr\u00eats", 
-    "parentId": 1, 
+    "description": "Prêts", 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#717342", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#717342",
     "icon": "hand-holding-usd"
   }, 
   {
     "categoryId": 111, 
-    "description": "Transactions et frais", 
-    "parentId": 1, 
+    "description": "Mouvements et frais", 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#D4072C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D4072C",
     "icon": "university"
-  }, 
-  {
-    "categoryId": 112, 
-    "description": "Retraits", 
-    "parentId": 1, 
-    "deleted": false, 
-    "color": "#006330", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "coins"
   }, 
   {
     "categoryId": 113, 
     "description": "Epargne", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#FF654D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FF654D",
     "icon": "piggy-bank"
   }, 
   {
     "categoryId": 114, 
     "description": "Autres", 
-    "parentId": 1, 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#FA959A", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#FA959A",
     "icon": "tag"
   }, 
   {
     "categoryId": 115, 
-    "description": "Maison", 
-    "parentId": 1, 
+    "description": "Habitation", 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#999999", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#999999",
     "icon": "home"
   }, 
   {
-    "categoryId": 199, 
-    "description": "Hors catégories", 
-    "parentId": 1, 
+    "categoryId": 116, 
+    "description": "Travail", 
+    "parentId": null, 
     "deleted": false, 
-    "color": "#DAD8C3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "tag"
-  }, 
-  {
-    "categoryId": 200, 
-    "description": "Revenus récurrents", 
-    "parentId": 2, 
-    "deleted": false, 
-    "color": "#144C6C", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "sync"
-  }, 
-  {
-    "categoryId": 201, 
-    "description": "Revenus non récurrents", 
-    "parentId": 2, 
-    "deleted": false, 
-    "color": "#0FABE3", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "arrow-down"
-  }, 
-  {
-    "categoryId": 299, 
-    "description": "Hors catégories", 
-    "parentId": 2, 
-    "deleted": false, 
-    "color": "#DAD8C3", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "tag"
+    "color": "#39352A",
+    "icon": "briefcase"
   }, 
   {
     "categoryId": 10000, 
     "description": "Carburant et péages", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#BFEAED", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#BFEAED",
     "icon": "gas-pump"
   }, 
   {
@@ -257,10 +140,7 @@
     "description": "Entretien", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#0FABE3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#0FABE3",
     "icon": "broom"
   }, 
   {
@@ -268,10 +148,7 @@
     "description": "Parking", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#D0E527", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D0E527",
     "icon": "parking"
   }, 
   {
@@ -279,10 +156,7 @@
     "description": "Abonnement (transport en commun)", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#384ea7", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#384ea7",
     "icon": "bus"
   }, 
   {
@@ -290,10 +164,7 @@
     "description": "Emprunt auto", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#FFFF2D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FFFF2D",
     "icon": "hand-holding-usd"
   }, 
   {
@@ -301,10 +172,7 @@
     "description": "Taxe auto", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#FB4C23", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FB4C23",
     "icon": "car"
   }, 
   {
@@ -312,10 +180,7 @@
     "description": "Autres", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#75CC28", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#75CC28",
     "icon": "tag"
   }, 
   {
@@ -323,10 +188,7 @@
     "description": "Livres/Cours/Matériel scolaire", 
     "parentId": 101, 
     "deleted": false, 
-    "color": "#8C0D95", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#8C0D95",
     "icon": "book"
   }, 
   {
@@ -334,10 +196,7 @@
     "description": "Minerval", 
     "parentId": 101, 
     "deleted": false, 
-    "color": "#39CCC5", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#39CCC5",
     "icon": "university"
   }, 
   {
@@ -345,10 +204,7 @@
     "description": "Voyages scolaires", 
     "parentId": 101, 
     "deleted": false, 
-    "color": "#D4072C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D4072C",
     "icon": "school"
   }, 
   {
@@ -356,21 +212,15 @@
     "description": "Clubs sportifs/Loisirs", 
     "parentId": 101, 
     "deleted": false, 
-    "color": "#006330", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#006330",
     "icon": "futbol"
   }, 
   {
     "categoryId": 10104, 
-    "description": "Garderie/Cr\u00eache", 
+    "description": "Garderie/Crêche", 
     "parentId": 101, 
     "deleted": false, 
-    "color": "#FF654D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FF654D",
     "icon": "baby"
   }, 
   {
@@ -378,21 +228,15 @@
     "description": "Argent de poche", 
     "parentId": 101, 
     "deleted": false, 
-    "color": "#FA959A", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FA959A",
     "icon": "hand-holding-usd"
   }, 
   {
     "categoryId": 10106, 
-    "description": "Pension alimentaire enfants", 
+    "description": "Pension alimentaire", 
     "parentId": 101, 
     "deleted": false, 
-    "color": "#DAD8C3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#DAD8C3",
     "icon": "apple-alt"
   }, 
   {
@@ -400,10 +244,7 @@
     "description": "Autres", 
     "parentId": 101, 
     "deleted": false, 
-    "color": "#BFEAED", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#BFEAED",
     "icon": "tag"
   }, 
   {
@@ -411,10 +252,7 @@
     "description": "Cadeau", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#0fabe3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#0fabe3",
     "icon": "gift"
   }, 
   {
@@ -422,10 +260,7 @@
     "description": "Loisirs", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#D0E527", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D0E527",
     "icon": "glass-cheers"
   }, 
   {
@@ -433,10 +268,7 @@
     "description": "Journaux/Magazines/Livres", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#384EA7", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#384EA7",
     "icon": "newspaper"
   }, 
   {
@@ -444,10 +276,7 @@
     "description": "Sport", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#FFFF2D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FFFF2D",
     "icon": "futbol"
   }, 
   {
@@ -455,10 +284,7 @@
     "description": "Jeux vidéo", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#fb4c23", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#fb4c23",
     "icon": "gamepad"
   }, 
   {
@@ -466,10 +292,7 @@
     "description": "Voyages", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#75CC28", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#75CC28",
     "icon": "plane"
   }, 
   {
@@ -477,10 +300,7 @@
     "description": "Sorties", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#F38639", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#F38639",
     "icon": "cocktail"
   }, 
   {
@@ -488,10 +308,7 @@
     "description": "Restaurant", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#8C0D95", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#8C0D95",
     "icon": "utensils"
   }, 
   {
@@ -499,10 +316,7 @@
     "description": "Abonnements/Affiliations", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#39CCC5", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#39CCC5",
     "icon": "star"
   }, 
   {
@@ -510,21 +324,15 @@
     "description": "Jardin", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#5cf9aa", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "acorn"
+    "color": "#5cf9aa",
+    "icon": "tree"
   }, 
   {
     "categoryId": 10210, 
     "description": "Autres", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#006330", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#006330",
     "icon": "tag"
   }, 
   {
@@ -532,10 +340,7 @@
     "description": "Alimentation", 
     "parentId": 103, 
     "deleted": false, 
-    "color": "#FF654D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FF654D",
     "icon": "hamburger"
   }, 
   {
@@ -543,10 +348,7 @@
     "description": "Animaux", 
     "parentId": 103, 
     "deleted": false, 
-    "color": "#FA959A", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FA959A",
     "icon": "cat"
   }, 
   {
@@ -554,10 +356,7 @@
     "description": "Electroménager", 
     "parentId": 103, 
     "deleted": false, 
-    "color": "#BFEAED", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#BFEAED",
     "icon": "plug"
   }, 
   {
@@ -565,10 +364,7 @@
     "description": "Entretien", 
     "parentId": 103, 
     "deleted": false, 
-    "color": "#384EA7", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#384EA7",
     "icon": "broom"
   }, 
   {
@@ -576,10 +372,7 @@
     "description": "Autres", 
     "parentId": 103, 
     "deleted": false, 
-    "color": "#FFFF2D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#FFFF2D",
     "icon": "tag"
   }, 
   {
@@ -587,10 +380,7 @@
     "description": "Gaz", 
     "parentId": 104, 
     "deleted": false, 
-    "color": "#FB4C23", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FB4C23",
     "icon": "burn"
   }, 
   {
@@ -598,10 +388,7 @@
     "description": "Electricité", 
     "parentId": 104, 
     "deleted": false, 
-    "color": "#75CC28", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#75CC28",
     "icon": "lightbulb"
   }, 
   {
@@ -609,10 +396,7 @@
     "description": "Eau", 
     "parentId": 104, 
     "deleted": false, 
-    "color": "#F38639", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#F38639",
     "icon": "tint"
   }, 
   {
@@ -620,10 +404,7 @@
     "description": "Mazout", 
     "parentId": 104, 
     "deleted": false, 
-    "color": "#8C0D95", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#8C0D95",
     "icon": "oil-can"
   }, 
   {
@@ -631,10 +412,7 @@
     "description": "Autres", 
     "parentId": 104, 
     "deleted": false, 
-    "color": "#39CCC5", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#39CCC5",
     "icon": "tag"
   }, 
   {
@@ -642,10 +420,7 @@
     "description": "Internet", 
     "parentId": 105, 
     "deleted": false, 
-    "color": "#D4072C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D4072C",
     "icon": "wifi"
   }, 
   {
@@ -653,10 +428,7 @@
     "description": "Téléphonie mobile", 
     "parentId": 105, 
     "deleted": false, 
-    "color": "#006330", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#006330",
     "icon": "mobile-alt"
   }, 
   {
@@ -664,10 +436,7 @@
     "description": "Télévision", 
     "parentId": 105, 
     "deleted": false, 
-    "color": "#ff654d", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ff654d",
     "icon": "tv"
   }, 
   {
@@ -675,10 +444,7 @@
     "description": "Téléphone", 
     "parentId": 105, 
     "deleted": false, 
-    "color": "#FA959A", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FA959A",
     "icon": "phone-alt"
   }, 
   {
@@ -686,10 +452,7 @@
     "description": "Autres", 
     "parentId": 105, 
     "deleted": false, 
-    "color": "#DAD8C3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#DAD8C3",
     "icon": "tag"
   }, 
   {
@@ -697,10 +460,7 @@
     "description": "Pharmacie", 
     "parentId": 106, 
     "deleted": false, 
-    "color": "#BFEAED", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#BFEAED",
     "icon": "prescription-bottle-alt"
   }, 
   {
@@ -708,10 +468,7 @@
     "description": "Médecin", 
     "parentId": 106, 
     "deleted": false, 
-    "color": "#0FABE3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#0FABE3",
     "icon": "stethoscope"
   }, 
   {
@@ -719,21 +476,15 @@
     "description": "Dentiste", 
     "parentId": 106, 
     "deleted": false, 
-    "color": "#D0E527", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D0E527",
     "icon": "tooth"
   }, 
   {
     "categoryId": 10603, 
-    "description": "H\u00f4pital", 
+    "description": "Hôpital", 
     "parentId": 106, 
     "deleted": false, 
-    "color": "#384EA7", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#384EA7",
     "icon": "hospital-user"
   }, 
   {
@@ -741,10 +492,7 @@
     "description": "Mutualité", 
     "parentId": 106, 
     "deleted": false, 
-    "color": "#FFFF2D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FFFF2D",
     "icon": "heartbeat"
   }, 
   {
@@ -752,10 +500,7 @@
     "description": "Autres", 
     "parentId": 106, 
     "deleted": false, 
-    "color": "#FB4C23", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#FB4C23",
     "icon": "tag"
   }, 
   {
@@ -763,21 +508,15 @@
     "description": "Accessoires et bijoux", 
     "parentId": 107, 
     "deleted": false, 
-    "color": "#75CC28", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#75CC28",
     "icon": "gem"
   }, 
   {
     "categoryId": 10701, 
-    "description": "V\u00eatements", 
+    "description": "Vêtements", 
     "parentId": 107, 
     "deleted": false, 
-    "color": "#F38639", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#F38639",
     "icon": "tshirt"
   }, 
   {
@@ -785,10 +524,7 @@
     "description": "Chaussures", 
     "parentId": 107, 
     "deleted": false, 
-    "color": "#8C0D95", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#8C0D95",
     "icon": "shoe-prints"
   }, 
   {
@@ -796,10 +532,7 @@
     "description": "Cosmétique et soins des yeux", 
     "parentId": 107, 
     "deleted": false, 
-    "color": "#39CCC5", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#39CCC5",
     "icon": "air-freshener"
   }, 
   {
@@ -807,10 +540,7 @@
     "description": "Autres", 
     "parentId": 107, 
     "deleted": false, 
-    "color": "#D4072C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#D4072C",
     "icon": "tag"
   }, 
   {
@@ -818,21 +548,15 @@
     "description": "Coiffeur", 
     "parentId": 107, 
     "deleted": false, 
-    "color": "#BFEAED", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#BFEAED",
     "icon": "cut"
   }, 
   {
     "categoryId": 10800, 
-    "description": "Imp\u00f4t sur les personnes physiques", 
+    "description": "Impôt sur les personnes physiques", 
     "parentId": 108, 
     "deleted": false, 
-    "color": "#006330", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#006330",
     "icon": "coins"
   }, 
   {
@@ -840,10 +564,7 @@
     "description": "Taxes communales", 
     "parentId": 108, 
     "deleted": false, 
-    "color": "#FF654D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FF654D",
     "icon": "dumpster"
   }, 
   {
@@ -851,10 +572,7 @@
     "description": "Foncier", 
     "parentId": 108, 
     "deleted": false, 
-    "color": "#FA959A", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FA959A",
     "icon": "building"
   }, 
   {
@@ -862,10 +580,7 @@
     "description": "Taxes provinciales", 
     "parentId": 108, 
     "deleted": false, 
-    "color": "#DAD8C3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#DAD8C3",
     "icon": "coins"
   }, 
   {
@@ -873,10 +588,7 @@
     "description": "Autres", 
     "parentId": 108, 
     "deleted": false, 
-    "color": "#BFEAED", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#BFEAED",
     "icon": "tag"
   }, 
   {
@@ -884,10 +596,7 @@
     "description": "Assurance incendie", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#0FABE3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#0FABE3",
     "icon": "house-damage"
   }, 
   {
@@ -895,10 +604,7 @@
     "description": "Assurance auto", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#D0E527", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D0E527",
     "icon": "car-crash"
   }, 
   {
@@ -906,10 +612,7 @@
     "description": "Assurance familiale", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#384EA7", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#384EA7",
     "icon": "users"
   }, 
   {
@@ -917,10 +620,7 @@
     "description": "Assurance protection juridique", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#FFFF2D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FFFF2D",
     "icon": "balance-scale-right"
   }, 
   {
@@ -928,10 +628,7 @@
     "description": "Assurance hospitalisation", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#FB4C23", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FB4C23",
     "icon": "procedures"
   }, 
   {
@@ -939,10 +636,7 @@
     "description": "Assurance vie", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#F38639", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#F38639",
     "icon": "life-ring"
   }, 
   {
@@ -950,10 +644,7 @@
     "description": "Assurance solde restant d\u00f9", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#8C0D95", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#8C0D95",
     "icon": "skull-crossbones"
   }, 
   {
@@ -961,10 +652,7 @@
     "description": "Assurance assistance", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#39CCC5", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#39CCC5",
     "icon": "hands-helping"
   }, 
   {
@@ -972,32 +660,23 @@
     "description": "Autres", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#D4072C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#D4072C",
     "icon": "tag"
   }, 
   {
     "categoryId": 11000, 
-    "description": "Pr\u00eat auto", 
+    "description": "Rente (crédit auto)", 
     "parentId": 110, 
     "deleted": false, 
-    "color": "#75CC28", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#75CC28",
     "icon": "car"
   }, 
   {
     "categoryId": 11001, 
-    "description": "Pr\u00eat pour une maison", 
+    "description": "Rente (crédit maison)", 
     "parentId": 110, 
     "deleted": false, 
-    "color": "#F38639", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#F38639",
     "icon": "home"
   }, 
   {
@@ -1005,43 +684,31 @@
     "description": "Autres", 
     "parentId": 110, 
     "deleted": false, 
-    "color": "#FF654D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#FF654D",
     "icon": "tag"
+  }, 
+  {
+    "categoryId": 11003, 
+    "description": "Crédits", 
+    "parentId": 110, 
+    "deleted": false, 
+    "color": "#F5D033",
+    "icon": "landmark"
   }, 
   {
     "categoryId": 11100, 
     "description": "Transfert interne", 
     "parentId": 111, 
     "deleted": false, 
-    "color": "#006330", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#006330",
     "icon": "exchange-alt"
-  }, 
-  {
-    "categoryId": 11101, 
-    "description": "Crédits", 
-    "parentId": 111, 
-    "deleted": false, 
-    "color": "#FF654D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "hand-holding-usd"
-  }, 
+  },
   {
     "categoryId": 11102, 
     "description": "Frais bancaire", 
     "parentId": 111, 
     "deleted": false, 
-    "color": "#fa959a", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#fa959a",
     "icon": "money-check-alt"
   }, 
   {
@@ -1049,32 +716,23 @@
     "description": "Autres", 
     "parentId": 111, 
     "deleted": false, 
-    "color": "#DAD8C3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#DAD8C3",
     "icon": "tag"
   }, 
   {
     "categoryId": 11200, 
     "description": "Retraits", 
-    "parentId": 112, 
+    "parentId": 111, 
     "deleted": false, 
-    "color": "#006330", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#006330",
     "icon": "coins"
   }, 
   {
     "categoryId": 11201, 
     "description": "Autres", 
-    "parentId": 112, 
+    "parentId": 111, 
     "deleted": false, 
-    "color": "#BFEAED", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#BFEAED",
     "icon": "tag"
   }, 
   {
@@ -1082,10 +740,7 @@
     "description": "Epargne", 
     "parentId": 113, 
     "deleted": false, 
-    "color": "#0FABE3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#0FABE3",
     "icon": "piggy-bank"
   }, 
   {
@@ -1093,10 +748,7 @@
     "description": "Placement", 
     "parentId": 113, 
     "deleted": false, 
-    "color": "#d0e527", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#d0e527",
     "icon": "piggy-bank"
   }, 
   {
@@ -1104,10 +756,7 @@
     "description": "Epargne-pension", 
     "parentId": 113, 
     "deleted": false, 
-    "color": "#384EA7", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#384EA7",
     "icon": "blind"
   }, 
   {
@@ -1115,10 +764,7 @@
     "description": "Enfants", 
     "parentId": 113, 
     "deleted": false, 
-    "color": "#FFFF2D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#FFFF2D",
     "icon": "child"
   }, 
   {
@@ -1126,10 +772,7 @@
     "description": "Autres", 
     "parentId": 113, 
     "deleted": false, 
-    "color": "#FB4C23", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#FB4C23",
     "icon": "tag"
   }, 
   {
@@ -1137,10 +780,7 @@
     "description": "Pension alimentaire", 
     "parentId": 114, 
     "deleted": false, 
-    "color": "#75CC28", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#75CC28",
     "icon": "apple-alt"
   }, 
   {
@@ -1148,10 +788,7 @@
     "description": "Donations", 
     "parentId": 114, 
     "deleted": false, 
-    "color": "#F38639", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#F38639",
     "icon": "donate"
   }, 
   {
@@ -1159,21 +796,15 @@
     "description": "Autres", 
     "parentId": 114, 
     "deleted": false, 
-    "color": "#8C0D95", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#8C0D95",
     "icon": "tag"
   }, 
   {
     "categoryId": 11500, 
-    "description": "Loyer/Emprunt", 
+    "description": "Loyer", 
     "parentId": 115, 
     "deleted": false, 
-    "color": "#DAD8C3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#DAD8C3",
     "icon": "house-user"
   }, 
   {
@@ -1181,10 +812,7 @@
     "description": "Meubles/Accessoires", 
     "parentId": 115, 
     "deleted": false, 
-    "color": "#0FABE3", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#0FABE3",
     "icon": "chair"
   }, 
   {
@@ -1192,10 +820,7 @@
     "description": "Bricolage/Travaux", 
     "parentId": 115, 
     "deleted": false, 
-    "color": "#D0E527", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D0E527",
     "icon": "hammer"
   }, 
   {
@@ -1203,175 +828,63 @@
     "description": "Autres", 
     "parentId": 115, 
     "deleted": false, 
-    "color": "#FFFF2D", 
-    "income": false, 
-    "categoryType": "", 
-    "default": true, 
+    "color": "#FFFF2D",
     "icon": "tag"
   }, 
   {
     "categoryId": 20000, 
     "description": "Salaire", 
-    "parentId": 200, 
+    "parentId": 116, 
     "deleted": false, 
-    "color": "#39CCC5", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#39CCC5",
     "icon": "hand-holding-usd"
   }, 
   {
     "categoryId": 20001, 
     "description": "Pension", 
-    "parentId": 200, 
+    "parentId": 108, 
     "deleted": false, 
-    "color": "#D4072C", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#D4072C",
     "icon": "blind"
   }, 
   {
     "categoryId": 20002, 
     "description": "Allocations familiales", 
-    "parentId": 200, 
+    "parentId": 101, 
     "deleted": false, 
-    "color": "#006330", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#006330",
     "icon": "hand-holding-usd"
-  }, 
-  {
-    "categoryId": 20003, 
-    "description": "Pension alimentaire", 
-    "parentId": 200, 
-    "deleted": false, 
-    "color": "#FF654D", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "apple-alt"
-  }, 
-  {
-    "categoryId": 20004, 
-    "description": "Placement", 
-    "parentId": 200, 
-    "deleted": false, 
-    "color": "#fa959a", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "percentage"
   }, 
   {
     "categoryId": 20005, 
     "description": "Allocations", 
-    "parentId": 200, 
+    "parentId": 108, 
     "deleted": false, 
-    "color": "#DAD8C3", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#DAD8C3",
     "icon": "hand-holding-usd"
-  }, 
-  {
-    "categoryId": 20006, 
-    "description": "Loyer", 
-    "parentId": 200, 
-    "deleted": false, 
-    "color": "#BFEAED", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "house-user"
-  }, 
-  {
-    "categoryId": 20007, 
-    "description": "Argent de poche", 
-    "parentId": 200, 
-    "deleted": false, 
-    "color": "#0FABE3", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "hand-holding-usd"
-  }, 
-  {
-    "categoryId": 20008, 
-    "description": "Autres", 
-    "parentId": 200, 
-    "deleted": false, 
-    "color": "#D0E527", 
-    "income": true, 
-    "categoryType": "", 
-    "default": true, 
-    "icon": "tag"
-  }, 
-  {
-    "categoryId": 20100, 
-    "description": "Remboursements", 
-    "parentId": 201, 
-    "deleted": false, 
-    "color": "#384EA7", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "money-bill-wave"
-  }, 
-  {
-    "categoryId": 20102, 
-    "description": "Autres", 
-    "parentId": 201, 
-    "deleted": false, 
-    "color": "#FB4C23", 
-    "income": true, 
-    "categoryType": "", 
-    "default": true, 
-    "icon": "tag"
-  }, 
+  },
   {
     "categoryId": 1216074, 
     "description": "Assurance vélo", 
     "parentId": 109, 
     "deleted": false, 
-    "color": "#E9005C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#E9005C",
     "icon": "biking"
-  }, 
-  {
-    "categoryId": 1216077, 
-    "description": "Colloc'", 
-    "parentId": 103, 
-    "deleted": false, 
-    "color": "#E9005C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "slideshare"
-  }, 
+  },
   {
     "categoryId": 1216079, 
     "description": "Spectacle", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#E9005C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#E9005C",
     "icon": "theater-masks"
   }, 
   {
     "categoryId": 1216080, 
     "description": "Prix", 
-    "parentId": 201, 
+    "parentId": 114, 
     "deleted": false, 
-    "color": "#6EA986", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#6EA986",
     "icon": "trophy"
   }, 
   {
@@ -1379,10 +892,7 @@
     "description": "Réparation", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#E9005C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#E9005C",
     "icon": "tools"
   }, 
   {
@@ -1390,10 +900,7 @@
     "description": "Caution", 
     "parentId": 115, 
     "deleted": false, 
-    "color": "#E9005C", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#E9005C",
     "icon": "hand-holding-usd"
   }, 
   {
@@ -1401,10 +908,7 @@
     "description": "Cinéma", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#6EA986", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#6EA986",
     "icon": "film"
   }, 
   {
@@ -1412,10 +916,7 @@
     "description": "Musique", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#4B3E68", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#4B3E68",
     "icon": "music"
   }, 
   {
@@ -1423,10 +924,7 @@
     "description": "Administratif", 
     "parentId": 114, 
     "deleted": false, 
-    "color": "#6EA986", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#6EA986",
     "icon": "file-invoice"
   }, 
   {
@@ -1434,10 +932,7 @@
     "description": "Vélo", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#6EA986", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#6EA986",
     "icon": "bicycle"
   }, 
   {
@@ -1445,10 +940,7 @@
     "description": "Entretien vélo", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#4B3E68", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#4B3E68",
     "icon": "bicycle"
   }, 
   {
@@ -1456,10 +948,7 @@
     "description": "Train", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#ebcb4c", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ebcb4c",
     "icon": "train"
   }, 
   {
@@ -1467,10 +956,7 @@
     "description": "Bus", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#c1ff0a", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#c1ff0a",
     "icon": "bus"
   }, 
   {
@@ -1478,10 +964,7 @@
     "description": "Taxi", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#ffff0b", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ffff0b",
     "icon": "taxi"
   }, 
   {
@@ -1489,10 +972,7 @@
     "description": "Avion", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#217c32", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#217c32",
     "icon": "plane"
   }, 
   {
@@ -1500,87 +980,63 @@
     "description": "Concert", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#ff0909", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ff0909",
     "icon": "guitar"
   }, 
   {
     "categoryId": 1216152, 
     "description": "Remboursement", 
-    "parentId": 114, 
+    "parentId": 111, 
     "deleted": false, 
-    "color": "#28caff", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#28caff",
     "icon": "mobile"
   }, 
   {
     "categoryId": 1216153, 
     "description": "Note de frais/débours", 
-    "parentId": 201, 
+    "parentId": 116, 
     "deleted": false, 
-    "color": "#000000", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#000000",
     "icon": "hand-holding-usd"
   }, 
   {
     "categoryId": 1216154, 
     "description": "Trop versé", 
-    "parentId": 201, 
+    "parentId": 111, 
     "deleted": false, 
-    "color": "#ff19cd", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ff19cd",
     "icon": "hand-holding-usd"
   }, 
   {
     "categoryId": 1216155, 
-    "description": "Mutualité", 
-    "parentId": 201, 
+    "description": "Intervention (mutualité)", 
+    "parentId": 106, 
     "deleted": false, 
-    "color": "#ff0993", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ff0993",
     "icon": "heartbeat"
   }, 
   {
     "categoryId": 1216156, 
-    "description": "Imp\u00f4ts", 
-    "parentId": 201, 
+    "description": "Retour impôts", 
+    "parentId": 108, 
     "deleted": false, 
-    "color": "#ffff0c", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ffff0c",
     "icon": "coins"
   }, 
   {
     "categoryId": 1216157, 
     "description": "Bourse", 
-    "parentId": 201, 
+    "parentId": 113, 
     "deleted": false, 
-    "color": "#1dfff1", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#1dfff1",
     "icon": "school"
   }, 
   {
     "categoryId": 1216158, 
-    "description": "\u00c9lectronique", 
+    "description": "Électronique", 
     "parentId": 103, 
     "deleted": false, 
-    "color": "#d8d8d8", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#d8d8d8",
     "icon": "desktop"
   }, 
   {
@@ -1588,21 +1044,15 @@
     "description": "Jeu de société", 
     "parentId": 102, 
     "deleted": false, 
-    "color": "#a84b00", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#a84b00",
     "icon": "chess"
   }, 
   {
     "categoryId": 1216160, 
-    "description": "\u00c9pargne (intér\u00eats et primes)", 
-    "parentId": 200, 
+    "description": "Intérêts et primes", 
+    "parentId": 113, 
     "deleted": false, 
-    "color": "#ffff1a", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ffff1a",
     "icon": "piggy-bank"
   }, 
   {
@@ -1610,10 +1060,7 @@
     "description": "Carte de crédit (décompte)", 
     "parentId": 111, 
     "deleted": false, 
-    "color": "#014ca1", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#014ca1",
     "icon": "credit-card"
   }, 
   {
@@ -1621,32 +1068,15 @@
     "description": "Metro", 
     "parentId": 100, 
     "deleted": false, 
-    "color": "#ff60ba", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ff60ba",
     "icon": "subway"
-  }, 
-  {
-    "categoryId": 1216163, 
-    "description": "Cadeau", 
-    "parentId": 201, 
-    "deleted": false, 
-    "color": "#ff9e00", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "gift"
   }, 
   {
     "categoryId": 1216164, 
     "description": "Régularisation", 
-    "parentId": 201, 
+    "parentId": 104, 
     "deleted": false, 
-    "color": "#08c388", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#08c388",
     "icon": "lightbulb"
   }, 
   {
@@ -1654,54 +1084,39 @@
     "description": "Conférence", 
     "parentId": 114, 
     "deleted": false, 
-    "color": "#ff5b0b", 
-    "income": false, 
-    "categoryType": "", 
-    "default": false, 
-    "icon": "presentation"
+    "color": "#ff5b0b",
+    "icon": "comments"
   }, 
   {
     "categoryId": 1216166, 
-    "description": "Dép\u00f4t", 
-    "parentId": 201, 
+    "description": "Dépôt", 
+    "parentId": 111, 
     "deleted": false, 
-    "color": "#05a31c", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#05a31c",
     "icon": "money-bill"
   }, 
   {
     "categoryId": 1216167, 
     "description": "Caution", 
-    "parentId": 201, 
+    "parentId": 114, 
     "deleted": false, 
-    "color": "#753838", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#753838",
     "icon": "hand-holding-usd"
   }, 
   {
     "categoryId": 1216168, 
-    "description": "Assurance (intervention)", 
-    "parentId": 201, 
+    "description": "Intervention (assurance)", 
+    "parentId": 109, 
     "deleted": false, 
-    "color": "#ff0000", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#ff0000",
     "icon": "life-ring"
   }, 
   {
     "categoryId": 1216169, 
     "description": "Vente", 
-    "parentId": 201, 
+    "parentId": 114, 
     "deleted": false, 
-    "color": "#5179ff", 
-    "income": true, 
-    "categoryType": "", 
-    "default": false, 
+    "color": "#5179ff",
     "icon": "tags"
   }
 ]

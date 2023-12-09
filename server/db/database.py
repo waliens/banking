@@ -28,13 +28,13 @@ def add_tags(sess=None):
     tree = TagTree.tree_from_file("parsing")
     import numpy as np 
     v, c = np.unique([t.identifier for t in tree._tags.values()], return_counts=True)
+    if np.any(c > 1):
+        raise ValueError("duplicate tags identifiers")
     save([Category(
         id=t.identifier, 
         name=t.name, 
         id_parent=t.parent_id, 
         color=t.color, 
-        income=t.income, 
-        default=t.default,
         icon=t.icon
     ) for k, t in tree._tags.items()], sess=sess)
 

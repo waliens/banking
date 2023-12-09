@@ -536,15 +536,11 @@ def update_category(id_category):
     id_parent = request.json.get("id_parent", category.id_parent)
     color = request.json.get("color", category.color)
     icon = request.json.get("icon", category.icon)
-    default = request.json.get("default", category.default)
-    income = request.json.get("income", category.income)
 
     category.name = name
     category.id_parent = id_parent
     category.color = color
     category.icon = icon
-    category.default = bool_type(default)
-    category.income = bool_type(income)
 
     session.execute(MLModelFile.invalidate_models_stmt())
 
@@ -571,8 +567,6 @@ def add_category():
     id_parent = request.json.get("id_parent")
     color = request.json.get("color")
     icon = request.json.get("icon")
-    default = request.json.get("default")
-    income = request.json.get("income")
 
     if re.match(r"^#[A-Z0-9]{6}$", color, re.IGNORECASE) is None:
         return error_response("invalid color string '{}'".format(color))
@@ -580,7 +574,7 @@ def add_category():
         return error_response("emptu category name")
     
     session = Session()
-    category = Category(name=name, default=default, income=income, id_parent=id_parent, color=color, icon=icon)
+    category = Category(name=name, id_parent=id_parent, color=color, icon=icon)
     session.add(category)
     session.commit()
     

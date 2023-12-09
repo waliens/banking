@@ -125,8 +125,6 @@ tagging.add_new_category,Add new,Créer une nouvelle catégorie
 tagging.tag.name,Name,Nom
 tagging.tag.color,Color,Couleur
 tagging.tag.icon,Icon,Icône
-tagging.tag.default,Default,Défaut
-tagging.tag.income,Income,Rentrée
 tagging.tag.parent,Parent,Parent
 tagging.tag.no_parent,No parent,Pas de parent
 tagging.tag_delete_warning.title,Category deletion,Suppression de catégorie
