@@ -2,12 +2,24 @@
   <div v-if="visible">
     <section class="columns">
       <div class="column">
-
+        <b-field>
+          <b-switch
+            v-model="showIncomes"
+            type="is-success"
+            passive-type='is-danger'
+            @input="switchedShowIncomes"
+            >
+            <span v-if="showIncomes">{{ $t('stats.switch.incomes') }}</span>
+            <span v-else>{{ $t('stats.switch.expenses') }}</span>
+          </b-switch>
+        </b-field>
+      </div>
+      <div class="column">
         <b-field grouped>
           <b-field :label="$t('stats.category.period_selector')" label-position="on-border">
             <b-select v-model="periodType" @input="updateGraph">
-              <option v-for="type in periodTypeOptions" :key="type.id" :value="type.id">
-                {{type.name}}
+              <option v-for="_type in periodTypeOptions" :key="_type.id" :value="_type.id">
+                {{_type.name}}
               </option>
             </b-select>
           </b-field>
@@ -49,7 +61,7 @@
           </b-field>
         </b-field>
       </div>
-      <div class="column">
+      <div class="column" is-vcentered >
         <b-field grouped>
           <b-field>
             <b-tooltip :label="$t('up')">
@@ -70,11 +82,9 @@
               </option>
             </b-select>
           </b-field>
-        </b-field>
-      </div>
-      <div class="column">
-        <b-field>
-          <b-switch v-model="includeUnlabeled" @input="updateGraph">{{$t('stats.category.unlabeled')}}</b-switch>
+          <b-field>
+            <b-switch v-model="includeUnlabeled" @input="updateGraph">{{$t('stats.category.unlabeled')}}</b-switch>
+          </b-field>
         </b-field>
       </div>
     </section>
@@ -102,13 +112,9 @@ export default defineComponent({
   name: "PerCategoryChart",
   data() {
     return {
-      includeUnlabeled: false,
-      detailLevel: 0,
-      minDetailLevel: 0,
-      maxDetailLevel: 0,
-      detailLevelOptions: [],
-      coarseCategoryId: null,
-      categories: {},
+      // income expense switch
+      showIncomes: true,
+      // period filters
       periodType: 'between',
       periodTypeOptions: [
         {id: 'month', name: this.$t('stats.category.period_type_month') },
@@ -119,6 +125,15 @@ export default defineComponent({
       selectedMonth: null,
       periodFrom: null,
       periodTo: null,
+      // label exploration
+      includeUnlabeled: false,
+      detailLevel: 0,
+      minDetailLevel: 0,
+      maxDetailLevel: 0,
+      detailLevelOptions: [],
+      coarseCategoryId: null,
+      categories: {},
+      // chart data
       chartData: [],
       chartOptions: {},
       chartSliceToCategory: {},
@@ -216,7 +231,8 @@ export default defineComponent({
         ... this.getPeriodRange(),
         level: this.detailLevel,
         id_category: this.coarseCategoryId,
-        unlabeled: this.includeUnlabeled
+        unlabeled: this.includeUnlabeled,
+        income_only: this.showIncomes
       }
     },
     getPeriodRange() {
@@ -291,6 +307,9 @@ export default defineComponent({
         this.coarseCategoryId = this.coarseCategory.id_parent || null;
       }
       this.detailLevel = parseInt(this.detailLevel) - 1;
+      await this.updateGraph();
+    },
+    async switchedShowIncomes() {
       await this.updateGraph();
     }
   }

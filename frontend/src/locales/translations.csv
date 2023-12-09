@@ -113,6 +113,9 @@ stats.category.period_type_year,Year,Année
 stats.category.period_type_between,From ... to ...,De ... à ...
 stats.category.unlabeled,Unlabeled,Non catégorisé
 stats.category.category,Category,Catégorie
+stats.switch.incomes,Incomes,Rentrées
+stats.switch.expenses,Expenses,Dépenses
+stats.switch.both,Both,Total
 string.matching.auto-match,Auto-matching,Matching automatique
 string.matching.match_score,match score,score du match
 string.matching.matches,Possible matches,Correspondances possibles

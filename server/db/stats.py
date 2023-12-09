@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import Optional
 from collections import defaultdict
 from decimal import Decimal
@@ -7,7 +8,25 @@ from sqlalchemy.orm import aliased
 from db.models import AccountGroup, Category, Currency, Transaction, TransactionGroup
 from db.util import tag_tree_from_database, get_tags_descendants, get_tags_at_level 
   
-import logging
+
+def _join_account_groups(query, contribution_ratio: bool=True):
+  # contribution ratios
+  AccountGroupDest = aliased(AccountGroup)
+  AccountGroupSource = aliased(AccountGroup)
+  query = query.outerjoin(AccountGroupDest, Transaction.id_dest == AccountGroupDest.id_account) \
+    .outerjoin(AccountGroupSource, Transaction.id_source == AccountGroupSource.id_account)
+  if contribution_ratio:  
+    dest_cr_label = case((AccountGroupDest.id_account != None, AccountGroupDest.contribution_ratio), else_=0.0).label("dest_contribution_ratio")
+    src_cr_label = case((AccountGroupSource.id_account != None, AccountGroupSource.contribution_ratio), else_=0.0).label("source_contribution_ratio")
+    return query, AccountGroupSource, AccountGroupDest, src_cr_label, dest_cr_label
+  else:
+    return query, AccountGroupSource, AccountGroupDest
+  
+
+def _build_labeled_group_aware_amount(src_cr_label, dest_cr_label, label: str="total"):
+  cr_diff = func.abs(dest_cr_label - src_cr_label)
+  return func.sum(TransactionGroup.contribution_ratio * cr_diff * Transaction.amount).label(label)
+  
 
 def _build_period_aggregate_transactions_by_group_query(
   id_group: int,
@@ -30,11 +49,11 @@ def _build_period_aggregate_transactions_by_group_query(
   else:
     filters.append(Transaction.when_month==month)
   
-  # contribution ratios
-  AccountGroupDest = aliased(AccountGroup)
-  AccountGroupSource = aliased(AccountGroup)
-  dest_cr_label = case((AccountGroupDest.id_account != None, AccountGroupDest.contribution_ratio), else_=0.0).label("dest_contribution_ratio")
-  src_cr_label = case((AccountGroupSource.id_account != None, AccountGroupSource.contribution_ratio), else_=0.0).label("source_contribution_ratio")
+  query = select(*fields) \
+    .join(TransactionGroup, TransactionGroup.id_transaction == Transaction.id) \
+    .group_by(*group_bys)
+
+  query, _, _, src_cr_label, dest_cr_label = _join_account_groups(query, contribution_ratio=True)
   
   if expenses is not None:
     if expenses:
@@ -42,13 +61,8 @@ def _build_period_aggregate_transactions_by_group_query(
     else:
       filters.append(src_cr_label < dest_cr_label)
 
-  query = select(func.sum(TransactionGroup.contribution_ratio * func.abs(dest_cr_label - src_cr_label) * Transaction.amount).label("total")) \
-    .add_columns(*fields) \
-    .outerjoin(AccountGroupDest, Transaction.id_dest == AccountGroupDest.id_account) \
-    .outerjoin(AccountGroupSource, Transaction.id_source == AccountGroupSource.id_account) \
-    .join(TransactionGroup, TransactionGroup.id_transaction == Transaction.id) \
-    .where(*filters) \
-    .group_by(*group_bys)
+  query = query.add_columns(_build_labeled_group_aware_amount(src_cr_label, dest_cr_label, label="total"))
+  query = query.where(*filters)
   
   # compute value expr
   return query
@@ -69,14 +83,14 @@ def incomes_expenses(
     to_return = list()
     for result in results:
       to_return.append({
-        "total": result[0],
-        "id_currency": result[1]
+        "total": result.total,
+        "id_currency": result.id_currency
       })
       if year is None:
-        to_return[-1]["year"] = result[2]
+        to_return[-1]["year"] = result.when_year
       if month is None:
-        to_return[-1]["month"] = result[3 if year is None else 2] 
-      currency_ids.add(result[1])
+        to_return[-1]["month"] = result.when_month
+      currency_ids.add(result.id_currency)
     return to_return
 
   # incomes
@@ -96,17 +110,47 @@ def group_boundary_transactions_filter(out, sel_group_stmt):
     return and_(Transaction.id_dest.in_(sel_group_stmt), Transaction.id_source.notin_(sel_group_stmt))
 
 
-def per_category(session, group=None, period_from=None, period_to=None, id_category=None, bucket_level=-1, include_unlabeled=False, period_bucket=None):
+def per_category(
+  session,
+  group: Optional[int]=None,
+  income_only: bool=True,
+  period_from: Optional[date]=None,
+  period_to: Optional[date]=None,
+  id_category: Optional[int]=None,
+  bucket_level: int=-1,
+  include_unlabeled: bool=False,
+  period_bucket: Optional[str]=None
+):
+  """
+  Parameters
+  ----------
+  session:
+    Database session
+  group:
+    identifier of the group  
+  income_only: 
+    only if group is specified: if True, consider only income wrt this group. Otherwise, only expenses.
+  period_from: 
+    if specified: only from this date
+  period_to: 
+    if specified: only to this date
+  id_category:
+    if specified: consider only transactions tagged with this category and its subcategories
+  bucket_level:
+    if specified: filter to keep only categories at this depth in the category tree
+  include_unlabeled:
+    if True, also includes transactions of this group with no categories in the comp
+  period_bucket
+  """
   ##########
   # Filter #
   ##########
-
-  fields = [Transaction.id_category, func.sum(Transaction.amount).label('amount'), Transaction.id_currency]
+  fields = [Transaction.id_category, Transaction.id_currency]
   group_bys = [Transaction.id_category, Transaction.id_currency]
+  joins = list()
   filters = list()
   if group is not None:
-    sel_group_stmt = select(AccountGroup.id_account).where(AccountGroup.id_group==group)
-    filters.append(or_(group_boundary_transactions_filter(out, sel_group_stmt) for out in [True, False]))
+    joins.append((TransactionGroup, TransactionGroup.id_transaction == Transaction.id))
   if period_from is not None:
     filters.append(Transaction.when >= period_from)
   if period_to is not None:
@@ -134,11 +178,27 @@ def per_category(session, group=None, period_from=None, period_to=None, id_categ
   elif not include_unlabeled: 
     filters.append(Transaction.id_category != None)
 
+  # query building
+  query = select(*fields)
+
+  if group is not None:
+    query, _, _, src_cr_label, dest_cr_label = _join_account_groups(query, contribution_ratio=True)
+    if income_only:
+      filters.append(src_cr_label < dest_cr_label)
+    else:
+      filters.append(src_cr_label > dest_cr_label)
+    query = query.add_columns(_build_labeled_group_aware_amount(src_cr_label, dest_cr_label, label="amount"))
+
+  query = query.where(*filters).group_by(*group_bys)
+
+  for join_table, join_on in joins:
+    query = query.join(join_table, join_on)
+
   ###########
   # Buckets #
   ###########
     
-  results = session.execute(select(*fields).where(and_(*filters)).group_by(*group_bys))
+  results = session.execute(query)
   raw_buckets = defaultdict(list)
   for raw_entry in results:
     actual_data = {
