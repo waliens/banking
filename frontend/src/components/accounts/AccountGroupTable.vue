@@ -20,7 +20,7 @@
   
     <template slot="explore" slot-scope="props">
       <b-field grouped>
-        <b-button class="is-small is-primary" icon-right="eye" v-on:click="goToAccount(props.row.id)"></b-button>
+        <b-button class="is-small is-primary" icon-right="eye" v-on:click="goToAccount(props.row.account.id)"></b-button>
       </b-field>
     </template>
   
