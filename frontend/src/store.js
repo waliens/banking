@@ -9,7 +9,8 @@ import User from '@/utils/api/User';
 const state = {
   currentGroupId: null,
   currentGroup: null,
-  initialized: false
+  initialized: false,
+  currentUser: null
 };
 
 const mutations = {
@@ -45,6 +46,8 @@ const actions = {
       commit('setInitialized');
       return;
     }
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    await dispatch('fetchUser');
 
     let groupId = window.localStorage.currentGroupId;
     if(!groupId || groupId == "undefined") {
@@ -58,9 +61,7 @@ const actions = {
 
   async login({dispatch}, {username, password}) {
     let token = await User.login(username, password);
-    console.log(token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    console.log(axios.defaults.headers);
     window.localStorage.accessToken = token;
     await dispatch('fetchUser');
   },
@@ -111,7 +112,8 @@ const actions = {
 };
 
 function cleanAuthenticationState() {
-  delete axios.defaults.headers.common['Authentication'];
+  window.localStorage.removeItem('accessToken');
+  delete axios.defaults.headers.common['Authorization'];
 }
 
 

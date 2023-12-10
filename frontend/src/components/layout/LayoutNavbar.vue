@@ -5,7 +5,7 @@
         <strong>{{$t("app_name")}}</strong>
       </b-navbar-item>
     </template>
-    <template #start v-if="this.$store.state.currentUser">
+    <template #start v-if="loggedIn">
       <b-navbar-dropdown :label="$t('navbar.data')">
         <b-navbar-item tag="router-link" :to="{ name: 'upload-data' }">
           {{$t('data_upload.title')}}
@@ -30,12 +30,24 @@
         {{$t("help")}}
       </b-navbar-item>
     </template>
-    <template #end v-if="this.$store.state.currentUser">
-        <b-navbar-item tag="router-link" :to="{ name: 'select-account-group' }">
+    <template #end>
+
+        <b-navbar-item tag="router-link" :to="{ name: 'select-account-group' }" v-if="loggedIn">
           <div class="group info">
-            <b-tag :type="tag_class">{{$t('profile')}}: <em>{{!!group ? group.name : $t('account_group.not_selected')}}</em></b-tag>
+            <b-tag :type="group_tag_class">{{$t('profile')}}: <em>{{!!group ? group.name : $t('account_group.not_selected')}}</em></b-tag>
           </div>
         </b-navbar-item>
+        
+        <b-navbar-dropdown v-if="loggedIn">
+          <template #label>
+            <b-tag type="is-info" >
+              {{ $t('login.user') }}: {{ $store.state.currentUser.username }}
+            </b-tag>
+          </template>
+          <b-navbar-item @click="logout">{{ $t('logout.title') }}</b-navbar-item>
+        </b-navbar-dropdown>
+        <b-navbar-item v-else> <b-tag type="is-danger" >{{ $t('login.not_loggedin') }}</b-tag></b-navbar-item>
+
     </template>
   </b-navbar>
 </template>
@@ -48,12 +60,28 @@ export default defineComponent({
     group() {
       return this.$store.state.currentGroup;
     },
-    tag_class() {
+    group_tag_class() {
       if (this.group) {
         return "is-success";
       } else{
         return "is-warning";
       }
+    },
+    login_tag_class() {
+      if (this.$store.state.currentUser) {
+        return "is-info";
+      } else{
+        return "is-danger";
+      }
+    },
+    loggedIn() {
+      return !!this.$store.state.currentUser;
+    }
+  },
+  methods: {
+    logout() {
+      this.$store.dispatch('logout');
+      this.$router.push({'name': 'login'});
     }
   }
 })

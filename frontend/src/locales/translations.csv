@@ -76,7 +76,10 @@ group,Group,Groupe
 profile,Profile,Profil
 help,Help,Aide
 login.title,Login,Login
+login.user,User,Utilisateur
 login.invalid-username-or-password,Invalid username or password,Nom d'utilisateur ou mot de passe invalide
+login.not_loggedin,Logged out,Déconnecté
+logout.title,Logout,Déconnecter
 user.username,Username,Nom d'utilisateur
 user.password,Password,Mot de passe
 merge,Merge,Fusionner

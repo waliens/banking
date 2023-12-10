@@ -165,7 +165,6 @@ export default defineComponent({
       await this.updateGraph();
     },
     async getRawStats() {
-      console.log(this.getStatsQueryParams());
       return await this.group.getPerCategoryMonthlyStats(this.getStatsQueryParams());
     },
     async generateChartDataAndOptions() {

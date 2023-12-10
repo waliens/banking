@@ -203,6 +203,13 @@ export default defineComponent({
     }
   },
   methods: {
+    getEmptyChartDataObject() {
+      return {
+        data: [],
+        options: {},
+        sliceToCategory: {}
+      };
+    },
     getYears() {
       let length = 20; 
       return Array.from({length}, (_, i) => this.getCurrentYear() + i - length + 1);
@@ -262,6 +269,10 @@ export default defineComponent({
     },
     async generateChartDataAndOptions() {
       let buckets = await this.getRawStats();
+      console.log(buckets)
+      if (Object.keys(buckets).length == 0) {
+        return this.getEmptyChartDataObject();
+      }
       let data = buckets.map(bucket => {
         let name = bucket.id_category ? bucket.category.name : this.$t('stats.category.unlabeled');
         let value = strcurrency(bucket.amount).value;

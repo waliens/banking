@@ -22,12 +22,24 @@ const authenticatedOnly = async (to, from, next) => {
   next({name: 'login', query: {next: to.fullPath}});
 };
 
+const notAuthenticatedOnly = async (to, from, next) => {
+  await store.dispatch('initializeStore');
+
+  if (store.state.currentUser == null) {
+    next();
+    return;
+  }
+
+  next({name: 'dashboard', query: {next: to.fullPath}});
+}
+
 
 const routes = [
   {
     name: 'login',
     path: '/login',
-    component: require('./pages/LoginPage.vue').default
+    component: require('./pages/LoginPage.vue').default,
+    beforeEnter: notAuthenticatedOnly
   },
   {
     name: 'dashboard',
