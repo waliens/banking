@@ -25,7 +25,7 @@ export default defineComponent({
   },
   computed: {
     next() {
-      return this.$route.query.next || {name: 'home'};
+      return this.$route.query.next || {name: 'dashboard'};
     }
   },
   methods: {
