@@ -113,6 +113,11 @@ const routes = [
     beforeEnter: authenticatedOnly
   },
   {
+    name: 'manage-users',
+    path: '/users/manage',
+    component: require('./pages/ManageUsersPage.vue').default,
+  },
+  {
     name: 'help',
     path: '/help',
     component: require('./pages/HelpPage.vue').default

@@ -44,6 +44,7 @@
               {{ $t('login.user') }}: {{ $store.state.currentUser.username }}
             </b-tag>
           </template>
+          <b-navbar-item tag="router-link" :to="{ name: 'manage-users' }">{{ $t('users.manage') }}</b-navbar-item>
           <b-navbar-item @click="logout">{{ $t('logout.title') }}</b-navbar-item>
         </b-navbar-dropdown>
         <b-navbar-item v-else> <b-tag type="is-danger" >{{ $t('login.not_loggedin') }}</b-tag></b-navbar-item>

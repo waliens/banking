@@ -82,6 +82,11 @@ login.not_loggedin,Logged out,Déconnecté
 logout.title,Logout,Déconnecter
 user.username,Username,Nom d'utilisateur
 user.password,Password,Mot de passe
+user.repeat_password,Repeat password,Répéter le mot de passe
+user.edit,Edit user,Modifier l'utilisateur
+user.create,Create user,Nouvel utilisateur
+users.title,Users,Utilisateurs
+users.manage,Manage users,Gérer les utilisateurs
 merge,Merge,Fusionner
 ml_model.label_suggested_by_ml,"This category was suggested by a machine learning model with {proba}% confidence.","Cette catégorie a été suggérée par une modèle de machine learning avec une confiance de {proba}%."
 ml_model.metadata,Metadata,Méta-données

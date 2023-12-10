@@ -21,7 +21,7 @@ from db.database import init_db
 from db.models import AccountAlias, AccountGroup, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup, User
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
 from db.transactions import auto_attribute_partial_transaction_to_groups, auto_attribute_transaction_to_groups_by_accounts
-from db.util import get_transaction_query
+from db.util import get_transaction_query, save
 
 from ml.model_train import train_model
 from ml.predict import NoValidModelException, TooManyAvailableModelsException, predict_categories, predict_category
@@ -133,10 +133,52 @@ def get_current_user():
     return jsonify(current_user.as_dict())
 
 
-@app.route("/", methods=["GET"])
+@app.route('/users', methods=['GET'])
 @jwt_required()
-def home():
-    return jsonify({"msg": "hello"})
+def get_users():
+    with Session():
+        users = User.query.all()
+        return jsonify([user.as_dict() for user in users])
+
+
+@app.route('/user', methods=["POST"])
+@jwt_required()
+def create_user():
+    username = request.json.get("username")
+    password = request.json.get("password")
+    
+    if username is None or len(username) == 0 or password is None or len(username) == 0:
+        return error_response("invalid password or username")
+
+    with Session() as sess:
+        user_count = User.query.filter_by(username=username).count()
+        if user_count > 0:
+            return error_response("username already used")
+        new_user = User(username=username, password=User.hash_password_string(password))
+        save(new_user, sess)
+        return jsonify(new_user.as_dict())
+
+
+@app.route('/user/<int:id_user>', methods=["PUT"])
+@jwt_required()
+def update_user(id_user):
+    username = request.json.get("username")
+    password = request.json.get("password")
+    
+    if (username is None or len(username) == 0) and (password is None and len(password) == 0): 
+        return error_response("no value provided for update")
+
+    with Session() as sess:
+        # check new username existence 
+        user = User.query.filter_by(id=id_user).one_or_none()
+        if user is None:
+            return error_response("user not found", 404)
+        if username is not None and username != user.username:
+            user.username = username
+        if password is not None:
+            user.password = User.hash_password_string(password)
+        sess.commit()
+        return jsonify(user.as_dict())
 
 
 @app.route("/account/<int:id_account>/transactions", methods=["GET"])
