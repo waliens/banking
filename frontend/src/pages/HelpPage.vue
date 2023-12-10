@@ -33,8 +33,8 @@
       </p>
 
       <h2 class="subtitle">Reporting</h2>
-      <p> See <router-link :to="{name: 'home'}">report (home) page</router-link></p>
-      <p>When an account group has been selected, reports regarding this group can be found on the home page including:</p>
+      <p> See <router-link :to="{name: 'dashboard'}">report (dashboard) page</router-link></p>
+      <p>When an account group has been selected, reports regarding this group can be found on the dashboard page including:</p>
       <ul>
         <li>Global balance and list of all accounts of the group (and their balances)</li>
         <li><em>Incomes and expenses charts</em>: only consider boundary transactions</li>

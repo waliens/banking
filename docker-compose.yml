@@ -20,6 +20,7 @@ services:
       - FLASK_ENV=production
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - JWT_SECRET_KEY=NmvRkc9^doUBgam6HoAdb@F4437mU#b
     volumes:
       - ./data/models:/models
     depends_on:

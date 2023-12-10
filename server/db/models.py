@@ -1,10 +1,8 @@
 import enum
-from http.client import MULTI_STATUS
 import uuid
 
-from decimal import Decimal
-
-from sqlalchemy import Column, JSON, Enum, Boolean, Integer, Date, Float, String, ForeignKey, Numeric, UniqueConstraint
+from werkzeug.security import check_password_hash, generate_password_hash
+from sqlalchemy import Column, JSON, Enum, Integer, Date, Float, String, ForeignKey, Numeric, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, noload
 from sqlalchemy.sql.expression import and_, select, func, update, or_
@@ -41,6 +39,25 @@ class AsDictSerializer(object):
 
 def no_load(query, *keys):
   return query.options(noload(*keys))
+
+
+class User(Base):
+    __tablename__  = "user"
+    
+    id = Column(Integer, primary_key=True)
+    username = Column(String(255), nullable=False, unique=True)
+    password = Column(String(255), nullable=False)
+
+    # NOTE: In a real application make sure to properly hash and salt passwords
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+    
+    @staticmethod
+    def hash_password_string(password):
+        return generate_password_hash(password)
+
+    def as_dict(self):
+        return AsDictSerializer("id", "username").serialize(self)
 
 
 class Category(Base):

@@ -75,6 +75,10 @@ explore,Explore,Explorer
 group,Group,Groupe
 profile,Profile,Profil
 help,Help,Aide
+login.title,Login,Login
+login.invalid-username-or-password,Invalid username or password,Nom d'utilisateur ou mot de passe invalide
+user.username,Username,Nom d'utilisateur
+user.password,Password,Mot de passe
 merge,Merge,Fusionner
 ml_model.label_suggested_by_ml,"This category was suggested by a machine learning model with {proba}% confidence.","Cette catégorie a été suggérée par une modèle de machine learning avec une confiance de {proba}%."
 ml_model.metadata,Metadata,Méta-données

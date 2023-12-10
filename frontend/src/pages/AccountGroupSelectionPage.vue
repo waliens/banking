@@ -67,7 +67,7 @@ export default defineComponent({
     selectGroup() {
       if (this.selectedGroup) {
         this.$store.dispatch('setCurrentGroup', new Group(this.selectedGroup));
-        this.$router.push({ name: 'home' });
+        this.$router.push({ name: 'dashboard' });
       }
     },
     createGroup() {

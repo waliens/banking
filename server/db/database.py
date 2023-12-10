@@ -39,9 +39,16 @@ def add_tags(sess=None):
     ) for k, t in tree._tags.items()], sess=sess)
 
 
+def add_default_user(sess=None):
+    from .models import User
+    user = User(
+        username="root",
+        password=User.hash_password_string("root")
+    )
+    save(user, sess)
+    
+
 def init_db():
-    from .models import Account, AccountGroup, AccountAlias
-    from .models import Category, Transaction, Currency, Group
     from .models import Base
     database_path = get_db_url()
     logging.getLogger().debug("connecting to database")
@@ -63,6 +70,7 @@ def init_db():
         command.stamp(alembic_cfg, "head")
         add_tags(sess=db_session)
         add_currencies(sess=db_session)
+        add_default_user(sess=db_session)
     else:
         command.upgrade(alembic_cfg, "head")
 

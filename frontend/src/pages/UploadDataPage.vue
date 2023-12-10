@@ -109,7 +109,7 @@ export default defineComponent({
         args.id_mscard_account = this.mastercardAccount.id;
       }
       await Model.uploadFiles(this.files, "/upload_files", args).then(() => {
-        this.$router.push({name: 'home'});
+        this.$router.push({name: 'dashboard'});
       }).catch(err => {
         this.$buefy.dialog.alert({
           title: 'Error',

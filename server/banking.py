@@ -15,8 +15,10 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.sql.expression import select, update, or_, and_, delete
 from sqlalchemy.util import immutabledict
 
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, current_user
+
 from db.database import init_db
-from db.models import AccountAlias, AccountGroup, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup
+from db.models import AccountAlias, AccountGroup, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup, User
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
 from db.transactions import auto_attribute_partial_transaction_to_groups, auto_attribute_transaction_to_groups_by_accounts
 from db.util import get_transaction_query
@@ -35,9 +37,13 @@ app = Flask(__name__)
 app.config.update(
   JSON_AS_ASCII=False,
   CELERY_BROKER_URL='redis://{}:{}'.format(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT')),
-  CELERY_RESULT_BACKEND='redis://{}:{}'.format(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))
+  CELERY_RESULT_BACKEND='redis://{}:{}'.format(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT')),
+  JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY')
 )
 
+
+
+# celery workers
 celery = make_celery(app)
 
 # cors
@@ -45,6 +51,19 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # initialize database
 Session, engine = init_db()
+
+# authentication
+jwt = JWTManager(app)
+
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    return user.id
+
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data["sub"]
+    with Session():
+        return User.query.filter_by(id=identity).one_or_none()
 
 
 import logging
@@ -93,12 +112,35 @@ def error_response(msg, code=403):
     return response
 
 
+
+@app.route("/login", methods=["POST"])
+def login():
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+
+    user = User.query.filter_by(username=username).one_or_none()
+    if not user or not user.check_password(password):
+        return error_response("wrong username or password", 401)
+
+    # Notice that we are passing in the actual sqlalchemy user object here
+    access_token = create_access_token(identity=user)
+    return jsonify(access_token=access_token)
+
+
+@app.route('/user/current', methods=["GET"])
+@jwt_required()
+def get_current_user():
+    return jsonify(current_user.as_dict())
+
+
 @app.route("/", methods=["GET"])
+@jwt_required()
 def home():
     return jsonify({"msg": "hello"})
 
 
 @app.route("/account/<int:id_account>/transactions", methods=["GET"])
+@jwt_required()
 def account_transactions(id_account):
     from sqlalchemy import or_
     start = request.args.get("start", type=int, default=0)
@@ -110,6 +152,7 @@ def account_transactions(id_account):
 
 
 @app.route("/transactions", methods=["GET"])
+@jwt_required()
 def get_transactions():
     # filters
     start = request.args.get("start", type=int, default=0)
@@ -191,6 +234,7 @@ def get_transactions():
 
 
 @app.route("/transactions/count", methods=["GET"])
+@jwt_required()
 def get_transactions_count():
     account = request.args.get("account", type=int, default=None)
     account_to = request.args.get("account_to", type=int, default=None)
@@ -236,6 +280,7 @@ def get_transactions_count():
 
 
 @app.route("/transactions/tag", methods=["PUT"])
+@jwt_required()
 def tag_transactions():
     sess = Session()
     stmt = update(Transaction).where(Transaction.id == bindparam('id_transaction')).values({Transaction.id_category: bindparam('id_category')})
@@ -245,6 +290,7 @@ def tag_transactions():
 
 
 @app.route("/transaction/<int:id_transaction>/category/<int:id_category>", methods=["PUT"])
+@jwt_required()
 def set_transaction_category(id_transaction, id_category):
     session = Session()
     session.execute(update(Transaction).where(Transaction.id==id_transaction).values(id_category=id_category))
@@ -253,6 +299,7 @@ def set_transaction_category(id_transaction, id_category):
 
 
 @app.route("/transaction/<int:id_transaction>/category/infer", methods=["GET"])
+@jwt_required()
 def ml_infer_category(id_transaction):
     transaction = Transaction.query.get(id_transaction)
     if transaction is None:
@@ -268,6 +315,7 @@ def ml_infer_category(id_transaction):
 
 
 @app.route("/account/<int:id_account>", methods=["GET"])
+@jwt_required()
 def get_account(id_account):
     account = Account.query.get(id_account)
     if account is None:
@@ -276,6 +324,7 @@ def get_account(id_account):
 
 
 @app.route("/account/<int:id_account>", methods=["PUT"])
+@jwt_required()
 def update_account(id_account):
     initial = request.json.get("initial")
     id_representative = request.json.get("id_representative")
@@ -301,6 +350,7 @@ def update_account(id_account):
 
 
 @app.route("/account/<int:id_account>/alias", methods=["POST"])
+@jwt_required()
 def add_alias(id_account):
     name = request.json.get("name", None)
     number = request.json.get("number", None)
@@ -318,6 +368,7 @@ def add_alias(id_account):
     return new_alias.as_dict() 
 
 @app.route('/account/merge', methods=["PUT"])
+@jwt_required()
 def merge_accounts():
     id_alias = request.json.get("id_alias")
     id_repr = request.json.get("id_repr")
@@ -368,12 +419,14 @@ def merge_accounts():
 
 
 @app.route("/account/groups", methods=["GET"])
+@jwt_required()
 def account_groups():
     groups = Group.query.all()
     return jsonify([g.as_dict() for g in groups])
 
 
 @app.route("/account_group", methods=["POST"])
+@jwt_required()
 def create_group():
     name = request.json.get("name", "").strip()
     desc = request.json.get("description", "")
@@ -406,6 +459,7 @@ def create_group():
     return jsonify(grp.as_dict())
 
 @app.route("/account_group/<int:id_group>", methods=["PUT"])
+@jwt_required()
 def update_group(id_group):
     session = Session()
     with session.begin():
@@ -424,6 +478,7 @@ def update_group(id_group):
 
 
 @app.route("/account_group/<int:id_group>", methods=["GET"])
+@jwt_required()
 def get_account_group(id_group):
     group = Group.query.get(id_group)
     if group is None:
@@ -432,6 +487,7 @@ def get_account_group(id_group):
 
 
 @app.route("/account_group/<int:id_group>/transactions", methods=["PUT"])
+@jwt_required()
 def link_transactions(id_group):
     sess = Session()
     stmt = insert(TransactionGroup).values({
@@ -448,6 +504,7 @@ def link_transactions(id_group):
 
 
 @app.route("/account_group/<int:id_group>/transactions", methods=["DELETE"])
+@jwt_required()
 def unlink_transactions(id_group):
     sess = Session()
     stmt = delete(TransactionGroup).where(and_(
@@ -460,6 +517,7 @@ def unlink_transactions(id_group):
 
 
 @app.route("/account_group/<int:id_group>/stats/incomeexpense")
+@jwt_required()
 def get_group_income_expense(id_group):
     year = request.args.get("year", type=int, default=None)
     month = request.args.get("month", type=int, default=None)
@@ -469,6 +527,7 @@ def get_group_income_expense(id_group):
 
 
 @app.route("/account_group/<int:id_group>/stats/percategory")
+@jwt_required()
 def get_group_stats_per_category(id_group):
     period_from = request.args.get("period_from", type=date_type, default=None)
     period_to = request.args.get("period_to", type=date_type, default=None)
@@ -482,6 +541,7 @@ def get_group_stats_per_category(id_group):
 
 
 @app.route("/account_group/<int:id_group>/stats/percategorymonthly")
+@jwt_required()
 def get_group_stats_per_category_monthly(id_group):
     period_from = request.args.get("period_from", type=date_type, default=None)
     period_to = request.args.get("period_to", type=date_type, default=None)
@@ -501,12 +561,14 @@ def get_group_stats_per_category_monthly(id_group):
 
 
 @app.route("/accounts", methods=["GET"])
+@jwt_required()
 def accounts():
     accounts = Account.query.all()
     return jsonify([a.as_dict() for a in accounts])
 
 
 @app.route("/model/<target>/refresh", methods=["POST"])
+@jwt_required()
 def refresh_model(target):
     if target not in {'belfius'}:
         return error_response({'msg': 'invalid target'}, code=403)
@@ -519,16 +581,19 @@ def refresh_model(target):
 
 
 @app.route("/models", methods=["GET"])
+@jwt_required()
 def get_models():
     return jsonify([m.as_dict() for m in MLModelFile.query.all()])
 
 
 @app.route("/categories", methods=["GET"])
+@jwt_required()
 def get_categories():
     return jsonify([c.as_dict() for c in Category.query.all()])
 
 
 @app.route("/category/<int:id_category>", methods=["PUT"])
+@jwt_required()
 def update_category(id_category):
     session = Session()
     category = Category.query.get(id_category)
@@ -551,6 +616,7 @@ def update_category(id_category):
 
 
 @app.route("/category/<int:id_category>", methods=["DELETE"])
+@jwt_required()
 def delete_category(id_category):    
     session = Session()
     category = Category.query.get(id_category)
@@ -564,6 +630,7 @@ def delete_category(id_category):
 
 
 @app.route("/category", methods=["POST"])
+@jwt_required()
 def add_category():
     name = request.json.get("name")
     id_parent = request.json.get("id_parent")
@@ -584,6 +651,7 @@ def add_category():
 
 
 @app.route("/upload_files", methods=["POST"])
+@jwt_required()
 def upload_data():
     format = request.args.get("format")
     app.logger.info("file upload with format '{}'".format(format))

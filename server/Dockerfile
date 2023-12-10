@@ -7,6 +7,7 @@ RUN pip install celery redis
 RUN pip install scikit-learn nltk
 RUN pip install pdfminer beautifulsoup4
 RUN pip install alembic psycopg2-binary
+RUN pip install Flask-JWT-Extended
 
 WORKDIR /app
 

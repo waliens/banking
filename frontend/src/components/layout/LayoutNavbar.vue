@@ -1,11 +1,11 @@
 <template>
   <b-navbar class="is-primary">
     <template #brand>
-      <b-navbar-item tag="router-link" :to="{ name: 'home' }">
+      <b-navbar-item tag="router-link" :to="{ name: 'dashboard' }">
         <strong>{{$t("app_name")}}</strong>
       </b-navbar-item>
     </template>
-    <template #start>
+    <template #start v-if="this.$store.state.currentUser">
       <b-navbar-dropdown :label="$t('navbar.data')">
         <b-navbar-item tag="router-link" :to="{ name: 'upload-data' }">
           {{$t('data_upload.title')}}
@@ -30,7 +30,7 @@
         {{$t("help")}}
       </b-navbar-item>
     </template>
-    <template #end>
+    <template #end v-if="this.$store.state.currentUser">
         <b-navbar-item tag="router-link" :to="{ name: 'select-account-group' }">
           <div class="group info">
             <b-tag :type="tag_class">{{$t('profile')}}: <em>{{!!group ? group.name : $t('account_group.not_selected')}}</em></b-tag>

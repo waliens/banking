@@ -2,7 +2,9 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 Vue.use(Vuex);
 
+import axios from 'axios';
 import Group from '@/utils/api/Group';
+import User from '@/utils/api/User';
 
 const state = {
   currentGroupId: null,
@@ -13,6 +15,10 @@ const state = {
 const mutations = {
   setInitialized(state) {
     state.initialized = true;
+  },
+
+  setCurrentUser(state, user) {
+    state.currentUser = user;
   },
 
   setCurrentGroup(state, group) {
@@ -34,6 +40,12 @@ const actions = {
       return;
     }
 
+    let token = window.localStorage.accessToken;
+    if(token == null) {
+      commit('setInitialized');
+      return;
+    }
+
     let groupId = window.localStorage.currentGroupId;
     if(!groupId || groupId == "undefined") {
       commit('setInitialized');
@@ -42,6 +54,37 @@ const actions = {
 
     await dispatch('fetchGroup', groupId);
     commit('setInitialized');
+  },
+
+  async login({dispatch}, {username, password}) {
+    let token = await User.login(username, password);
+    console.log(token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    console.log(axios.defaults.headers);
+    window.localStorage.accessToken = token;
+    await dispatch('fetchUser');
+  },
+
+  async fetchUser({commit}) {
+    let user = null;
+
+    try {
+      user = await User.fetchCurrent();
+    }
+    catch (e) {
+      console.log('Error while fetching current user.');
+
+      cleanAuthenticationState();
+      commit('setCurrentUser', null);
+      return;
+    }
+
+    commit('setCurrentUser', user);
+  },
+
+  logout({commit}) {
+    cleanAuthenticationState();
+    commit('setCurrentUser', null);
   },
 
   setCurrentGroup({commit}, group) {
@@ -66,6 +109,11 @@ const actions = {
     dispatch('setCurrentGroup', group);
   }
 };
+
+function cleanAuthenticationState() {
+  delete axios.defaults.headers.common['Authentication'];
+}
+
 
 const store = new Vuex.Store({
   state,

@@ -19,6 +19,7 @@ services:
       - FLASK_ENV=development
       - REDIS_HOST=redis-db-revision
       - REDIS_PORT=6379
+      - JWT_SECRET_KEY=NmvRkc9^doUBgam6HoAdb@F4437mU#b
     volumes:
       - ./server/:/app  # to share code and having refresh on update
       - ~/data/banking/models:/models
