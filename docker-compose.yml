@@ -1,26 +1,19 @@
 services:
   # flask server
   server:
-    build:
-      context: server/
-      dockerfile: Dockerfile
+    image: rmormont/banking-server:latest
     restart: always
     ports:
-      - 5000:5000
-    command: "flask run"
+      - ${BACKEND_PORT}:5000
     environment:
-      - FLASK_APP=banking
-      - FLASK_RUN_HOST=0.0.0.0
       - DB_HOST=database
       - DB_PORT=5432
       - DB_USER=admin
-      - DB_PASSWORD=password
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=banking
-      - MODEL_PATH=/models
-      - FLASK_ENV=production
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - JWT_SECRET_KEY=NmvRkc9^doUBgam6HoAdb@F4437mU#b
+      - REDIS_PORT=6379docker 
+      - JWT_SECRET_KEY=${JWT_SECRET}
     volumes:
       - ./data/models:/models
     depends_on:
@@ -28,14 +21,11 @@ services:
 
   # vue client
   frontend:
-    build:
-      context: frontend/
-      dockerfile: Dockerfile
-      args:
-        VUE_APP_API: localhost:5000
-        VUE_APP_MODE: production
+    image: rmormont/banking-ui:latest
+    environment:
+      - BACKEND_BASE_URL=http://${BACKEND_HOST}:${BACKEND_PORT}
     ports:
-      - 8080:80
+      - ${FRONTEND_PORT}:80
 
   # message broker for background tasks
   redis:
@@ -44,34 +34,25 @@ services:
       - 6379:6379
 
   database:
-    image: postgres:14.3-alpine
+    image: postgres:16.1-alpine3.19
     restart: always
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_DB=banking
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
       - PGDATA=/data
-    ports:
-      - 5432:5432
     volumes:
       - ./data/db:/data
 
   # worker for celery background tasks
   celery_worker:
-    build:
-      context: server/
-      dockerfile: Dockerfile
-    command: "celery -A banking.celery worker"
+    image: rmormont/banking-task-runner:latest
     environment:
-      - FLASK_APP=banking
-      - FLASK_RUN_HOST=0.0.0.0
       - DB_HOST=database
       - DB_PORT=5432
       - DB_USER=admin
-      - DB_PASSWORD=password
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=banking
-      - MODEL_PATH=/models
-      - FLASK_ENV=production
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
