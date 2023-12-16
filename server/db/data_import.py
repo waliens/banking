@@ -16,13 +16,18 @@ from impl.mastercard import ms_identifier, parse_folder, parse_mastercard_pdf
 
 
 def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
-  reference_accounts_set = {(a.number, a.name) for a in account_book.accounts}
+  reference_accounts_set = {(a.number, a.name)for a in account_book.accounts}
   all_db_accounts = {**db_accounts}
   removed = [a for k, a in db_accounts.items() if k not in reference_accounts_set]
   id_default_currency = Currency.short_name_to_id("EUR")
   
   # create new accounts
-  new = [Account(number=a.number, name=a.name, initial=0, id_currency=id_default_currency) for a in account_book.accounts if a.identifier not in set(all_db_accounts.keys())]
+  new = [
+    Account(number=a.number, name=a.name, initial=0, id_currency=id_default_currency)
+    for a in account_book.accounts
+    if a.identifier not in set(all_db_accounts.keys())
+      and (a.identifier[0] is not None or a.identifier[1] is not None)
+  ]
   sess.bulk_save_objects(new, return_defaults=True)
   sess.commit()
   all_db_accounts.update({(a.number, a.name): a for a in new})
@@ -78,6 +83,11 @@ def import_belfius_csv(dirname, sess):
   
   existing_ids = {s[0] for s in sess.query(Transaction.custom_id).all()}
 
+  def get_account_id(accounts, identifier):
+    if identifier in accounts:
+      return accounts[identifier].id
+    return None
+
   # transactions
   transacs = list()
   for t in groups[0].transaction_book:
@@ -85,8 +95,8 @@ def import_belfius_csv(dirname, sess):
       continue  # skip existing transactions
     transacs.append(Transaction(
       custom_id=t.identifier,
-      id_source=db_accounts[t.source.identifier].id,
-      id_dest=db_accounts[t.dest.identifier].id,
+      id_source=get_account_id(db_accounts, t.source.identifier),
+      id_dest=get_account_id(db_accounts, t.dest.identifier),
       when=t.when,
       metadata_=make_metadata_serializable(t.metadata),
       amount=t.amount,

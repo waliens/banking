@@ -179,8 +179,8 @@ class Transaction(Base):
 
     id = Column(Integer, primary_key=True)
     custom_id = Column(String(255), unique=True)
-    id_source = Column(Integer, ForeignKey('account.id'))
-    id_dest = Column(Integer, ForeignKey('account.id'))
+    id_source = Column(Integer, ForeignKey('account.id'), nullable=True)
+    id_dest = Column(Integer, ForeignKey('account.id'), nullable=True)
     when = Column(Date)
     metadata_ = Column("metadata", JSON)
     amount = Column(Numeric(20, 2))

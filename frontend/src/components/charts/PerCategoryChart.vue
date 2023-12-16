@@ -269,7 +269,6 @@ export default defineComponent({
     },
     async generateChartDataAndOptions() {
       let buckets = await this.getRawStats();
-      console.log(buckets)
       if (Object.keys(buckets).length == 0) {
         return this.getEmptyChartDataObject();
       }

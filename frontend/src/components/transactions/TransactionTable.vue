@@ -11,11 +11,11 @@
 
     <!-- when there is a reference account -->
     <template slot="conterpart.number" slot-scope="props" v-if="referenceAccount">
-      <string-or-null-display :value="getCounterpart(props.row).number"></string-or-null-display>
+      <string-or-null-display :value="getCounterpartNumber(props.row)"></string-or-null-display>
     </template>
 
     <template slot="conterpart.name" slot-scope="props" v-if="referenceAccount">
-      <string-or-null-display :value="getCounterpart(props.row).name"></string-or-null-display>
+      <string-or-null-display :value="getCounterpartName(props.row)"></string-or-null-display>
     </template>
     
     <!-- when there is no reference account -->
@@ -93,11 +93,27 @@ export default defineComponent({
       if (!this.referenceAccount) {
         throw new Error("cannot extract counter part when there is no reference account");
       }
-      if (this.referenceAccount.id != t.source.id) {
+      if (t.id_source && this.referenceAccount.id != t.source.id) {
         return t.source;
-      } else {
+      } else if (t.id_dest) {
         return t.dest;
+      } else {
+        return null;
       }
+    },
+    getCounterpartName(t) {
+      let counterpart = this.getCounterpart(t);
+      if (! counterpart) {
+        return null;
+      }
+      return counterpart.name;
+    },
+    getCounterpartNumber(t) {
+      let counterpart = this.getCounterpart(t);
+      if (! counterpart) {
+        return null;
+      }
+      return counterpart.number;
     },
     getTransactionDescription(t) {
       if (t && t.metadata_ && Object.prototype.hasOwnProperty.call(t.metadata_, 'transaction')) {
