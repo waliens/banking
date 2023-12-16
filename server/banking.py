@@ -41,8 +41,6 @@ app.config.update(
   JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY')
 )
 
-
-
 # celery workers
 celery = make_celery(app)
 

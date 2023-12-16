@@ -115,6 +115,7 @@ def upgrade():
     add_tags(sess=session)
     add_currencies(sess=session)
     add_default_user(sess=session)
+    session.commit()
     # ### end Alembic commands ###
 
 

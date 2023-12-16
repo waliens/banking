@@ -4,7 +4,7 @@ import logging
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.inspection import inspect
+from sqlalchemy import insert
 from alembic.config import Config
 from alembic import command
 
@@ -15,11 +15,12 @@ from .util import save
 
 def add_currencies(sess=None):
     from .models import Currency
-    save([
-        Currency(symbol="€", short_name="EUR", long_name="Euro"),
-        Currency(symbol="$", short_name="USD", long_name="US Dollar"),
-        Currency(symbol="£", short_name="GBP", long_name="GB Pounds")
-    ], sess=sess)
+    stmt = insert(Currency).values([
+        {"symbol":"€", "short_name":"EUR", "long_name":"Euro"},
+        {"symbol":"$", "short_name":"USD", "long_name":"US Dollar"},
+        {"symbol":"£", "short_name":"GBP", "long_name":"GB Pounds"}
+    ])
+    sess.execute(stmt)
 
 
 def add_tags(sess=None):
@@ -30,22 +31,24 @@ def add_tags(sess=None):
     v, c = np.unique([t.identifier for t in tree._tags.values()], return_counts=True)
     if np.any(c > 1):
         raise ValueError("duplicate tags identifiers")
-    save([Category(
-        id=t.identifier, 
-        name=t.name, 
-        id_parent=t.parent_id, 
-        color=t.color, 
-        icon=t.icon
-    ) for k, t in tree._tags.items()], sess=sess)
+   
+    stmt = insert(Category).values([{
+        "id": t.identifier, 
+        "name": t.name, 
+        "id_parent": t.parent_id, 
+        "color": t.color, 
+        "icon": t.icon
+    } for _, t in tree._tags.items()])
+    sess.execute(stmt)
 
 
 def add_default_user(sess=None):
     from .models import User
-    user = User(
+    stmt = insert(User).values(
         username="root",
         password=User.hash_password_string("root")
     )
-    save(user, sess)
+    sess.execute(stmt)
     
 
 def init_db():
@@ -62,16 +65,7 @@ def init_db():
     setcontext(context)
 
     # create all if necessary
-    is_new_database = not inspect(engine).has_table("category")
     alembic_cfg = Config("/app/alembic.ini")
-
-    if is_new_database:
-        Base.metadata.create_all(bind=engine)
-        command.stamp(alembic_cfg, "head")
-        add_tags(sess=db_session)
-        add_currencies(sess=db_session)
-        add_default_user(sess=db_session)
-    else:
-        command.upgrade(alembic_cfg, "head")
+    command.upgrade(alembic_cfg, "head")
 
     return db_session, engine

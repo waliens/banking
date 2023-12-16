@@ -1,28 +1,44 @@
+x-base-server: &base-server
+  build:
+    context: server/
+    dockerfile: Dockerfile
+    target: backend
+  volumes:
+    - ./server/:/app  # to share code and having refresh on update
+    - models:/models
+  depends_on:
+    - database
+  environment: &base-server-envs
+    DB_HOST: database
+    DB_PORT: 5432
+    DB_USER: admin
+    DB_PASSWORD: ${DB_PASSWORD}
+    DB_NAME: banking
+
 services:
   # flask server
   server:
-    build:
-      context: server/
-      dockerfile: Dockerfile
-      target: backend
+    <<: *base-server
+    profiles: 
+      - default
+      - backend
+    entrypoint: ["/bin/sh"]  # to make the container hang
     ports:
       - 5000:5000
-    entrypoint: /bin/sh  # to make the container hang
     stdin_open: true 
     tty: true
-    environment:
-      - DB_HOST=database
-      - DB_PORT=5432
-      - DB_USER=admin
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=banking
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - JWT_SECRET_KEY=${JWT_SECRET}
     restart: always
-    volumes:
-      - ./server/:/app  # to share code and having refresh on update
-      - models:/models
+    environment:
+      <<: *base-server-envs
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET_KEY: ${JWT_SECRET}
+
+  server-db-revision:
+    <<: *base-server
+    profiles: 
+      - migration
+    command: "alembic revision --autogenerate && alembic upgrade head"
 
   # vue client
   frontend:
@@ -30,6 +46,9 @@ services:
       context: frontend/
       dockerfile: Dockerfile
       target: dev-server
+    profiles: 
+      - default
+      - frontend
     environment:
       - BACKEND_BASE_URL=http://localhost:5000
     ports:
@@ -40,9 +59,16 @@ services:
   # message broker for background tasks
   redis:
     image: redis:6-alpine
+    profiles: 
+      - default
+      - backend
 
   database:
     image: postgres:16.1-alpine3.19
+    profiles: 
+      - migration
+      - default
+      - backend
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_DB=banking
@@ -59,6 +85,9 @@ services:
       context: server/
       dockerfile: Dockerfile
     command: "celery -A banking.celery worker"
+    profiles:
+      - default 
+      - backend
     environment:
       - DB_HOST=database
       - DB_PORT=5432
@@ -75,6 +104,9 @@ services:
     volumes:
       - models:/models
 
+    
 volumes:
   db:
   models:
+
+
