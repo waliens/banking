@@ -7,7 +7,7 @@ export default class Transaction extends Model {
   }
 
   async setCategory(id_category) {
-    let {data} = await this.backend().put(`${this.uri}/category/${id_category}`);
+    let {data} = await Transaction.backend().put(`${this.uri}/category/${id_category}`);
     this.id_category = data.id_category;
     this.category = data.category;
     return this;

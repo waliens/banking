@@ -23,7 +23,7 @@ export default class Account extends Model {
   }
 
   async transactions() {
-    let result = await this.backend().get(this.uri + "/transactions");
+    let result = await Account.backend().get(this.uri + "/transactions");
     return result.data;
   }
 
@@ -41,12 +41,12 @@ export default class Account extends Model {
     if (!doUpdate) {
       return this;
     }
-    let result = await this.backend().put(this.uri, payload);
+    let result = await Account.backend().put(this.uri, payload);
     return result.data;
   }
 
   async newAlias({name, number}) {
-    let {data} = await this.backend().post(`${this.uri}/alias`, {'name': name, 'number': number});
+    let {data} = await Account.backend().post(`${this.uri}/alias`, {'name': name, 'number': number});
     return data;
   }
 

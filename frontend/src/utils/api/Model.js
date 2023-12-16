@@ -99,7 +99,7 @@ export default class Model {
       throw new Error('Cannot fetch a model with no ID.');
     }
 
-    let {data} = await this.backend().get(this.uri);
+    let {data} = await Model.backend().get(this.uri);
 
     this.populate(data);
     return this;
@@ -149,7 +149,7 @@ export default class Model {
   async save(params={}, forcedProperties=[]) {
     let data;
     if(this.isNew()) {
-      ({data} = await this.backend().post(this.uri, this.getPublicProperties(forcedProperties), {
+      ({data} = await Model.backend().post(this.uri, this.getPublicProperties(forcedProperties), {
         params,
         paramsSerializer: params => {
           return qs.stringify(params);
@@ -157,7 +157,7 @@ export default class Model {
       }));
     }
     else {
-      ({data} = await this.backend().put(this.uri, this.getPublicProperties(forcedProperties)));
+      ({data} = await Model.backend().put(this.uri, this.getPublicProperties(forcedProperties)));
     }
     this.populate(data);
     return this;
@@ -180,7 +180,7 @@ export default class Model {
       throw new Error('Cannot delete a model with no ID.');
     }
 
-    await this.backend().delete(this.uri);
+    await Model.backend().delete(this.uri);
   }
 
   /**
