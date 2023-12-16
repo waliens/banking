@@ -52,7 +52,7 @@ COPY --chmod=774 ./scripts/envsubst-on-templates-and-move.sh /docker-entrypoint-
 COPY ./scripts/samples/configuration.json.sample /samples/app/public/
 
 # nginx configuration
-COPY docker/configs/nginx.conf /etc/nginx/nginx.conf
+COPY scripts/configs/nginx.conf /etc/nginx/nginx.conf
 
 # actual front end
 COPY --from=frontend-builder /app/dist /app
