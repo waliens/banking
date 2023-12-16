@@ -7,7 +7,7 @@ FROM node:${NODE_VERSION} as frontend-builder
 
 WORKDIR /app
 RUN apk add --no-cache bash
-COPY ./yarn.lock ./package.json ./package-lock.json /app/
+COPY ./yarn.lock ./package.json /app/
   
 RUN yarn install
 
@@ -49,7 +49,10 @@ WORKDIR /app
 RUN mkdir /docker-entrypoint-banking.d/
 COPY --chmod=774 ./scripts/banking-entrypoint.sh /usr/local/bin/
 COPY --chmod=774 ./scripts/envsubst-on-templates-and-move.sh /docker-entrypoint-banking.d/500-envsubst-on-templates-and-move.sh
-COPY ./scripts/samples/configuration.json /samples/app/public/
+COPY ./scripts/samples/configuration.json.sample /samples/app/public/
+
+# nginx configuration
+COPY docker/configs/nginx.conf /etc/nginx/nginx.conf
 
 # actual front end
 COPY --from=frontend-builder /app/dist /app
