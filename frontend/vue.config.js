@@ -2,6 +2,6 @@
 module.exports = {
     // options...
     devServer: {
-        allowedHosts: ['http://' + process.env.VUE_APP_API],
+        allowedHosts: [process.env.BACKEND_BASE_URL],
     }
 }

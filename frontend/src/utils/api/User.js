@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Model from './Model';
 
 export default class Group extends Model {
@@ -15,12 +14,12 @@ export default class Group extends Model {
   }
 
   static async login(username, password) {
-    let {data} = await axios.post("/login", {'password': password, 'username': username});
+    let {data} = await this.backend().post("/login", {'password': password, 'username': username});
     return data.access_token;
   }
 
   static async fetchCurrent() {
-    let {data} = await axios.get('user/current');
+    let {data} = await this.backend().get('user/current');
     return new this(data);
   }
 

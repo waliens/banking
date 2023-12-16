@@ -17,9 +17,6 @@ import store from './store';
 import Buefy from 'buefy';
 Vue.use(Buefy, {defaultIconPack: 'fas'});
 
-import axios from 'axios';
-axios.defaults.baseURL = "http://" + process.env.VUE_APP_API;
-
 import VueGoogleCharts from 'vue-google-charts' 
 Vue.use(VueGoogleCharts)
 

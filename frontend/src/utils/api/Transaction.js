@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Model from './Model';
 
 export default class Transaction extends Model {
@@ -8,14 +7,14 @@ export default class Transaction extends Model {
   }
 
   async setCategory(id_category) {
-    let {data} = await axios.put(`${this.uri}/category/${id_category}`);
+    let {data} = await this.backend().put(`${this.uri}/category/${id_category}`);
     this.id_category = data.id_category;
     this.category = data.category;
     return this;
   }
 
   static async setCategories(new_categories) {
-    let {data} = await axios.put(`${this.collectionName}/tag`, {'categories': new_categories});
+    let {data} = await this.backend().put(`${this.collectionName}/tag`, {'categories': new_categories});
     return data;
   }
 

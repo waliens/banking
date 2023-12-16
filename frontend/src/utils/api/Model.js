@@ -1,5 +1,6 @@
 import axios from 'axios';
 import qs from 'qs';
+import constants from '../constants';
 
 export default class Model {
 
@@ -10,9 +11,14 @@ export default class Model {
     if (new.target === Model) {
       throw new Error('Model is an abstract class and cannot be constructed directly.');
     }
-
     this._initProperties();
     this.populate(props);
+  }
+
+  static backend() {
+    return axios.create({
+      baseURL: constants.BACKEND_BASE_URL
+    });
   }
 
   /**
@@ -93,7 +99,7 @@ export default class Model {
       throw new Error('Cannot fetch a model with no ID.');
     }
 
-    let {data} = await axios.get(this.uri);
+    let {data} = await this.backend().get(this.uri);
 
     this.populate(data);
     return this;
@@ -107,7 +113,7 @@ export default class Model {
    * @returns {Array<Model>} The list of all models
    */
   static async fetchAll(params={}) {
-    let {data} = await axios.get(this.collectionName, {
+    let {data} = await this.backend().get(this.collectionName, {
       params,
       paramsSerializer: params => {
         return qs.stringify(params);
@@ -122,7 +128,7 @@ export default class Model {
    * @returns 
    */
   static async countAll(params={}) {
-    let {data} = await axios.get(`${this.collectionName}/count`, {
+    let {data} = await this.backend().get(`${this.collectionName}/count`, {
       params,
       paramsSerializer: params => {
         return qs.stringify(params);
@@ -143,7 +149,7 @@ export default class Model {
   async save(params={}, forcedProperties=[]) {
     let data;
     if(this.isNew()) {
-      ({data} = await axios.post(this.uri, this.getPublicProperties(forcedProperties), {
+      ({data} = await this.backend().post(this.uri, this.getPublicProperties(forcedProperties), {
         params,
         paramsSerializer: params => {
           return qs.stringify(params);
@@ -151,7 +157,7 @@ export default class Model {
       }));
     }
     else {
-      ({data} = await axios.put(this.uri, this.getPublicProperties(forcedProperties)));
+      ({data} = await this.backend().put(this.uri, this.getPublicProperties(forcedProperties)));
     }
     this.populate(data);
     return this;
@@ -174,7 +180,7 @@ export default class Model {
       throw new Error('Cannot delete a model with no ID.');
     }
 
-    await axios.delete(this.uri);
+    await this.backend().delete(this.uri);
   }
 
   /**
@@ -221,6 +227,6 @@ export default class Model {
       formData.append('files[' + i + ']', file);
     }
     let headers = { headers: { 'Content-Type': 'multipart/form-data' }, params: query };
-    return await axios.post(path, formData, headers);
+    return await this.backend().post(path, formData, headers);
   }
 }

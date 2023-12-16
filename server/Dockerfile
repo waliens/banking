@@ -1,4 +1,4 @@
-FROM python:3.9.9-slim-bullseye
+FROM python:3.9.9-slim-bullseye AS backend
 
 RUN pip install python-dotenv
 RUN pip install sqlalchemy sqlalchemy-utils
@@ -20,4 +20,15 @@ ADD alembic ./alembic
 ADD banking.py ./banking.py
 ADD alembic.ini ./alembic.ini
 
-EXPOSE 5000
+ENV FLASK_APP=banking
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV MODEL_PATH=/models
+ENV FLASK_ENV=production
+
+FROM backend as task-runner
+RUN echo "building task-runner stage"
+CMD ["celery", "-A", "banking.celery", "worker"]
+
+FROM backend AS server 
+RUN echo "building server stage"
+CMD ["flask", "run"]

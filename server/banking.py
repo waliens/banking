@@ -112,7 +112,6 @@ def error_response(msg, code=403):
     return response
 
 
-
 @app.route("/login", methods=["POST"])
 def login():
     username = request.json.get("username", None)

@@ -1,5 +1,4 @@
 import Model from './Model';
-import axios from 'axios';
 import { strcurrency } from '@/utils/helpers';
 import { hasOwnProperty } from '../helpers';
 
@@ -19,12 +18,12 @@ export default class Account extends Model {
   }
 
   static async merge(id_repr, id_alias) {
-    let result = await axios.put(this.className + "/merge", {id_repr, id_alias});
+    let result = await this.backend().put(this.className + "/merge", {id_repr, id_alias});
     return new Account(result.data);
   }
 
   async transactions() {
-    let result = await axios.get(this.uri + "/transactions");
+    let result = await this.backend().get(this.uri + "/transactions");
     return result.data;
   }
 
@@ -42,12 +41,12 @@ export default class Account extends Model {
     if (!doUpdate) {
       return this;
     }
-    let result = await axios.put(this.uri, payload);
+    let result = await this.backend().put(this.uri, payload);
     return result.data;
   }
 
   async newAlias({name, number}) {
-    let {data} = await axios.post(`${this.uri}/alias`, {'name': name, 'number': number});
+    let {data} = await this.backend().post(`${this.uri}/alias`, {'name': name, 'number': number});
     return data;
   }
 

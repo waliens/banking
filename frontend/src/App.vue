@@ -1,18 +1,22 @@
 <template>
   <div id="app" class="page-container">
-    <layout-navbar></layout-navbar>
+    <div v-if="initialized">
+      <layout-navbar></layout-navbar>
 
-    <div class="app-content">
-      <router-view v-if="initialized"></router-view>
+      <div class="app-content">
+        <router-view></router-view>
+      </div>
+
+      <layout-footer></layout-footer>
     </div>
-
-    <layout-footer></layout-footer>
   </div>
 </template>
 
 <script>
 import LayoutNavbar from './components/layout/LayoutNavbar';
 import LayoutFooter from './components/layout/LayoutFooter';
+import constants from '@/utils/constants.js';
+import axios from 'axios';
 
 export default {
   name: 'App',
@@ -25,7 +29,18 @@ export default {
       return this.$store.state.initialized;
     }
   },
-  created() {
+  async created() {
+    // fetch configuration for API URL
+    let settings;
+    await axios
+      .get('configuration.json')
+      .then(response => (settings = response.data));
+
+    for (let i in settings) {
+      constants[i] = settings[i];
+    }
+    Object.freeze(constants);
+
     this.$store.dispatch('initializeStore');
   }
 }
