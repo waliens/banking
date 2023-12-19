@@ -42,7 +42,7 @@ app.config.update(
   CELERY_RESULT_BACKEND='redis://{}:{}'.format(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT')),
   JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY'),
   JWT_REFRESH_TOKEN_EXPIRES=timedelta(days=30),
-  JWT_ACCESS_TOKEN_EXPIRES=timedelta(seconds=30)
+  JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=1)
 )
 
 # celery workers
