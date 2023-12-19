@@ -2,21 +2,24 @@
   <div v-if="transaction">
     <section class="level title-section">
       <div class="level-left">
-        <h3 class="title" v-if="hasTransactionId">{{$t('transaction.update')}}</h3>
+        <h3 class="title" v-if="isUpdate">{{$t('transaction.update')}}</h3>
         <h3 class="title" v-else>{{$t('transaction.create')}}</h3>
       </div>
-      <div class="level-left">
-        <b-button v-on:click="save" class="level-item is-small" icon-right="save" type="is-info">{{$t('save')}}</b-button>
-      </div>
+      <b-field grouped class="level-left">
+        <b-field v-if="isUpdate && hasGroupSelected && !isLinkedToCurrentGroup" class="level-item is-small">
+          <b-button class="is-small" icon-right="link" type="is-info" v-on:click="link">{{$t('transaction.link')}}</b-button>
+        </b-field>
+        <b-field v-if="isUpdate && hasGroupSelected && isLinkedToCurrentGroup" class="level-item is-small">
+          <b-button class="is-small" icon-right="unlink" type="is-warning" v-on:click="unlink">{{$t('transaction.unlink')}}</b-button>
+        </b-field>
+        <b-field class="level-item is-small">
+          <b-button class="is-small" icon-right="save" type="is-info" v-on:click="save">{{$t('save')}}</b-button>
+        </b-field>
+      </b-field>
     </section>
 
     <section class="base-data-section">
-      <!--  id_source = request.json.get("id_source", type=int, default=None)
-          id_dest = request.json.get("id_dest", type=int, default=None)
-          id_group = request.json.get("id_group", type=int, default=None)
-      -->
-      
-      <b-field v-if="!hasTransactionId">
+      <b-field v-if="hasGroupSelected && !isUpdate">
         <b-checkbox v-model="addInGroup">{{ $t('transaction.fields.add_in_group') }}</b-checkbox>
       </b-field>
       
@@ -52,8 +55,6 @@
       <b-field :label="$t('transaction.fields.communication')" label-position="on-border">
         <b-input maxlength="200" type="textarea" v-model="transaction.metadata_.communication" />
       </b-field>
-
-
     </section>
   </div>
 </template>
@@ -76,6 +77,7 @@ export default defineComponent({
       categories: [],
       currencies: [],
       accounts: [],
+      transactionGroups: new Set(),
       addInGroup: true,
       selectedDate: null
     }
@@ -85,14 +87,23 @@ export default defineComponent({
     this.transaction = await this.getTransaction();
     this.categories = await Category.getFlattenedCategoryTree();
     this.currencies = await Currency.fetchAll();
+    if (this.transaction.id) {
+      await this.updateTransactionGroups();
+    }
     this.loading = false;
     this.accounts = await Account.fetchAll();
   },
   computed: {
+    hasGroupSelected() {
+      return !!this.$store.state.currentGroupId;
+    },
+    isLinkedToCurrentGroup() {
+      return this.transaction.id && this.transactionGroups.has(this.$store.state.currentGroupId);
+    },
     transactionId() {
       return this.$route.params.transactionid;
     },
-    hasTransactionId() {
+    isUpdate() {
       return !!this.transactionId;
     },
     candidateAccounts() {
@@ -114,21 +125,59 @@ export default defineComponent({
   },
   methods: {
     async getTransaction() {
-      if (this.hasTransactionId) {
+      if (this.isUpdate) {
         return await Transaction.fetch(this.transactionId);
       } else {
         return new Transaction();
       }
     },
+    async updateTransactionGroups() {
+      this.transactionGroups = await this.transaction.getGroupIds();
+    },
     async save() {
-      await this.transaction.save().then((t) => {
+      let isCreation = !this.transaction.id; 
+      let t = await this.transaction.save().catch(() => {
         this.$buefy.toast.open({
-          message: this.$t('transaction.success'),
-          type: 'is-success'
+          message: this.$t('failure'),
+          type: 'is-danger'
         });
-        if (!this.hasTransactionId) {
-          this.$router.push({'name': 'edit-transaction', params: {transactionid: t.id}});
-        }
+      });
+
+      if (isCreation && this.hasGroupSelected && this.addInGroup) {
+        await this.baseLink().catch(() => {})
+      }
+
+      if (isCreation) {
+        this.$router.push({'name': 'edit-transaction', params: {transactionid: t.id}});
+      }
+    },
+    async baseLink() {
+      if (!this.hasGroupSelected) {
+        throw Error("not selected current group");
+      }
+      return await this.$store.state.currentGroup.linkTransactions([this.transaction.id]);
+    },
+    async link() {
+      await this.baseLink().then(async () => {
+        await this.updateTransactionGroups();
+      }).catch(() => {
+        this.$buefy.toast.open({
+          message: this.$t('failure'),
+          type: 'is-danger'
+        });
+      });
+    },
+    async unlink() {
+      if (!this.hasGroupSelected) {
+        return;
+      }
+      await this.$store.state.currentGroup.unlinkTransactions([this.transaction.id]).then(async () => {
+        await this.updateTransactionGroups();
+      }).catch(() => {
+        this.$buefy.toast.open({
+          message: this.$t('failure'),
+          type: 'is-danger'
+        });
       });
     }
   },

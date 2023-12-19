@@ -14,8 +14,8 @@
     <div v-else>
       <section class="level title-section" >
         <div class="level-left"><h3 class="level-item title">{{$t('tagging.title')}}</h3></div>
-        <div class="level-right">
-          <b-field class="level-item is-small"><b-button class="is-small" icon-right="link" type="is-info" v-on:click="linkAll">{{$t('tagging.link_all')}}</b-button></b-field>
+        <b-field grouped class="level-right">
+          <b-field class="level-item is-small"><b-button class="is-small" icon-right="link" type="is-info" v-on:click="linkAll">{{$t('transaction.edit.link_all')}}</b-button></b-field>
           <b-field class="level-item is-small"><b-button class="is-small" icon-right="unlink" type="is-warning" v-on:click="unlinkAll">{{$t('tagging.unlink_all')}}</b-button></b-field>
           <b-field class="level-item is-small"><b-button class="is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button></b-field>
           <b-field class="level-item is-small"><b-button class="is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button></b-field>
@@ -28,7 +28,7 @@
               <option v-for="number in perPageNumbers" :key="number" :value="number">{{number}}</option>
             </b-select>
           </b-field>
-        </div>
+        </b-field>
       </section >
         <b-collapse animation="slide" :open="false">
           <template #trigger>

@@ -377,6 +377,14 @@ def get_transaction(id_transaction):
   return jsonify(transaction.as_dict())
 
 
+@app.route("/transaction/<int:id_transaction>/account_groups", methods=["GET"])
+@jwt_required()
+def get_account_groups_of_transactions(id_transaction):
+  session = Session()
+  groups = session.execute(select(TransactionGroup.id_group).where(TransactionGroup.id_transaction == id_transaction)).all()
+  return jsonify([g.id_group for g in groups])
+
+
 @app.route("/transaction", methods=["POST"])
 @jwt_required()
 def create_manual_transaction():

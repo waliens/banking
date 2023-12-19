@@ -53,4 +53,9 @@ export default class Transaction extends Model {
       }
     }
   }
+
+  async getGroupIds() {
+    let {data} = await Model.backend().get(`${this.uri}/account_groups`);
+    return new Set(data);
+  }
 }
