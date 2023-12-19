@@ -28,12 +28,8 @@
       </b-field>
     </b-field>
     <b-field grouped>
-      <b-field :label="$t('transaction.filters.accountFrom')" label-position="on-border" expanded>
-        <account-drop-down-selector v-model="accountFrom" :accounts="accounts_"></account-drop-down-selector>
-      </b-field>
-      <b-field :label="$t('transaction.filters.accountTo')" label-position="on-border" expanded>
-        <account-drop-down-selector v-model="accountTo" :accounts="accounts_"></account-drop-down-selector>
-      </b-field>
+      <account-drop-down-selector :label="$t('transaction.filters.accountFrom')" v-model="accountFrom" :accounts="accounts_" expanded></account-drop-down-selector>
+      <account-drop-down-selector :label="$t('transaction.filters.accountTo')"  v-model="accountTo" :accounts="accounts_" expanded></account-drop-down-selector>
     </b-field>
     <b-field :label="$t('transaction.filters.category')" label-position="on-border" expanded>
       <b-field grouped>

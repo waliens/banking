@@ -1,5 +1,5 @@
 <template>
-  <b-field :label="fieldTitle" label-position="on-border">
+  <b-field :label="label" :expanded="expanded" :label-position="labelPosition" :horizontal="horizontal">
     <b-autocomplete 
       clearable 
       v-model="query" 
@@ -9,7 +9,7 @@
       ref="autocomplete"
       expanded>
     </b-autocomplete>
-    <p class="control"><b-button @click="toAccount" :disabled="!selected" icon-left="eye" class="is-secondary"></b-button></p>
+    <p v-if="withToAccount" class="control"><b-button @click="toAccount" :disabled="!selected" icon-left="eye" class="is-secondary"></b-button></p>
   </b-field>
 </template>
 
@@ -22,8 +22,12 @@ export default defineComponent({
   components: { AccountAliasTable },
   props: {
     accounts: Array,
-    fieldTitle: String,
     value: Object,
+    withToAccount: {type: Boolean, default: true},
+    label: {type: String, default: ""},
+    expanded: {type: Boolean, default: false},
+    labelPosition: {type: String, default: "on-border"},
+    horizontal: {type: Boolean, default: false}
   },
   data() {
     return {

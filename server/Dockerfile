@@ -8,6 +8,7 @@ RUN pip install scikit-learn nltk
 RUN pip install pdfminer beautifulsoup4
 RUN pip install alembic psycopg2-binary
 RUN pip install Flask-JWT-Extended
+RUN pip install python-dateutil
 
 WORKDIR /app
 

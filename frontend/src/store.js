@@ -32,7 +32,7 @@ const mutations = {
     window.localStorage.currentGroupId = undefined;
     state.currentGroupId = null;
     state.currentGroup = null;
-  }
+  },
 };
 
 const actions = {
@@ -41,12 +41,15 @@ const actions = {
       return;
     }
 
-    let token = window.localStorage.accessToken;
-    if(token == null) {
+    let accessToken = window.localStorage.accessToken;
+    let refreshToken = window.localStorage.refreshToken;
+    if(!refreshToken || !accessToken) {
+      cleanAuthenticationState();
       commit('setInitialized');
       return;
     }
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setAccessToken(accessToken);
+    setRefreshToken(refreshToken);
     await dispatch('fetchUser');
 
     let groupId = window.localStorage.currentGroupId;
@@ -60,9 +63,9 @@ const actions = {
   },
 
   async login({dispatch}, {username, password}) {
-    let token = await User.login(username, password);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    window.localStorage.accessToken = token;
+    let {access_token, refresh_token} = await User.login(username, password);
+    setRefreshToken(refresh_token);
+    setAccessToken(access_token);
     await dispatch('fetchUser');
   },
 
@@ -111,11 +114,20 @@ const actions = {
   }
 };
 
-function cleanAuthenticationState() {
-  window.localStorage.removeItem('accessToken');
-  delete axios.defaults.headers.common['Authorization'];
+function setAccessToken(token) {
+  window.localStorage.accessToken = token;
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
 
+function setRefreshToken(token) {
+  window.localStorage.refreshToken = token;
+}
+
+function cleanAuthenticationState() {
+  window.localStorage.removeItem('accessToken');
+  window.localStorage.removeItem('refreshToken');
+  delete axios.defaults.headers.common['Authorization'];
+}
 
 const store = new Vuex.Store({
   state,

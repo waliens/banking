@@ -6,28 +6,34 @@
       </b-navbar-item>
     </template>
     <template #start v-if="loggedIn">
-      <b-navbar-dropdown :label="$t('navbar.data')">
-        <b-navbar-item tag="router-link" :to="{ name: 'upload-data' }">
-          {{$t('data_upload.title')}}
-        </b-navbar-item>
-        <b-navbar-item tag="router-link" :to="{ name: 'select-account-group' }">
-          {{$t('account_group.groups')}}
+      <b-navbar-item tag="router-link" :to="{ name: 'select-account-group' }">
+        <span><b-icon icon="user"/> {{$t('account_group.groups')}}</span>
+      </b-navbar-item>
+      <b-navbar-item tag="router-link" :to="{ name: 'transactions-tagging' }">
+        <span><b-icon icon="tag"/> {{$t('tagging.title')}}</span>
+      </b-navbar-item>
+      <b-navbar-item tag="router-link" :to="{ name: 'upload-data' }">
+        <span><b-icon icon="upload"/> {{$t('data_upload.title')}}</span>
+      </b-navbar-item>
+      <b-navbar-item tag="router-link" :to="{ name: 'create-transaction' }">
+        <span><b-icon icon="plus"/> {{$t('transaction.title')}}</span>
+      </b-navbar-item>
+      <b-navbar-dropdown>
+        <template #label>
+          <span><b-icon icon="pen"/> {{ $t('navbar.data') }}</span>
+        </template>
+        <b-navbar-item tag="router-link" :to="{ name: 'edit-tag-tree' }">
+          {{$t('tagging.tree')}}
         </b-navbar-item>
         <b-navbar-item tag="router-link" :to="{ name: 'merge-accounts' }">
           {{$t('account.merge')}}
         </b-navbar-item>
-        <b-navbar-item tag="router-link" :to="{ name: 'transactions-tagging' }">
-          {{$t('tagging.title')}}
-        </b-navbar-item>
         <b-navbar-item tag="router-link" :to="{ name: 'models' }">
           {{$t('ml_model.title')}}
         </b-navbar-item>
-        <b-navbar-item tag="router-link" :to="{ name: 'edit-tag-tree' }">
-          {{$t('tagging.tree')}}
-        </b-navbar-item>
       </b-navbar-dropdown>
       <b-navbar-item tag="router-link" :to="{ name: 'help' }">
-        {{$t("help")}}
+        <span><b-icon icon="question-circle"/> {{$t("help")}}</span>
       </b-navbar-item>
     </template>
     <template #end>

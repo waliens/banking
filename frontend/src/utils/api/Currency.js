@@ -6,12 +6,17 @@ export default class Currency extends Model {
     return 'currency';
   }
 
+  static get collectionName() {
+    return 'currencies';
+  }
+
   /** @inheritdoc */
   _initProperties() {
     super._initProperties();
 
     this.symbol = null;
     this.short_name = null;
+    this.long_name = null;
     this.name = null;
   }
 

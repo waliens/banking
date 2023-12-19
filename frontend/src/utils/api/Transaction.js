@@ -1,4 +1,5 @@
 import Model from './Model';
+import moment from 'moment';
 
 export default class Transaction extends Model {
   /** @inheritdoc */
@@ -25,7 +26,7 @@ export default class Transaction extends Model {
     this.id_source = null;
     this.id_dest = null;
     this.when = null;
-    this.metadata_ = null;
+    this.metadata_ = {};
     this.amount = null;
     this.id_currency = null;
     this.id_category = null;
@@ -33,5 +34,16 @@ export default class Transaction extends Model {
     this.dest = null;
     this.currency = null;
     this.category = null;
+  }
+
+  mappers() {
+    return {
+      when(value) {
+        return moment(value);
+      },
+      amount(value) {
+        return new Number(value);
+      }
+    }
   }
 }

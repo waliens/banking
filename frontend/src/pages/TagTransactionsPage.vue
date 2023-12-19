@@ -3,7 +3,7 @@
     <section v-if="!groupSelected">
       <b-message 
         :has-icon="true"
-        :icon="info-circle"
+        icon="info-circle"
         icon-size="small"
         :title="$t('account_group.errors.not_selected.title')"
         type="is-danger"
@@ -20,13 +20,7 @@
           <b-field class="level-item is-small"><b-button class="is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button></b-field>
           <b-field class="level-item is-small"><b-button class="is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button></b-field>
           <b-field class="level-item is-small" :label="$t('category')" label-position="on-border">
-            <b-select size="is-small" v-model="globalCategory">
-              <optgroup v-for="top_level in categories" :key="top_level.id" :value="top_level.id" :label="top_level.nestedName">
-                <option v-for="bottom_level in top_level.children" :key="bottom_level.id" :value="bottom_level.id">
-                  <p>{{bottom_level.name}}</p>
-                </option>
-              </optgroup>
-            </b-select>
+            <category-selector v-model="globalCategory" :categories="categories" size="is-small"></category-selector>
             <b-button class="is-primary is-small" @click="setAllCategories" icon-right="pen">{{$t('tagging.set_all')}}</b-button>
           </b-field>
           <b-field class="level-item is-small" :label="$t('tagging.transac_per_page')" label-position="on-border">
@@ -65,8 +59,21 @@
           detail-transition="fade"
           :aria-next-label="$t('next-page')"
           :aria-previous-label="$t('previous-page')"
-          :aria-page-label="$t('page')"
+          :aria-page-label="$t('page')" 
           :aria-current-label="$t('current-page')">
+
+          <b-table-column field="data_source" v-slot="props">
+            <div v-if="props.row.data_source == 'manual'">
+              <b-tooltip :label="$t('transaction.source_to_edit', {'source': props.row.data_source})" type="is-info">
+                <b-button icon-left="hand"></b-button>
+              </b-tooltip>
+            </div>
+            <div v-else>
+              <b-tooltip :label="$t('transaction.source', {'source': props.row.data_source})" type="is-info">
+                <b-icon icon="upload"></b-icon>
+              </b-tooltip>
+            </div>
+          </b-table-column>
 
           <b-table-column field="when" :label="$t('account.when')" v-slot="props" sortable>
             <datetime-display :asdate="true" :datetime="props.row.when"></datetime-display>
@@ -132,13 +139,7 @@
                   <b-button :icon-right="getSelectedIcon(props.row)" size="is-small" :class="getSelectedIconClass(props.row)"></b-button>
                 </b-tooltip>
               </p>
-              <b-select v-model="selectedCategories[props.row.id]" size="is-small">
-                <optgroup v-for="top_level in categories" :key="top_level.id" :value="top_level.id" :label="top_level.nestedName">
-                  <option v-for="bottom_level in top_level.children" :key="bottom_level.id" :value="bottom_level.id">
-                    <p>{{bottom_level.name}}</p>
-                  </option>
-                </optgroup>
-              </b-select>
+              <category-selector v-model="selectedCategories[props.row.id]" :categories="categories" size="is-small"></category-selector>
               <p class="control">
                 <b-tooltip :label="$t('save')" class="is-secondary is-light">
                   <b-button v-on:click="() => { saveLabel(props.row); }" icon-right="check" size="is-small" :class="getButtonClass(props.row)"></b-button>
@@ -175,6 +176,7 @@ import Transaction from '@/utils/api/Transaction';
 import TinyPieChartIcon from '../components/icons/TinyPieChartIcon';
 import StringOrNullDisplay from '../components/generic/StringOrNullDisplay';
 import TransactionsFilterForm from '../components/transactions/TransactionsFilterForm';
+import CategorySelector from '../components/categories/CategorySelector';
 import DatetimeDisplay from '@/components/generic/DatetimeDisplay'
 import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import Category from '@/utils/api/Category';
@@ -183,7 +185,7 @@ import { strcurrency } from '@/utils/helpers';
 import { defineComponent } from '@vue/composition-api'
 
 export default defineComponent({
-  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TinyPieChartIcon, TransactionsFilterForm },
+  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TinyPieChartIcon, TransactionsFilterForm, CategorySelector },
   name: "TagTransactionPage",
   data() {
     return {

@@ -1,5 +1,6 @@
 <template>
   <div>
+    <b-loading :is-full-page="false" :active="loading"/>
     <section class="level title-section">
       <div class="level-left"><h3 class="level-item title">{{$t('account_group.selection')}}</h3></div>
       <div class="level-right">
@@ -39,7 +40,6 @@
         {{$t('account_group.no_account_group_message')}}
       </b-message>
     </section>
-
   </div>
 </template>
 
@@ -53,12 +53,29 @@ export default defineComponent({
 
   data() {
     return {
+      loading: true,
       accountGroups: null,
       selectedGroup: null
     }
   },
   async created() {
-    await this.fetchAccountGroups()
+    this.loading = true;
+    await this.fetchAccountGroups();
+    if (this.groupIsActive) {
+      let filtered = this.accountGroups.filter(ag => ag.id == this.activeGroup.id);
+      if (filtered.length == 1) {
+        this.selectedGroup = filtered[0];
+      }
+    }
+    this.loading = false;
+  },
+  computed: {
+    activeGroup() {
+      return this.$store.state.currentGroup;
+    },
+    groupIsActive() {
+      return !!this.activeGroup;
+    },
   },
   methods: {
     async fetchAccountGroups() {

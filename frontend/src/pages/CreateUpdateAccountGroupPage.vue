@@ -31,14 +31,11 @@
 
     <section class="account-section">
       <b-message  type="is-info" class="is-small"><b-icon icon="info-circle"/>{{$t('account_group.edit.info-accounts')}}</b-message>
-      
       <account-drop-down-selector
-        class="level-item"
-        :fieldTitle="$t('account.name')"
+        :label="$t('account.name')" class="level-item"
         :accounts="candidateAccounts"
-        v-model="selectedAccountInDrowdown" >
+        v-model="selectedAccountInDrowdown" expanded>
       </account-drop-down-selector>
-      
       <b-field :label="$t('account_group.contribution_ratio')" label-position="on-border">
         <b-input v-model="selectedContributionRatio" type="number" min="0.000001" step="0.000001" max="1"  placeholder="1" />
       </b-field>

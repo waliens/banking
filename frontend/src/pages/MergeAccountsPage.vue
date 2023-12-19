@@ -34,11 +34,12 @@
     <section>
       <div class="columns">
         <div class="column">
-          <account-drop-down-selector 
-            v-model="selectedRepr"
-            :accounts="accounts" 
-            :field-title="$t('account.representative')">
-          </account-drop-down-selector>
+          <b-field :label="$t('account.representative')" expanded>
+            <account-drop-down-selector 
+              v-model="selectedRepr"
+              :accounts="accounts">
+            </account-drop-down-selector>
+          </b-field>
           <account-alias-table 
             :aliases="getAliases(selectedRepr)" 
             :title="$t('account.aliases')">
@@ -48,11 +49,12 @@
           <b-button v-on:click="swapSelected" icon-right="exchange-alt"></b-button>
         </div>
         <div class="column">
-          <account-drop-down-selector 
-            v-model="selectedAlias"
-            :accounts="accounts" 
-            :field-title="$t('account.alias')">
-          </account-drop-down-selector>
+          <b-field :label="$t('account.alias')" expanded>
+            <account-drop-down-selector 
+              v-model="selectedAlias"
+              :accounts="accounts">
+            </account-drop-down-selector>
+          </b-field>
           <account-alias-table
             :aliases="getAliases(selectedAlias)" 
             :title="$t('account.aliases')">

@@ -59,7 +59,7 @@ current-page,Current page,Page actuelle
 delete,Delete,Supprimer
 data_upload.mastercard_account,MasterCard account,Compte MasterCard
 data_upload.mastercard_preview,MasterCard preview,Preview MasterCard
-data_upload.title,Upload data,Upload des données
+data_upload.title,Upload,Upload
 data_upload.upload_file_type,File type,Type de fichier
 data_upload.duplicate,Duplicate,Doublon
 date,Date,date
@@ -150,7 +150,20 @@ tagging.current_category_is,"Current category: '{categName}' (click to reset in 
 tagging.no_category,"No category for this transaction","Pas de catégorie pour cette transaction"
 tagging.link_all,Link all,Lier tout
 tagging.unlink_all,Unlink all,Délier tout
-transaction.transactions,Transactions,Transactionstransactions.filters.enabled
+transaction.title,Transaction,Transaction
+transaction.create,Create transaction,Créer une transaction
+transaction.update,Update transaction,Mettre à jour une transaction
+transaction.success,Save successful,Sauvegarde réussie
+transaction.source,Source: {source},Source: {source}
+transaction.source_to_edit,"Source: {source}, click to edit",Source: {source}, clique pour mettre à jour"
+transaction.transactions,Transactions,Transactions
+transaction.fields.communication,Communication,Communication
+transaction.fields.amount,Amount,Montant
+transaction.fields.category,Category,Categorie
+transaction.fields.when,Date,Date
+transaction.fields.add_in_group,Add to current profile,Ajouter au profil actuel
+transaction.account.source,Source account,Compte source
+transaction.account.dest,Destination account,Compte de destination
 transaction.filters.enabled,Filters enabled,Filtres activés
 transaction.filters.periodFrom,Period start,Début période
 transaction.filters.periodTo,Period end,Fin période 

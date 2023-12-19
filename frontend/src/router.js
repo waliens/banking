@@ -84,6 +84,18 @@ const routes = [
     beforeEnter: authenticatedOnly
   },
   {
+    name: 'create-transaction',
+    path: '/transaction',
+    component: require('./pages/CreateUpdateManualTransactionPage.vue').default,
+    beforeEnter: authenticatedOnly
+  },
+  {
+    name: 'edit-transaction',
+    path: '/transaction/:transactionid',
+    component: require('./pages/CreateUpdateManualTransactionPage.vue').default,
+    beforeEnter: authenticatedOnly
+  },
+  {
     name: 'merge-accounts',
     path: '/account/merge',
     component: require('./pages/MergeAccountsPage.vue').default,

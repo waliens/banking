@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 import json
 import os
 import re
@@ -13,13 +13,13 @@ from flask_cors import CORS
 
 from sqlalchemy import bindparam
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.sql.expression import select, update, or_, and_, delete
+from sqlalchemy.sql.expression import select, update, or_, and_, delete, func
 from sqlalchemy.util import immutabledict
 
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, current_user
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, current_user, get_jwt_identity
 
 from db.database import init_db
-from db.models import AccountAlias, AccountGroup, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup, User
+from db.models import AccountAlias, AccountGroup, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup, User, Currency
 from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
 from db.transactions import auto_attribute_partial_transaction_to_groups, auto_attribute_transaction_to_groups_by_accounts
 from db.util import get_transaction_query, save
@@ -29,6 +29,7 @@ from ml.predict import NoValidModelException, TooManyAvailableModelsException, p
 
 from background.celery_init import make_celery
 from db.stats import incomes_expenses, per_category
+from parsing.date import parse_date
 
 # load environment
 load_dotenv()
@@ -39,7 +40,9 @@ app.config.update(
   JSON_AS_ASCII=False,
   CELERY_BROKER_URL='redis://{}:{}'.format(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT')),
   CELERY_RESULT_BACKEND='redis://{}:{}'.format(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT')),
-  JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY')
+  JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY'),
+  JWT_REFRESH_TOKEN_EXPIRES=timedelta(days=30),
+  JWT_ACCESS_TOKEN_EXPIRES=timedelta(seconds=30)
 )
 
 # celery workers
@@ -122,6 +125,16 @@ def login():
 
   # Notice that we are passing in the actual sqlalchemy user object here
   access_token = create_access_token(identity=user)
+  refresh_token = create_refresh_token(identity=user)
+  return jsonify(access_token=access_token, refresh_token=refresh_token)
+
+
+@app.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh_token():
+  identity = get_jwt_identity()
+  session = Session()
+  access_token = create_access_token(identity=session.get(User, identity))
   return jsonify(access_token=access_token)
 
 
@@ -354,51 +367,130 @@ def ml_infer_category(id_transaction):
     return error_response("too many models available for prediction", code=500)
 
 
-@app.route("/transaction", methods="POST")
-def create_transaction():
-  id_source = request.args.get("id_source", type=int, default=None)
-  id_dest = request.args.get("id_dest", type=int, default=None)
-  date_when = request.args.get("when", type=date_type, default=None)
-  communication = request.args.get("communication", type=str, default="")
-  amount = request.args.get("amount", type=Decimal, default=None)
-  id_currency = request.args.get("id_currency", type=int, default=None)
-  id_category = request.args.get("id_category", type=int, default=None)
-  id_group = request.args.get("id_group", type=int, default=None)
+@app.route("/transaction/<int:id_transaction>", methods=["GET"])
+@jwt_required()
+def get_transaction(id_transaction):
+  session = Session()
+  transaction = session.get(Transaction, id_transaction)
+  if transaction is None:
+    return error_response("transaction not found", 404)
+  return jsonify(transaction.as_dict())
+
+
+@app.route("/transaction", methods=["POST"])
+@jwt_required()
+def create_manual_transaction():
+  id_source = request.json.get("id_source", None)
+  id_dest = request.json.get("id_dest", None)
+  date_when = request.json.get("when", None)
+  metadata_ = request.json.get("metadata_", dict())
+  amount = request.json.get("amount", None)
+  id_currency = request.json.get("id_currency", None)
+  id_category = request.json.get("id_category", None)
+  id_group = request.json.get("id_group", None)
   
   if date_when is None:
-    return error_response("when empty, should be set to a date")
+    return error_response("'when' is empty, should be set to a date")
+  else:
+    date_when = parse_date(date_when)
   if amount is None:
-    return error_response("amount empty, should be set to a decimal number")
+    return error_response("'amount' is empty, should be set to a decimal number")
   if id_currency is None:
-    return error_response("currency empty, should be set to the id of the currency")
+    return error_response("'currency' is empty, should be set to the id of the currency")
   
   session = Session()
   with session.begin():
+    if amount < 0:
+      id_dest, id_source = id_source, id_dest
     transaction = Transaction(
       custom_id=uuid.uuid4(),
       id_source=id_source,
       id_dest=id_dest,
       when=date_when,
-      metadata_=make_metadata_serializable({"communication": communication}),
-      amount=t.amount,
+      metadata_=metadata_,
+      amount=abs(amount),
       id_currency=id_currency,
       id_category=id_category,
       data_source="manual"
     )
     session.add(transaction)
+    session.flush()
+    session.refresh(transaction)
     
     if id_group is not None:
-      session.flush()
-      session.refresh(transaction)
       session.add(TransactionGroup(
         id_group=id_group,
         id_transaction=transaction.id,
         contribution_ratio=1
       ))
-    
-    session.commit()
-  return jsonify(transaction)
 
+    return jsonify(transaction.as_dict())
+
+
+@app.route("/transaction/<int:id_transaction>", methods=["PUT"])
+@jwt_required()
+def edit_manual_transaction(id_transaction):  
+  session = Session()
+  with session.begin():
+    transaction = session.get(Transaction, id_transaction)
+    if transaction is None:
+      error_response("transaction not found", 404)
+    if transaction.data_source != "manual":
+      return error_response("cannot edit a non-manual transaction")
+    
+    # update fields
+    if "when" in request.json:
+      when = request.json.get("when", type=date_type)
+      if when is None:
+        return error_response("when empty, should be set to a date")
+      transaction.when = request.json.get("when", type=date_type)
+    if "metadata_" in request.json:
+      transaction.metadata_ = request.json.get("metadata_", type=dict)
+    if "id_currency" in request.json:
+      id_currency = request.json.get("id_currency", type=int, default=None)
+      if id_currency is None:
+        return error_response("'currency' is empty, should be set to the id of the currency")
+      transaction.id_currency = id_currency
+    if "id_category" in request.json:
+      transaction.id_currency = request.json.get("id_category", type=int, default=None)
+    new_source, new_dest = transaction.id_source, transaction.id_dest
+    if "id_dest" in request.json:
+      new_dest = request.json.get("id_dest", type=int)
+    if "id_source" in request.json:
+      new_source = request.json.get("id_source", type=int)
+    if "amount" in request.json:
+      amount = request.json.get("amount", type=Decimal)
+      if amount is None:
+        return error_response("'amount' is empty, should be set to a decimal number")
+      if amount < 0:
+        new_source, new_dest = new_dest, new_source
+      transaction.amount = abs(amount)
+    transaction.id_dest = new_dest
+    transaction.id_source = new_source
+    session.commit()
+    return jsonify(transaction)
+
+
+@app.route("/transaction/<int:id_transaction>", methods=["DELETE"])
+@jwt_required()
+def delete_manual_transaction(id_transaction):
+  session = Session()
+  with session.begin():
+    transaction = session.get(Transaction, id_transaction)
+    if transaction is None:
+      error_response("transaction not found", 404)
+    if transaction.data_source != "manual":
+      return error_response("cannot delete a non-manual transaction")
+    # check if transaction group
+    group_counts = session.scalar(
+      select(func.count())
+        .select_from(TransactionGroup)
+        .where(TransactionGroup.id_transaction == id_transaction)
+    )
+    if group_counts > 0:
+      return error_response("cannot delete the transaction because it is associated to a group")
+    session.delete(transaction)
+    session.commit()
 
 
 @app.route("/account/<int:id_account>", methods=["GET"])
@@ -453,6 +545,7 @@ def add_alias(id_account):
   session.add(new_alias)
   session.commit()
   return new_alias.as_dict() 
+
 
 @app.route('/account/merge', methods=["PUT"])
 @jwt_required()
@@ -651,7 +744,7 @@ def get_group_stats_per_category_monthly(id_group):
 @jwt_required()
 def accounts():
   accounts = Account.query.all()
-  return jsonify([a.as_dict() for a in accounts])
+  return jsonify([a.as_dict(show_balance=False) for a in accounts])
 
 
 @app.route("/model/<target>/refresh", methods=["POST"])
@@ -770,6 +863,14 @@ def upload_data():
       return error_response("unsupported upload format", 401)
 
   return jsonify({"status": "ok"})
+
+
+@app.route("/currencies", methods=["GET"])
+@jwt_required()
+def get_currencies():
+  session = Session()
+  currencies = session.execute(select(Currency)).all()
+  return jsonify([t[0].as_dict() for t in currencies])
 
 
 @app.teardown_appcontext

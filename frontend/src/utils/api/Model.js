@@ -16,9 +16,38 @@ export default class Model {
   }
 
   static backend() {
-    return axios.create({
+    let instance = axios.create({
       baseURL: constants.BACKEND_BASE_URL
     });
+
+    // refresh token
+    instance.interceptors.response.use((response) => response, async function (error) {
+      let originalRequest = error.config;
+      let refreshToken = window.localStorage.refreshToken;
+      if (error.response.status === 401 && !originalRequest._retry && refreshToken) {
+        originalRequest._retry = true;
+        return await axios.post(
+          `${constants.BACKEND_BASE_URL}/refresh`, {}, {
+            headers: {
+              'Authorization': `Bearer ${refreshToken}`
+            }
+          }
+        ).then(({data}) => {
+          window.localStorage.accessToken = data.accessToken;
+          let header = 'Bearer ' + data.access_token;
+          axios.defaults.headers.common.Authorization = header;
+          originalRequest.headers.Authorization = header;
+          return instance(originalRequest);
+        });
+      }
+      return Promise.reject(error);
+    })
+
+    return instance;
+  }
+
+  mappers() {
+    return {};
   }
 
   /**
@@ -54,8 +83,23 @@ export default class Model {
   populate(props) {
     if(props) {
       for(let key in props) {
-        this[key] = props[key];
+        this[key] = this.mapField(key, props[key]);
       }
+    }
+  }
+
+  /**
+   * Map field using on the mappers
+   * @param {*} key 
+   * @param {*} value 
+   * @returns 
+   */
+  mapField(key, value) {
+    let defaultMappers = this.mappers();
+    if (defaultMappers[key]) {
+      return defaultMappers[key](value);
+    } else {
+      return value;
     }
   }
 

@@ -149,10 +149,15 @@ class Account(Base):
         return "<Account(id='{}', number='{}', name='{}', initial='{}')>".format(
             self.id, self.number, self.name, self.initial)
 
-    def as_dict(self):
-        return AsDictSerializer("id", "number", "name", "initial", "balance",
-                                currency=AsDictSerializer.as_dict_fn(), 
-                                aliases=AsDictSerializer.iter_as_dict_fn()).serialize(self)
+    def as_dict(self, show_balance=True):
+        fields = ["id", "number", "name", "initial"]
+        if show_balance:
+            fields.append("balance")
+        return AsDictSerializer(
+            "id", "number", "name", "initial",
+            currency=AsDictSerializer.as_dict_fn(), 
+            aliases=AsDictSerializer.iter_as_dict_fn()
+        ).serialize(self)
 
     @staticmethod
     def accounts_by_name(name):
@@ -213,6 +218,7 @@ class Transaction(Base):
         return AsDictSerializer(
             "id", "custom_id", "id_source", "id_dest", "when",
             "metadata_", "amount", "id_currency", "id_category",
+            "data_source",
             when=lambda v: v.isoformat(), amount=str,
             **{k: AsDictSerializer.as_dict_fn() for k in ["source", "dest", "currency", "category"]}
         ).serialize(self)

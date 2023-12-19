@@ -15,7 +15,7 @@ export default class Group extends Model {
 
   static async login(username, password) {
     let {data} = await this.backend().post("/login", {'password': password, 'username': username});
-    return data.access_token;
+    return data;
   }
 
   static async fetchCurrent() {

@@ -1,5 +1,6 @@
 <template>
   <div>
+    <b-loading :is-full-page="true" :active="loading"/>
     <section class="level title-section">
       <div class="level-left"><h3 class="level-item title">{{$t('data_upload.title')}}</h3></div>
       <div class="level-right">
@@ -34,8 +35,7 @@
       </div>
     </section>
     <section v-if="isMastercardPdf()" class="mscard-section">
-      <account-drop-down-selector :accounts="accounts" :fieldTitle="$t('data_upload.mastercard_account')" v-model="mastercardAccount"></account-drop-down-selector>
-
+      <account-drop-down-selector :label="$t('data_upload.mastercard_account')" :accounts="accounts" v-model="mastercardAccount" horizontal/>
       <b-table 
         v-if="mastercardPreview" 
         :data="mastercardPreview" >
@@ -80,6 +80,7 @@ export default defineComponent({
   components: { AccountDropDownSelector, TableWithQueryFilter, StringOrNullDisplay, CurrencyDisplay, DatetimeDisplay},
   data() {
     return {
+      loading: false,
       files: [],
       accounts: [],
       uploadFormats: [
@@ -95,9 +96,6 @@ export default defineComponent({
         queryFilter: () => []
       }
     };
-  },
-  async created() {
-    this.accounts = await this.getAccounts();
   },
   methods: {
     deleteDropFile(index) {
@@ -132,6 +130,16 @@ export default defineComponent({
     async triggerMastercardPreview() {
       let previewData = await Model.uploadFiles(this.files, "/upload_files", {'format': 'mastercard_pdf_preview'});
       this.mastercardPreview = previewData.data;
+    }
+  },
+  watch: {
+    uploadFormat: async function (value) {
+      console.log(value);
+      if (value == "mastercard_pdf") {
+        this.loading = true;
+        this.accounts = await this.getAccounts();
+        this.loading = false;
+      }
     }
   }
 })
