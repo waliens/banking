@@ -440,26 +440,26 @@ def edit_manual_transaction(id_transaction):
     
     # update fields
     if "when" in request.json:
-      when = request.json.get("when", type=date_type)
+      when = request.json.get("when")
       if when is None:
         return error_response("when empty, should be set to a date")
-      transaction.when = request.json.get("when", type=date_type)
+      transaction.when = parse_date(when)
     if "metadata_" in request.json:
-      transaction.metadata_ = request.json.get("metadata_", type=dict)
+      transaction.metadata_ = request.json.get("metadata_")
     if "id_currency" in request.json:
-      id_currency = request.json.get("id_currency", type=int, default=None)
+      id_currency = request.json.get("id_currency")
       if id_currency is None:
         return error_response("'currency' is empty, should be set to the id of the currency")
       transaction.id_currency = id_currency
     if "id_category" in request.json:
-      transaction.id_currency = request.json.get("id_category", type=int, default=None)
+      transaction.id_category = request.json.get("id_category")
     new_source, new_dest = transaction.id_source, transaction.id_dest
     if "id_dest" in request.json:
-      new_dest = request.json.get("id_dest", type=int)
+      new_dest = request.json.get("id_dest")
     if "id_source" in request.json:
-      new_source = request.json.get("id_source", type=int)
+      new_source = request.json.get("id_source")
     if "amount" in request.json:
-      amount = request.json.get("amount", type=Decimal)
+      amount = request.json.get("amount")
       if amount is None:
         return error_response("'amount' is empty, should be set to a decimal number")
       if amount < 0:
@@ -467,8 +467,7 @@ def edit_manual_transaction(id_transaction):
       transaction.amount = abs(amount)
     transaction.id_dest = new_dest
     transaction.id_source = new_source
-    session.commit()
-    return jsonify(transaction)
+    return jsonify(transaction.as_dict())
 
 
 @app.route("/transaction/<int:id_transaction>", methods=["DELETE"])

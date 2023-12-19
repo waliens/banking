@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="transaction">
     <section class="level title-section">
       <div class="level-left">
         <h3 class="title" v-if="hasTransactionId">{{$t('transaction.update')}}</h3>
@@ -31,7 +31,7 @@
 
       <b-field grouped>
         <account-drop-down-selector :label="$t('transaction.account.source')" v-model="transaction.source" :accounts="candidateAccounts" :with-to-account="false" expanded />
-        <account-drop-down-selector :label="$t('transaction.account.dest')" v-model="transaction.dest" :accounts="candidateAccounts" :with-to-account="false" expanded/>
+        <account-drop-down-selector :label="$t('transaction.account.dest')" v-model="transaction.dest" :accounts="candidateAccounts" :with-to-account="false" expanded />
       </b-field>
 
       <b-field :label="$t('transaction.fields.when')" label-position="on-border">
@@ -52,6 +52,7 @@
       <b-field :label="$t('transaction.fields.communication')" label-position="on-border">
         <b-input maxlength="200" type="textarea" v-model="transaction.metadata_.communication" />
       </b-field>
+
 
     </section>
   </div>
@@ -125,7 +126,9 @@ export default defineComponent({
           message: this.$t('transaction.success'),
           type: 'is-success'
         });
-        this.$router.push({'name': 'edit-transaction', params: {transactionid: t.id}});
+        if (!this.hasTransactionId) {
+          this.$router.push({'name': 'edit-transaction', params: {transactionid: t.id}});
+        }
       });
     }
   },

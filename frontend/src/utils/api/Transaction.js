@@ -1,3 +1,4 @@
+import Account from './Account';
 import Model from './Model';
 import moment from 'moment';
 
@@ -39,10 +40,16 @@ export default class Transaction extends Model {
   mappers() {
     return {
       when(value) {
-        return moment(value);
+        return moment(value).toDate();
       },
       amount(value) {
         return new Number(value);
+      },
+      dest(value) {
+        return value ? new Account(value) : null;
+      },
+      source(value) {
+        return value ? new Account(value) : null;
       }
     }
   }

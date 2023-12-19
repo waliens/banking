@@ -29,12 +29,15 @@ export default defineComponent({
     labelPosition: {type: String, default: "on-border"},
     horizontal: {type: Boolean, default: false}
   },
+  mounted() {
+    this.$refs.autocomplete.setSelected(this.value);
+  },
   data() {
     return {
       query: '',
       selected: this.value
     };
-  },  
+  }, 
   computed: {
     filteredData() {
       return queryFilter(this.query, this.accounts, true);
