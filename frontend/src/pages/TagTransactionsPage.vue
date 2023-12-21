@@ -15,7 +15,7 @@
       <section class="level title-section" >
         <div class="level-left"><h3 class="level-item title">{{$t('tagging.title')}}</h3></div>
         <b-field grouped class="level-right">
-          <b-field class="level-item is-small"><b-button class="is-small" icon-right="link" type="is-info" v-on:click="linkAll">{{$t('transaction.edit.link_all')}}</b-button></b-field>
+          <b-field class="level-item is-small"><b-button class="is-small" icon-right="link" type="is-info" v-on:click="linkAll">{{$t('tagging.link_all')}}</b-button></b-field>
           <b-field class="level-item is-small"><b-button class="is-small" icon-right="unlink" type="is-warning" v-on:click="unlinkAll">{{$t('tagging.unlink_all')}}</b-button></b-field>
           <b-field class="level-item is-small"><b-button class="is-small" icon-right="check-circle" v-on:click="validatePage">{{$t('tagging.validate_page')}}</b-button></b-field>
           <b-field class="level-item is-small"><b-button class="is-small" icon-right="sync" v-on:click="refreshPage">{{$t('refresh')}}</b-button></b-field>
@@ -65,7 +65,11 @@
           <b-table-column field="data_source" v-slot="props">
             <div v-if="props.row.data_source == 'manual'">
               <b-tooltip :label="$t('transaction.source_to_edit', {'source': props.row.data_source})" type="is-info">
-                <b-button icon-left="hand"></b-button>
+                <b-button 
+                  class="is-small is-secondary" 
+                  icon-left="hand-paper"
+                  @click="$router.push({name: 'edit-transaction', params: {transactionid: props.row.id}})"
+                  ></b-button>
               </b-tooltip>
             </div>
             <div v-else>
@@ -80,19 +84,19 @@
           </b-table-column>
           
           <b-table-column :label="$t('account.source.number')" field="source.number" v-slot="props">
-            <string-or-null-display :value="props.row.source.number"></string-or-null-display>
+            <string-or-null-display :value="props.row.source ? props.row.source.number : null"></string-or-null-display>
           </b-table-column>
 
           <b-table-column :label="$t('account.source.name')" field="source.name" v-slot="props">
-            <string-or-null-display :value="props.row.source.name"></string-or-null-display>
+            <string-or-null-display :value="props.row.source ? props.row.source.name : null"></string-or-null-display>
           </b-table-column>
 
           <b-table-column :label="$t('account.dest.number')" field="dest.number" v-slot="props">
-            <string-or-null-display :value="props.row.dest.number"></string-or-null-display>
+            <string-or-null-display :value="props.row.dest ? props.row.dest.number : null"></string-or-null-display>
           </b-table-column>
 
           <b-table-column :label="$t('account.dest.name')" field="dest.name" v-slot="props">
-            <string-or-null-display :value="props.row.dest.name"></string-or-null-display>
+            <string-or-null-display :value="props.row.dest ? props.row.dest.name : null"></string-or-null-display>
           </b-table-column>
 
           <b-table-column field="amount" :label="$t('amount')" v-slot="props" sortable>

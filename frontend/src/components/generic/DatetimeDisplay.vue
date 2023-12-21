@@ -10,7 +10,7 @@ import moment from 'moment-timezone';
 export default defineComponent({
   props: {
     datetime: {
-      type: String,
+      type: [String, Date, moment],
       required: true
     },
     asdate: {
@@ -21,7 +21,14 @@ export default defineComponent({
   },
   computed: {
     formattedDatetime() {
-      return this.asdate ? this.formatDate(this.datetime) : this.formatDatetime(this.datetime); 
+      let datetime = this.datetime;
+      if (this.datetime instanceof Date) {
+        datetime = moment(this.datetime)  
+      }
+      if (this.datetime instanceof moment) {
+        datetime = this.datetime.toISOString();
+      }
+      return this.asdate ? this.formatDate(datetime) : this.formatDatetime(datetime); 
     }
   },
   methods: {
