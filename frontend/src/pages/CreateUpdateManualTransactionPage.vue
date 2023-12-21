@@ -139,7 +139,7 @@ export default defineComponent({
       await this.transaction.save().then(async (t) => {
         this.$buefy.toast.open({ message: this.$t('success'), type: 'is-success' });
         if (isCreation && this.hasGroupSelected && this.addInGroup) {
-          await this.baseLink().catch(() => {})
+          await this.baseLink().catch(() => {});
         }
         if (isCreation) {
           this.transaction = new Transaction();
@@ -183,6 +183,9 @@ export default defineComponent({
     '$route.params.transactionid': async function () {   
       this.loading = true;
       this.transaction = await this.getTransaction();
+      if (this.transaction.id) {
+        await this.updateTransactionGroups();
+      }
       this.loading = false;
     },
     'transaction.dest': function (value) {
