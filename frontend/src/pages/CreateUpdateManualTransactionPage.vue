@@ -136,20 +136,18 @@ export default defineComponent({
     },
     async save() {
       let isCreation = !this.transaction.id; 
-      let t = await this.transaction.save().catch(() => {
-        this.$buefy.toast.open({
-          message: this.$t('failure'),
-          type: 'is-danger'
-        });
-      });
-
-      if (isCreation && this.hasGroupSelected && this.addInGroup) {
-        await this.baseLink().catch(() => {})
-      }
-
-      if (isCreation) {
+      await this.transaction.save().then(async (t) => {
+        this.$buefy.toast.open({ message: this.$t('success'), type: 'is-success' });
+        if (isCreation && this.hasGroupSelected && this.addInGroup) {
+          await this.baseLink().catch(() => {})
+        }
+        if (isCreation) {
+          this.transaction = new Transaction();
+        }
         this.$router.push({'name': 'edit-transaction', params: {transactionid: t.id}});
-      }
+      }).catch(() => {
+        this.$buefy.toast.open({ message: this.$t('failure'), type: 'is-danger' });
+      });
     },
     async baseLink() {
       if (!this.hasGroupSelected) {
@@ -182,6 +180,11 @@ export default defineComponent({
     }
   },
   watch: {
+    '$route.params.transactionid': async function () {   
+      this.loading = true;
+      this.transaction = await this.getTransaction();
+      this.loading = false;
+    },
     'transaction.dest': function (value) {
       if (value) {
         this.transaction.id_dest = value.id;

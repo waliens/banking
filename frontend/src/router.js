@@ -36,6 +36,11 @@ const notAuthenticatedOnly = async (to, from, next) => {
 
 const routes = [
   {
+    path: '/',
+    component: require('./pages/DashboardPage.vue').default,
+    beforeEnter: groupSelectedOnly
+  },
+  {
     name: 'login',
     path: '/login',
     component: require('./pages/LoginPage.vue').default,

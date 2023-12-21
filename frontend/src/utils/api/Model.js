@@ -115,7 +115,7 @@ export default class Model {
     let props = {};
     for(let key in this) {
       let value = this[key];
-      if(!key.startsWith('_') && (forcedProperties.includes(key) || value != null)) {
+      if(!key.startsWith('_') || forcedProperties.includes(key)) {
         props[key] = value;
       }
     }

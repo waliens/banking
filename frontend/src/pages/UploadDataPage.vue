@@ -134,7 +134,6 @@ export default defineComponent({
   },
   watch: {
     uploadFormat: async function (value) {
-      console.log(value);
       if (value == "mastercard_pdf") {
         this.loading = true;
         this.accounts = await this.getAccounts();
