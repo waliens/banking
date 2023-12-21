@@ -29,12 +29,12 @@ class AsDictSerializer(object):
         return out
 
     @staticmethod
-    def as_dict_fn():
-        return lambda v: v.as_dict() if v is not None else None
+    def as_dict_fn(**kwargs):
+        return lambda v: v.as_dict(**kwargs) if v is not None else None
 
     @staticmethod
-    def iter_as_dict_fn():
-        return lambda iterable: [AsDictSerializer.as_dict_fn()(v) for v in iterable]
+    def iter_as_dict_fn(**kwargs):
+        return lambda iterable: [AsDictSerializer.as_dict_fn(**kwargs)(v) for v in iterable]
 
 
 def no_load(query, *keys):
@@ -56,7 +56,7 @@ class User(Base):
     def hash_password_string(password):
         return generate_password_hash(password)
 
-    def as_dict(self):
+    def as_dict(self, **kwargs):
         return AsDictSerializer("id", "username").serialize(self)
 
 
@@ -73,7 +73,7 @@ class Category(Base):
         return "<Category(id='%d', name='%s', parent='%d', color='%s')>" % (
             self.id, self.name, self.id_parent, self.color)
 
-    def as_dict(self):
+    def as_dict(self, **kwargs):
         return AsDictSerializer("id", "name", "id_parent", "color", "icon").serialize(self)
 
 
@@ -89,7 +89,7 @@ class Currency(Base):
         return "<Currency(id='%d', symbol='%s', short_name='%s', short_name='%s')>" % (
             self.id, self.symbol, self.short_name, self.long_name)
 
-    def as_dict(self):
+    def as_dict(self, **kwargs):
         return AsDictSerializer("id", "symbol", "short_name", "long_name").serialize(self)
 
     @staticmethod
@@ -149,14 +149,14 @@ class Account(Base):
         return "<Account(id='{}', number='{}', name='{}', initial='{}')>".format(
             self.id, self.number, self.name, self.initial)
 
-    def as_dict(self, show_balance=True):
+    def as_dict(self, show_balance=True, **kwargs):
         fields = ["id", "number", "name", "initial"]
         if show_balance:
             fields.append("balance")
         return AsDictSerializer(
-            "id", "number", "name", "initial",
-            currency=AsDictSerializer.as_dict_fn(), 
-            aliases=AsDictSerializer.iter_as_dict_fn()
+            *fields,
+            currency=AsDictSerializer.as_dict_fn(**kwargs), 
+            aliases=AsDictSerializer.iter_as_dict_fn(**kwargs)
         ).serialize(self)
 
     @staticmethod
@@ -175,7 +175,7 @@ class AccountAlias(Base):
     name = Column(String(255), nullable=True)
     id_account = Column(Integer, ForeignKey('account.id', ondelete="CASCADE"))
 
-    def as_dict(self):
+    def as_dict(self, **kwargs):
         return AsDictSerializer("id", "number", "name", "id_account").serialize(self)
 
 
@@ -214,7 +214,7 @@ class Transaction(Base):
     def when_year(cls):
         return func.extract('year', cls.when)
     
-    def as_dict(self):
+    def as_dict(self, **kwargs):
         return AsDictSerializer(
             "id", "custom_id", "id_source", "id_dest", "when",
             "metadata_", "amount", "id_currency", "id_category",
@@ -239,9 +239,10 @@ class AccountGroup(Base):
     
     account = relationship("Account", lazy="joined")
 
-    def as_dict(self):
+    def as_dict(self, **kwargs):
+        kwargs["show_balance"] = True
         return AsDictSerializer(
-            "id_group", "id_account", "contribution_ratio", account=AsDictSerializer.as_dict_fn()).serialize(self)
+            "id_group", "id_account", "contribution_ratio", account=AsDictSerializer.as_dict_fn(**kwargs)).serialize(self)
 
 class TransactionGroup(Base):
     __tablename__ = 'transaction_group'
@@ -251,9 +252,9 @@ class TransactionGroup(Base):
 
     transaction = relationship("Transaction")
 
-    def as_dict(self):
+    def as_dict(self, **kwargs):
         return AsDictSerializer(
-            "id_group", "id_transaction", "contribution_ratio", transaction=AsDictSerializer.as_dict_fn()).serialize(self)
+            "id_group", "id_transaction", "contribution_ratio", transaction=AsDictSerializer.as_dict_fn(**kwargs)).serialize(self)
 
 
 class Group(Base):
@@ -266,9 +267,9 @@ class Group(Base):
     account_groups = relationship("AccountGroup", lazy="joined")
     transactions = relationship("TransactionGroup")
 
-    def as_dict(self):
+    def as_dict(self, **kwargs):
         return AsDictSerializer(
-            "id", "name", "description", account_groups=AsDictSerializer.iter_as_dict_fn()).serialize(self)
+            "id", "name", "description", account_groups=AsDictSerializer.iter_as_dict_fn(show_balance=True, **kwargs)).serialize(self)
 
 
 class MLModelState(enum.Enum):
@@ -315,5 +316,5 @@ class MLModelFile(Base):
         stmt = stmt.values(state=MLModelState.INVALID)
         return stmt
 
-    def as_dict(self):
+    def as_dict(self, **kwargs):
         return AsDictSerializer("id", "filename", "target", "metadata_", state=lambda v: v.name).serialize(self)
