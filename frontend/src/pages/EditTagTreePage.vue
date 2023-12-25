@@ -2,8 +2,18 @@
   <div class="columns"> 
     <section class="column is-one-quarter">
       <b-menu :activable="false" class="scrollable">
-        <b-menu-list :label="$t('tagging.tree')">
-          <category-menu-item v-for="root in tree" :key="root.id" :category="root" v-model="selected" :add-new-handler="newCategory" :no-select-category="getDefaultCategory()"></category-menu-item>
+        <b-menu-list>
+          <template #label>
+            <div class="level">
+              <p class="level-item level-left">{{ $t('tagging.tree') }}</p>
+              <b-field grouped class="level-right category-tree-buttons-level">
+                <b-field class="level-item">
+                  <b-button class="is-small" icon-left="plus" @click="selected = getDefaultCategory()"></b-button>
+                </b-field>
+              </b-field>
+            </div>
+          </template> 
+          <category-menu-item v-for="root in tree" :key="root.id" :category="root" v-model="selected" :add-new-handler="newCategory" :no-select-category="getDefaultCategory()" :new-button-max-depth="2"></category-menu-item>
         </b-menu-list>
       </b-menu>
     </section>
@@ -33,6 +43,7 @@
               {{chain.breadcrumb}}
             </option>
           </b-select>
+          <p class="control"><b-button icon-left="times" @click="selected.id_parent = null"></b-button></p>
         </b-field>
         <div class="level"> 
           <b-field class="level-item" :label="$t('tagging.tag.color')" horizontal narrowed>
@@ -143,5 +154,9 @@ export default defineComponent({
 .breadcrumb {
   margin-top: 0;
   margin-bottom: 30px;
+}
+
+.category-tree-buttons-level {
+  margin-right: 10px;
 }
 </style>
