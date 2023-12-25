@@ -5,6 +5,7 @@ from .data_parser import ParserOrchestrator
 from .tags import TagTree, Tag
 from .transaction import Transaction, TransactionBook, TaggedTransactionBook, Currency
 from .util import UnionFind
+from .date import parse_date
 
 __all__ = ["Account", "AccountBook", "AccountGroup", "ParserOrchestrator", "UnionFind", "Transaction",
-           "TransactionBook", "TaggedTransactionBook", "TagTree", "Tag", "Currency"]
+           "TransactionBook", "TaggedTransactionBook", "TagTree", "Tag", "Currency", "parse_date"]
