@@ -20,7 +20,7 @@ from flask_jwt_extended import JWTManager, create_access_token, create_refresh_t
 
 from db.database import init_db
 from db.models import AccountAlias, AccountGroup, Category, Group, MLModelFile, MLModelState, Transaction, Account, TransactionGroup, User, Currency
-from db.data_import import get_mastercard_preview, import_belfius_csv, import_mastercard_pdf
+from db.data_import import FileNotMatchingDataSource, get_mastercard_preview, import_bank_csv, import_mastercard_pdf
 from db.transactions import auto_attribute_partial_transaction_to_groups, auto_attribute_transaction_to_groups_by_accounts
 from db.util import get_transaction_query, save
 
@@ -850,26 +850,25 @@ def upload_data():
     
     session = Session()
     # actual upload
-    if format in {"belfius", "mastercard_pdf"}:
-      if format == "belfius":
-        with open(os.path.join(dirname, "accounts.json"), "w+", encoding="utf8") as jsonfile:
-          json.dump({}, jsonfile)
-        transactions = import_belfius_csv(dirname, session)
-      elif format == "mastercard_pdf":
-        id_mscard_account = request.args.get("id_mscard_account")
-        transactions = import_mastercard_pdf(dirname, id_mscard_account, session)
+    if format not in {"belfius", "mastercard_pdf", "mastercard_pdf", "ing"}:
+      return error_response("unsupported upload format", 401)
+    
+    if format == "mastercard_pdf_preview":
+      preview = get_mastercard_preview(dirname, session)
+      return jsonify(preview)
+
+    if format == "mastercard_pdf":
+      id_mscard_account = request.args.get("id_mscard_account")
+      transactions = import_mastercard_pdf(dirname, id_mscard_account, session)
+    else: # belfius, ing
+      try:
+        transactions = import_bank_csv(format, dirname, session)
+      except FileNotMatchingDataSource:
+        return error_response("file format not matching data source")
     
       # auto attribute these new transactions to groups that match them
-      auto_attribute_partial_transaction_to_groups(session, transactions)
-    # preview
-    elif format in {"mastercard_pdf_preview"}:
-      if format == "mastercard_pdf_preview":
-        preview = get_mastercard_preview(dirname, session)
-        return jsonify(preview)
-    else:
-      return error_response("unsupported upload format", 401)
-
-  return jsonify({"status": "ok"})
+    auto_attribute_partial_transaction_to_groups(session, transactions)
+    return jsonify({"status": "ok"})
 
 
 @app.route("/currencies", methods=["GET"])

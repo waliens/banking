@@ -85,6 +85,7 @@ export default defineComponent({
       accounts: [],
       uploadFormats: [
         {id: "belfius", name: "Belfius / CSV"},
+        {id: "ing", name: "ING / CSV"},
         {id: "mastercard_pdf", name: "Mastercard / PDF"}
       ],
       uploadFormat: "belfius",

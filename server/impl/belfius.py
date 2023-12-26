@@ -17,7 +17,13 @@ def sanitize(e):
     return None if len(cleaned) == 0 else cleaned
 
 
-def parse_belfius_csv_file(filepath, encoding="latin1", header_length=13, skip_header=True):
+def sanitize_number(e):
+    """strip and replace multiple consecutive spaces by empty string"""
+    cleaned = re.sub("\s+", "", e.strip())
+    return None if len(cleaned) == 0 else cleaned
+
+ 
+def parse_csv_file(filepath, encoding="latin1", header_length=13, skip_header=True):
     with open(filepath, "r", encoding=encoding) as file:
         reader = csv.reader(file, delimiter=";")
         for i, row in enumerate(reader):
@@ -64,20 +70,15 @@ class BelfiusParserOrchestrator(BankParserOrchestrator):
         ]
 
     def read_personal_accounts(self, path: str) -> Dict[str, Iterable[Account]]:
-        with open(os.path.join(path, "accounts.json"), "r", encoding="utf-8") as file:
-            content = json.load(file)
-            groups = dict()
-            for name, groups_data in content.items():
-                groups[name] = [Account(acc["number"], acc["name"], initial=acc.get("initial", "0.0")) for acc in groups_data]
-            return groups 
-
+        return {}
+    
     def read_accounts(self, path: str) -> Set:
         accounts = set()
         for filepath in self.get_transaction_files(path):
-            for i, row in enumerate(parse_belfius_csv_file(filepath)):
+            for i, row in enumerate(parse_csv_file(filepath)):
                 if i == 0:
-                    accounts.add((sanitize(row[0]), None))
-                accounts.add(Account(sanitize(row[4]), sanitize(row[5])).identifier)
+                    accounts.add((sanitize_number(row[0]), None))
+                accounts.add(Account(sanitize_number(row[4]), sanitize(row[5])).identifier)
         return accounts
 
     def read_transactions_file(self, filepath: str, account_book: AccountBook) -> Iterable[Transaction]:
@@ -85,7 +86,7 @@ class BelfiusParserOrchestrator(BankParserOrchestrator):
         transactions = list()
         number = None
 
-        for i, row in enumerate(parse_belfius_csv_file(filepath)):
+        for i, row in enumerate(parse_csv_file(filepath)):
             """
             Column ids:
             -  0: my_account
@@ -105,9 +106,9 @@ class BelfiusParserOrchestrator(BankParserOrchestrator):
             - 14: communication
             """
 
-            my_account = account_book.get_by_number(sanitize(row[0]))
+            my_account = account_book.get_by_number(sanitize_number(row[0]))
             number = my_account.number
-            other_acc_nb = sanitize(row[4])
+            other_acc_nb = sanitize_number(row[4])
             other_acc_name = sanitize(row[5])
             other_account = account_book[Account(other_acc_nb, other_acc_name).identifier]
 
@@ -137,3 +138,12 @@ class BelfiusParserOrchestrator(BankParserOrchestrator):
             transactions.append(t)
 
         return number, transactions
+    
+    def check_transaction_files(self, path: str):
+        for filepath in self.get_transaction_files(path):
+            rows = parse_csv_file(filepath, header_length=12) # 12 because want to get headers
+            for row in rows: # only read header row 
+                if row[0] != "Compte": # check first header
+                    return False
+                break
+        return True

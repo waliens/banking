@@ -9,10 +9,15 @@ from sqlalchemy.sql.expression import bindparam
 from db.models import Account, AccountAlias, AccountGroup, AsDictSerializer, Currency, Transaction
 from db.util import load_account_uf_from_database, make_metadata_serializable, save
 from impl.belfius import BelfiusParserOrchestrator
+from impl.ing import IngParserOrchestrator
 from parsing.util import group_by
 from parsing.account import AccountBook
 
 from impl.mastercard import ms_identifier, parse_folder, parse_mastercard_pdf
+
+
+class FileNotMatchingDataSource(ValueError):
+  pass
 
 
 def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
@@ -70,11 +75,21 @@ def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
   return all_db_accounts
 
 
-def import_belfius_csv(dirname, sess):
+def import_bank_csv(data_source: str, dirname: str, sess):
   db_accounts, uf = load_account_uf_from_database()
   db_accounts = {(a.number, a.name): a for a in db_accounts}
   uf.save_to_json(os.path.join(dirname, "account_match.json"))
-  parser = BelfiusParserOrchestrator()
+
+  if data_source == "belfius":
+    parser = BelfiusParserOrchestrator(dirname)
+  elif data_source == "ing":
+    parser = IngParserOrchestrator(dirname)
+  else:
+    raise ValueError("invalid data source")
+  
+  if not parser.check_transaction_files(dirname):
+    raise FileNotMatchingDataSource()
+  
   groups = parser.read(dirname, add_env_group=True)
   env = groups[0]
   
@@ -102,7 +117,7 @@ def import_belfius_csv(dirname, sess):
       amount=t.amount,
       id_currency=[c for c in currencies if t.currency == c.short_name][0].id,
       id_category=None,
-      data_source="belfius")
+      data_source=data_source)
     )
   
   logging.getLogger("banking").info("uploading {} new transaction(s)".format(len(transacs)))

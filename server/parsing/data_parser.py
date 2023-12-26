@@ -234,3 +234,7 @@ class BankParserOrchestrator(ParserOrchestrator):
   def read_transactions_file(self, filepath, account_book: AccountBook) -> Iterable[Transaction]:
     pass
 
+  @abstractmethod
+  def check_transaction_files(self, path: str):
+    """Returns True if all transaction files in the folder are all valid"""
+    pass

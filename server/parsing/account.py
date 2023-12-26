@@ -18,11 +18,6 @@ def is_iban_be(s):
   return is_iban(s) and s.startswith("BE")
 
 
-def ibanize(s, prefix):
-  no_space = prefix + s.replace("-", "")
-  return " ".join([no_space[i:(i+4)] for i in range(0, 16, 4)])
-
-
 def unibanize_be(number):
   digits = re.sub(r"[\s-]+", "", number)[-12:]
   return "{}-{}-{}".format(digits[:3], digits[3:10], digits[-2:])
