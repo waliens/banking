@@ -1,5 +1,5 @@
 import Model from './Model';
-import { strcurrency } from '@/utils/helpers';
+import { strcurrency, formatAccountNumber } from '@/utils/helpers';
 import { hasOwnProperty } from '../helpers';
 
 export default class Account extends Model {
@@ -58,7 +58,7 @@ export default class Account extends Model {
     let formatted = '';
     formatted += obj.name ? obj.name : ctx.$t('undefined');
     formatted += " | ";
-    formatted += obj.number ? obj.number : ctx.$t('undefined');
+    formatted += obj.number ? formatAccountNumber(obj.number) : ctx.$t('undefined');
     return formatted;
   }
 }

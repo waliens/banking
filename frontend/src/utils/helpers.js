@@ -32,3 +32,25 @@ export function monthMap(ctx) {
     11: ctx.$t("december")
   };
 }
+
+export function formatAccountNumber(number) {
+  if (number == null) {
+    return null;
+  }
+
+  // Remove any non-numeric characters
+  let noSpace = number.replace(/\s/g, '');
+
+  // Check if it is an IBAN
+  let isIBAN = /^([A-Z]{2}\d{2})(.{1,30})$/.test(noSpace);
+
+  // Format based on IBAN or legacy Belgian account number
+  if (isIBAN) {
+    return noSpace.replace(/(.{1,4})/g, '$1 ').trim();
+  } else if (noSpace.length == 12) {
+    // Format legacy Belgian account number
+    return noSpace.replace(/(.{3})(.{7})(.{2})/, '$1-$2-$3');
+  } else { // fallback to simply display the registered account number
+    return number;
+  }
+} 

@@ -2,7 +2,7 @@
   <table-with-query-filter :data="accountGroups" :columns="columns" :filter-from-query="queryFilter" :title="title">
     
     <template slot="number" slot-scope="props">
-      <string-or-null-display :value="props.row.account.number"></string-or-null-display>
+      <account-number-display :number="props.row.account.number"></account-number-display>
     </template>
 
     <template slot="name" slot-scope="props">
@@ -32,10 +32,11 @@
   import TableWithQueryFilter from '@/components/generic/TableWithQueryFilter';
   import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
   import StringOrNullDisplay from '@/components/generic/StringOrNullDisplay';
+  import AccountNumberDisplay from '@/components/generic/AccountNumberDisplay';
   import { getColumns, queryFilter } from './AccountGroupTableData.js';
   
   export default defineComponent({
-    components: { TableWithQueryFilter, CurrencyDisplay, StringOrNullDisplay },
+    components: { TableWithQueryFilter, CurrencyDisplay, StringOrNullDisplay, AccountNumberDisplay },
     props: { accountGroups: Array, title: String },
     data() {
       return {

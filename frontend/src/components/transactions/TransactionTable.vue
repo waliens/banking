@@ -11,7 +11,7 @@
 
     <!-- when there is a reference account -->
     <template slot="conterpart.number" slot-scope="props" v-if="referenceAccount">
-      <string-or-null-display :value="getCounterpartNumber(props.row)"></string-or-null-display>
+      <account-number-display :number="getCounterpartNumber(props.row)"></account-number-display>
     </template>
 
     <template slot="conterpart.name" slot-scope="props" v-if="referenceAccount">
@@ -20,7 +20,7 @@
     
     <!-- when there is no reference account -->
     <template slot="source.number" slot-scope="props" v-if="!referenceAccount">
-      <string-or-null-display :value="props.row.source.number"></string-or-null-display>
+      <account-number-display :number="props.row.source.number"></account-number-display>
     </template>
 
     <template slot="source.name" slot-scope="props" v-if="!referenceAccount">
@@ -28,7 +28,7 @@
     </template>
 
     <template slot="dest.number" slot-scope="props" v-if="!referenceAccount">
-      <string-or-null-display :value="props.row.dest.number"></string-or-null-display>
+      <account-number-display :number="props.row.dest.number"></account-number-display>
     </template>
 
     <template slot="dest.name" slot-scope="props" v-if="!referenceAccount">
@@ -47,12 +47,13 @@ import { defineComponent } from '@vue/composition-api'
 import TableWithQueryFilter from '@/components/generic/TableWithQueryFilter';
 import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import StringOrNullDisplay from '@/components/generic/StringOrNullDisplay';
+  import AccountNumberDisplay from '@/components/generic/AccountNumberDisplay';
 import CategoryTag from '@/components/categories/CategoryTag';
 import { queryFilter } from './TransactionTableData.js';
 import { strcurrency } from '@/utils/helpers';
 
 export default defineComponent({
-  components: { TableWithQueryFilter, CurrencyDisplay, StringOrNullDisplay, CategoryTag },
+  components: { TableWithQueryFilter, CurrencyDisplay, StringOrNullDisplay, CategoryTag, AccountNumberDisplay },
   props: { transactions: Array, referenceAccount: Object, title: String },
   data() {
     return {
