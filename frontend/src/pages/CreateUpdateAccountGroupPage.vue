@@ -50,10 +50,10 @@
           </b-table-column>
           
           <b-table-column field="number" :label="$t('account.number')" v-slot="props" sortable>
-            <string-or-null-display :value="props.row.account.number" ></string-or-null-display>
+            <account-number-display :number="props.row.account.number" ></account-number-display>
           </b-table-column>
           
-          <b-table-column field="number" :label="$t('account_group.contribution_ratio')" v-slot="props" sortable>
+          <b-table-column field="ratio" :label="$t('account_group.contribution_ratio')" v-slot="props" sortable>
             <span v-if="props.row.contribution_ratio">{{100 * props.row.contribution_ratio}} %</span>
             <span v-else class="tag">{{$t('undefined')}}</span>
           </b-table-column>
@@ -82,12 +82,13 @@ import Group from '@/utils/api/Group';
 import Account from '@/utils/api/Account';
 import AccountTable from '@/components/accounts/AccountTable';
 import AccountDropDownSelector from '@/components/accounts/AccountDropDownSelector';
+import AccountNumberDisplay from '@/components/generic/AccountNumberDisplay';
 import StringOrNullDisplay from '@/components/generic/StringOrNullDisplay';
 import CurrencyDisplay from '@/components/generic/CurrencyDisplay';
 import {getColumns, queryFilter} from '../components/accounts/AccountTableData.js';
 
 export default defineComponent({
-  components: { AccountTable, AccountDropDownSelector, StringOrNullDisplay, CurrencyDisplay },
+  components: { AccountTable, AccountDropDownSelector, StringOrNullDisplay, CurrencyDisplay, AccountNumberDisplay},
   data() {
     return {
       group: new Group(),

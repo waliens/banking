@@ -9,7 +9,7 @@
       <div class="level-item has-text-centered">
         <div>
           <p class="heading">{{$t('account.number')}}</p>
-          <p >{{account.number}}</p>
+          <p ><account-number-display :number="account.number"></account-number-display></p>
         </div>
       </div>
       <div class="level-item has-text-centered">
@@ -46,10 +46,11 @@
 import { defineComponent } from '@vue/composition-api'
 import Account from '@/utils/api/Account';
 import CurrencyDisplay from '@/components/generic/CurrencyDisplay.vue';
+import AccountNumberDisplay from '@/components/generic/AccountNumberDisplay.vue';
 import TransactionTable from '@/components/transactions/TransactionTable.vue';
 
 export default defineComponent({
-  components: {CurrencyDisplay, TransactionTable},
+  components: {CurrencyDisplay, TransactionTable, AccountNumberDisplay},
   data() {
     return {
       account: null,

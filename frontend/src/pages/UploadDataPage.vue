@@ -41,7 +41,7 @@
         :data="mastercardPreview" >
 
         <b-table-column :label="$t('account.name')" v-slot="props">
-          <div v-if="props.row.account"><string-or-null-display :value="props.row.account.name"></string-or-null-display> / <string-or-null-display :value="props.row.account.number"></string-or-null-display></div>
+          <div v-if="props.row.account"><string-or-null-display :value="props.row.account.name"></string-or-null-display> / <account-number-display :number="props.row.account.number"></account-number-display></div>
           <div v-else><p>{{props.row.account_name}}</p></div>      
         </b-table-column>
 
@@ -72,12 +72,13 @@ import Model from '@/utils/api/Model';
 import Account from '@/utils/api/Account';
 import AccountDropDownSelector from '../components/accounts/AccountDropDownSelector.vue';
 import TableWithQueryFilter from '../components/generic/TableWithQueryFilter.vue';
+import AccountNumberDisplay from '@/components/generic/AccountNumberDisplay.vue';
 import StringOrNullDisplay from '../components/generic/StringOrNullDisplay.vue';
 import CurrencyDisplay from '../components/generic/CurrencyDisplay.vue';
 import DatetimeDisplay from '../components/generic/DatetimeDisplay.vue';
 
 export default defineComponent({
-  components: { AccountDropDownSelector, TableWithQueryFilter, StringOrNullDisplay, CurrencyDisplay, DatetimeDisplay},
+  components: { AccountDropDownSelector, TableWithQueryFilter, StringOrNullDisplay, CurrencyDisplay, DatetimeDisplay, AccountNumberDisplay},
   data() {
     return {
       loading: false,

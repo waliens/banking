@@ -84,7 +84,7 @@
           </b-table-column>
           
           <b-table-column :label="$t('account.source.number')" field="source.number" v-slot="props">
-            <string-or-null-display :value="props.row.source ? props.row.source.number : null"></string-or-null-display>
+            <account-number-display :number="props.row.source ? props.row.source.number : null"></account-number-display>
           </b-table-column>
 
           <b-table-column :label="$t('account.source.name')" field="source.name" v-slot="props">
@@ -92,7 +92,7 @@
           </b-table-column>
 
           <b-table-column :label="$t('account.dest.number')" field="dest.number" v-slot="props">
-            <string-or-null-display :value="props.row.dest ? props.row.dest.number : null"></string-or-null-display>
+            <account-number-display :number="props.row.dest ? props.row.dest.number : null"></account-number-display>
           </b-table-column>
 
           <b-table-column :label="$t('account.dest.name')" field="dest.name" v-slot="props">
@@ -179,6 +179,7 @@ import Vue from 'vue';
 import Transaction from '@/utils/api/Transaction';
 import TinyPieChartIcon from '../components/icons/TinyPieChartIcon';
 import StringOrNullDisplay from '../components/generic/StringOrNullDisplay';
+  import AccountNumberDisplay from '@/components/generic/AccountNumberDisplay';
 import TransactionsFilterForm from '../components/transactions/TransactionsFilterForm';
 import CategorySelector from '../components/categories/CategorySelector';
 import DatetimeDisplay from '@/components/generic/DatetimeDisplay'
@@ -189,7 +190,7 @@ import { strcurrency } from '@/utils/helpers';
 import { defineComponent } from '@vue/composition-api'
 
 export default defineComponent({
-  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TinyPieChartIcon, TransactionsFilterForm, CategorySelector },
+  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TinyPieChartIcon, TransactionsFilterForm, CategorySelector, AccountNumberDisplay },
   name: "TagTransactionPage",
   data() {
     return {
