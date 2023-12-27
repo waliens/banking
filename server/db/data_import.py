@@ -46,13 +46,13 @@ def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
     update_id_src_stmt = update(Transaction).where(Transaction.id_source == bindparam('old_id')).values({Transaction.id_source: bindparam('new_id')})
     update_id_in_group_stmt = update(AccountGroup).where(AccountGroup.id_account == bindparam('old_id')).values({AccountGroup.id_account: bindparam('new_id')})
 
-    sess.execute(update_id_dest_stmt, old_new_ids)
-    sess.execute(update_id_src_stmt, old_new_ids)
-    sess.execute(update_id_in_group_stmt, old_new_ids)
+    sess.connection().execute(update_id_dest_stmt, old_new_ids, execution_options={"synchronize_session": False})
+    sess.connection().execute(update_id_src_stmt, old_new_ids, execution_options={"synchronize_session": False})
+    sess.connection().execute(update_id_in_group_stmt, old_new_ids, execution_options={"synchronize_session": False})
 
   if len(removed) > 0:
     delete_stmt = delete(Account).where(Account.id == bindparam('old_id'))
-    sess.execute(delete_stmt, [{'old_id': a.id} for a in removed])
+    sess.connection().execute(delete_stmt, [{'old_id': a.id} for a in removed])
 
     for a in removed:
       all_db_accounts.pop((a.number, a.name)) 
