@@ -651,8 +651,13 @@ def update_group(id_group):
   session = Session()
   with session.begin():
     group = Group.query.get(id_group)
-    group.name = request.json.get("name", group.name).strip()
-    group.description = request.json.get("description", group.description).strip()
+    group.name = request.json.get("name", group.name)
+    if group.name is not None:
+      group.name = group.name.strip()
+    group.description = request.json.get("description", group.description)
+    if group.description is not None:
+      group.description = group.description.strip()
+    session.flush()
     # TODO evalute diff for auto-update of TransactionGroup
     session.execute(delete(AccountGroup).where(AccountGroup.id_group==id_group))
     session.bulk_save_objects([AccountGroup(
@@ -850,7 +855,7 @@ def upload_data():
     
     session = Session()
     # actual upload
-    if format not in {"belfius", "mastercard_pdf", "mastercard_pdf", "ing"}:
+    if format not in {"belfius", "mastercard_pdf_preview", "mastercard_pdf", "ing"}:
       return error_response("unsupported upload format", 401)
     
     if format == "mastercard_pdf_preview":
