@@ -1,5 +1,7 @@
 from collections import defaultdict
 from typing import Iterable, Tuple
+from sqlalchemy import bindparam
+from sqlalchemy.dialects.postgresql import insert
 
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import or_
@@ -53,12 +55,18 @@ def _create_transaction_groups(
 ):
   """Create transaction group entries based on list of tuples
   """
-  session.add_all([
-    TransactionGroup(
-      id_group=group_id,
-      id_transaction=transaction_id,
-      contribution_ratio=default_contribution_ratio
-    ) 
-    for group_id, transaction_id in transaction_groups
+  if len(transaction_groups) == 0:
+    return
+  stmt = insert(TransactionGroup).values({
+    TransactionGroup.id_group: bindparam("gid"),
+    TransactionGroup.id_transaction: bindparam("tid"),
+    TransactionGroup.contribution_ratio: bindparam("ratio")
+  }).on_conflict_do_nothing(index_elements=[TransactionGroup.id_group, TransactionGroup.id_transaction])
+  session.execute(stmt, [
+    {
+      "gid": group_id,
+      "tid": transaction_id,
+      "ratio": default_contribution_ratio
+    } for group_id, transaction_id in transaction_groups
   ])
   session.commit()
