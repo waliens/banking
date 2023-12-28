@@ -33,7 +33,11 @@ def parse_csv_file(filepath, encoding="latin1", header_length=13, skip_header=Tr
 
 
 def parse_date(s):
-    return datetime.strptime(sanitize(s), "%d/%m/%Y")
+    s_sanitized = sanitize(s).replace("-", "/")
+    try:
+        return datetime.strptime(s_sanitized, "%d/%m/%Y")
+    except ValueError:
+        return datetime.strptime(s_sanitized, "%d/%m/%y")
 
 
 def account_tag(a: Account):
