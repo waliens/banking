@@ -157,7 +157,7 @@ def get_users():
 def create_user():
   username = request.json.get("username")
   password = request.json.get("password")
-  
+
   if username is None or len(username) == 0 or password is None or len(username) == 0:
     return error_response("invalid password or username")
 
@@ -175,12 +175,12 @@ def create_user():
 def update_user(id_user):
   username = request.json.get("username")
   password = request.json.get("password")
-  
-  if (username is None or len(username) == 0) and (password is None and len(password) == 0): 
+
+  if (username is None or len(username) == 0) and (password is None and len(password) == 0):
     return error_response("no value provided for update")
 
   with Session() as sess:
-    # check new username existence 
+    # check new username existence
     user = User.query.filter_by(id=id_user).one_or_none()
     if user is None:
       return error_response("user not found", 404)
@@ -199,7 +199,10 @@ def account_transactions(id_account):
   start = request.args.get("start", type=int, default=0)
   count = request.args.get("count", type=int, default=50)
   transactions = Transaction.query \
-    .filter(or_(Transaction.id_dest == id_account, Transaction.id_source == id_account)) \
+    .filter(
+      or_(Transaction.id_dest == id_account, Transaction.id_source == id_account),
+      Transaction.id_is_duplicate_of == None
+    ) \
     .order_by(Transaction.when.desc())[start:(start+count)]
   return jsonify([t.as_dict() for t in transactions])
 
@@ -225,11 +228,11 @@ def get_transactions():
   amount_to = request.args.get("amount_to", type=Decimal, default=None)
 
   ## conditional content
-  # add fields: ml_category (object), ml_proba (float) 
+  # add fields: ml_category (object), ml_proba (float)
   ml_category = request.args.get("ml_category", type=bool_type, default=False)
-  # group id needs to be provided, add fields: in_group (bool), contribution_ratio (float) 
-  group_data = request.args.get("group_data", type=bool_type, default=False) 
-  
+  # group id needs to be provided, add fields: in_group (bool), contribution_ratio (float)
+  group_data = request.args.get("group_data", type=bool_type, default=False)
+
   if account is not None and group is not None:
     return error_response("cannot set both account and account_group when fetching transactions")
   if sort_by is not None and sort_by not in {'when', 'amount'}:
@@ -240,23 +243,23 @@ def get_transactions():
     return error_response("cannot have a amount_from greater than amount_to")
   if (group_data or in_group is not None or group_external_only) and group is None:
     return error_response("group id must be provided if group_data or in_group or group_external_only is requested")
-  
+
   # not filtering by group
   if in_group == -1:
     in_group = None
 
   # fetch
   transactions = get_transaction_query(
-    account=account, 
+    account=account,
     group=group,
     group_external_only=group_external_only,
     in_group=in_group,
     labeled=labeled,
-    sort_by=sort_by, 
+    sort_by=sort_by,
     order=order,
-    account_from=account_from, 
-    account_to=account_to, 
-    date_from=date_from, 
+    account_from=account_from,
+    account_to=account_to,
+    date_from=date_from,
     date_to=date_to,
     amount_from=amount_from,
     amount_to=amount_to
@@ -268,7 +271,7 @@ def get_transactions():
     for t_dict, c, p in zip(to_return, categories, probas):
       t_dict["ml_category"] = c.as_dict() if c is not None else None
       t_dict["ml_proba"] = p if c is not None else 0
-  
+
   if group_data:
     transaction_groups = TransactionGroup.query.where(and_(
       TransactionGroup.id_group == group,
@@ -282,7 +285,7 @@ def get_transactions():
       else:
         t_dict["in_group"] = False
         t_dict["contribution_ratio"] = None
-      
+
   return jsonify(to_return)
 
 
@@ -300,7 +303,7 @@ def get_transactions_count():
   date_to = request.args.get("date_to", type=date_type, default=None)
   amount_from = request.args.get("amount_from", type=Decimal, default=None)
   amount_to = request.args.get("amount_to", type=Decimal, default=None)
-   
+
 
   if account is not None and group is not None:
     return error_response("cannot set both account and account_group when fetching transactions")
@@ -317,14 +320,14 @@ def get_transactions_count():
 
   # fetch
   query = get_transaction_query(
-    account=account, 
+    account=account,
     group=group,
     group_external_only=group_external_only,
     in_group=in_group,
     labeled=labeled,
-    account_from=account_from, 
-    account_to=account_to, 
-    date_from=date_from, 
+    account_from=account_from,
+    account_to=account_to,
+    date_from=date_from,
     date_to=date_to,
     amount_from=amount_from,
     amount_to=amount_to,
@@ -396,7 +399,7 @@ def create_manual_transaction():
   id_currency = request.json.get("id_currency", None)
   id_category = request.json.get("id_category", None)
   id_group = request.json.get("id_group", None)
-  
+
   if date_when is None:
     return error_response("'when' is empty, should be set to a date")
   else:
@@ -405,7 +408,7 @@ def create_manual_transaction():
     return error_response("'amount' is empty, should be set to a decimal number")
   if id_currency is None:
     return error_response("'currency' is empty, should be set to the id of the currency")
-  
+
   session = Session()
   with session.begin():
     if amount < 0:
@@ -419,12 +422,13 @@ def create_manual_transaction():
       amount=abs(amount),
       id_currency=id_currency,
       id_category=id_category,
-      data_source="manual"
+      data_source="manual",
+      id_is_duplicate_of=None
     )
     session.add(transaction)
     session.flush()
     session.refresh(transaction)
-    
+
     if id_group is not None:
       session.add(TransactionGroup(
         id_group=id_group,
@@ -437,7 +441,7 @@ def create_manual_transaction():
 
 @app.route("/transaction/<int:id_transaction>", methods=["PUT"])
 @jwt_required()
-def edit_manual_transaction(id_transaction):  
+def edit_manual_transaction(id_transaction):
   session = Session()
   with session.begin():
     transaction = session.get(Transaction, id_transaction)
@@ -445,7 +449,7 @@ def edit_manual_transaction(id_transaction):
       error_response("transaction not found", 404)
     if transaction.data_source != "manual":
       return error_response("cannot edit a non-manual transaction")
-    
+
     # update fields
     if "when" in request.json:
       when = request.json.get("when")
@@ -514,7 +518,7 @@ def get_account(id_account):
 def update_account(id_account):
   initial = request.json.get("initial")
   id_representative = request.json.get("id_representative")
-  
+
   session = Session()
   account = Account.query.get(id_account)
   if account is None:
@@ -523,14 +527,14 @@ def update_account(id_account):
   if initial is not None:
     account.initial = Decimal(initial)
 
-  if id_representative is not None:   
+  if id_representative is not None:
     alias = AccountAlias.query.get(id_representative)
     if alias is None:
       session.rollback()
       abort(error_response("alias does not exist", code=403))
     alias.name, account.name = account.name, alias.name
     alias.number, account.number = account.number, alias.number
-  
+
   session.commit()
   return jsonify(account.as_dict())
 
@@ -551,7 +555,7 @@ def add_alias(id_account):
   new_alias = AccountAlias(name=name, number=number, id_account=id_account)
   session.add(new_alias)
   session.commit()
-  return new_alias.as_dict() 
+  return new_alias.as_dict()
 
 
 @app.route('/account/merge', methods=["PUT"])
@@ -562,7 +566,7 @@ def merge_accounts():
 
   if id_alias == id_repr:
     abort(error_response("Cannot merge an account with itself."))
-  
+
   session = Session()
   alias = Account.query.get(id_alias)
   repr = Account.query.get(id_repr)
@@ -571,7 +575,7 @@ def merge_accounts():
     abort(error_response("Alias or repr account does not exist."))
 
   transactions = Transaction.query.filter(or_(
-    and_(Transaction.id_source == repr.id, Transaction.id_dest == alias.id), 
+    and_(Transaction.id_source == repr.id, Transaction.id_dest == alias.id),
     and_(Transaction.id_source == alias.id, Transaction.id_dest == repr.id))).all()
 
   if len(transactions) > 0:
@@ -584,7 +588,7 @@ def merge_accounts():
   session.execute(update(Transaction).where(Transaction.id_source==alias.id).values(id_source=repr.id))
   session.execute(update(Transaction).where(Transaction.id_dest==alias.id).values(id_dest=repr.id))
 
-  # account groups referencing the alias account should now be referencing the repr account 
+  # account groups referencing the alias account should now be referencing the repr account
   # (be careful about unique constraint if both alias and repr are in a group)
   session.execute(update(AccountGroup).where(and_(
     AccountGroup.id_account==alias.id,
@@ -635,7 +639,7 @@ def create_group():
         id_account=ag["id_account"],
         id_group=grp.id,
         contribution_ratio=ag.get("contribution_ratio", 1)
-      ) 
+      )
       for ag in account_groups
     ]
     session.add_all(ag_models)
@@ -662,7 +666,7 @@ def update_group(id_group):
     session.execute(delete(AccountGroup).where(AccountGroup.id_group==id_group))
     session.bulk_save_objects([AccountGroup(
       id_account=ag["id_account"],
-      id_group=id_group, 
+      id_group=id_group,
       contribution_ratio=ag.get("contribution_ratio", 1)
     ) for ag in request.json.get('account_groups')])
     session.commit()
@@ -728,7 +732,16 @@ def get_group_stats_per_category(id_group):
   id_category = request.args.get("id_category", type=int, default=None)
   income_only = request.args.get("income_only", type=bool_type, default=True)
   session = Session()
-  buckets = per_category(session, id_group, income_only=income_only, period_from=period_from, period_to=period_to, id_category=id_category, include_unlabeled=unlabeled, bucket_level=level)
+  buckets = per_category(
+    session,
+    id_group,
+    income_only=income_only,
+    period_from=period_from,
+    period_to=period_to,
+    id_category=id_category,
+    include_unlabeled=unlabeled,
+    bucket_level=level
+  )
   return jsonify(buckets[-1] if len(buckets) > 0 else {})
 
 
@@ -742,13 +755,22 @@ def get_group_stats_per_category_monthly(id_group):
   id_category = request.args.get("id_category", type=int, default=None)
   income_only = request.args.get("income_only", type=bool_type, default=True)
   session = Session()
-  buckets = per_category(session, id_group, income_only=income_only, period_from=period_from, period_to=period_to, id_category=id_category, include_unlabeled=unlabeled, bucket_level=level, period_bucket="month")
-
+  buckets = per_category(
+    session,
+    id_group,
+    income_only=income_only,
+    period_from=period_from,
+    period_to=period_to,
+    id_category=id_category,
+    include_unlabeled=unlabeled,
+    bucket_level=level,
+    period_bucket="month"
+  )
   # convert decimals
   for bot_buckets in buckets.values():
     for curr_bucket in bot_buckets:
       curr_bucket["amount"] = float(curr_bucket["amount"])
-  
+
   return jsonify(buckets)
 
 
@@ -809,7 +831,7 @@ def update_category(id_category):
 
 @app.route("/category/<int:id_category>", methods=["DELETE"])
 @jwt_required()
-def delete_category(id_category):    
+def delete_category(id_category):
   session = Session()
   category = Category.query.get(id_category)
   session.execute(update(Category).where(Category.id_parent == id_category).values({Category.id_parent: category.id_parent}))
@@ -831,14 +853,14 @@ def add_category():
 
   if re.match(r"^#[A-Z0-9]{6}$", color, re.IGNORECASE) is None:
     return error_response("invalid color string '{}'".format(color))
-  if len(name) < 1: 
+  if len(name) < 1:
     return error_response("emptu category name")
-  
+
   session = Session()
   category = Category(name=name, id_parent=id_parent, color=color, icon=icon)
   session.add(category)
   session.commit()
-  
+
   return jsonify(category.as_dict())
 
 
@@ -851,13 +873,13 @@ def upload_data():
   with tempfile.TemporaryDirectory() as dirname:
     for i, file in enumerate(request.files.values()):
       filepath = os.path.join(dirname, str(i))
-      file.save(filepath) 
-    
+      file.save(filepath)
+
     session = Session()
     # actual upload
     if format not in {"belfius", "mastercard_pdf_preview", "mastercard_pdf", "ing"}:
       return error_response("unsupported upload format", 401)
-    
+
     if format == "mastercard_pdf_preview":
       preview = get_mastercard_preview(dirname, session)
       return jsonify(preview)
@@ -870,7 +892,7 @@ def upload_data():
         transactions = import_bank_csv(format, dirname, session)
       except FileNotMatchingDataSource:
         return error_response("file format not matching data source")
-    
+
       # auto attribute these new transactions to groups that match them
     auto_attribute_partial_transaction_to_groups(session, transactions)
     return jsonify({"status": "ok"})

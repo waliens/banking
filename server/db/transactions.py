@@ -11,7 +11,10 @@ from db.models import Group, Transaction, TransactionGroup
 
 def auto_attribute_partial_transaction_to_groups(session: Session, transactions):
   # fetch transaction to get db identifiers
-  full_transactions = Transaction.query.where(Transaction.custom_id.in_({t.custom_id for t in transactions})).all()
+  full_transactions = Transaction.query.where(
+    Transaction.custom_id.in_({t.custom_id for t in transactions}),
+    Transaction.id_is_duplicate_of == None
+  ).all()
   auto_attribute_transaction_to_groups(session, full_transactions)
 
 
@@ -25,15 +28,15 @@ def auto_attribute_transaction_to_groups(session: Session, transactions):
       transaction: Transaction = transaction
       if (transaction.id_source in account_ids) or (transaction.id_dest in account_ids):
         group_transaction_map[group.id].add(transaction.id)
-  
+
   return _create_transaction_groups(
-    session=session, 
+    session=session,
     transaction_groups=[
       (group_id, transaction_id)
       for group_id, transaction_ids_set in group_transaction_map.items()
       for transaction_id in transaction_ids_set
     ],
-    # transaction-level contribution ratio set to 1 meaning only 
+    # transaction-level contribution ratio set to 1 meaning only
     # group-level defined contribution ratio will be used unless
     # the transaction-level contribution ratio is changed later
     default_contribution_ratio=1.0
@@ -41,10 +44,10 @@ def auto_attribute_transaction_to_groups(session: Session, transactions):
 
 
 def auto_attribute_transaction_to_groups_by_accounts(session: Session, account_ids: Iterable[int]):
-  full_transactions = Transaction.query.where(or_(
-    Transaction.id_dest.in_(account_ids),
-    Transaction.id_source.in_(account_ids)
-  )).all()
+  full_transactions = Transaction.query.where(
+    or_(Transaction.id_dest.in_(account_ids), Transaction.id_source.in_(account_ids)),
+    Transaction.id_is_duplicate_of == None
+  ).all()
   auto_attribute_transaction_to_groups(session, full_transactions)
 
 

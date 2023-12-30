@@ -31,7 +31,7 @@ def load_account_uf_from_database():
     for alias in account.aliases:
       eq_key = (alias.number, alias.name)
       uf.add_elem(eq_key, key)
-  
+
   return accounts, uf
 
 
@@ -72,7 +72,7 @@ def tag_tree_from_database(return_plain_categories=False):
   if return_plain_categories:
     return final_tree, categories
   else:
-    return final_tree 
+    return final_tree
 
 
 def get_tags_at_level(level=0, tree=None):
@@ -81,7 +81,7 @@ def get_tags_at_level(level=0, tree=None):
 
   def get_at_depth(nodes, depth, curr_depth):
     if curr_depth > depth:
-      return [] 
+      return []
     if curr_depth == depth:
       return nodes
     all = list()
@@ -95,7 +95,7 @@ def get_tags_at_level(level=0, tree=None):
 def get_tags_descendants(identifier, tree=None):
   if tree is None:
     tree = tag_tree_from_database()
-  
+
   def get_children_recur(identifier):
     children = list()
     for child in tree.get_children(identifier):
@@ -137,7 +137,7 @@ def get_transaction_query(
   include_labeled: bool (default: False)
   category: int|bool (default: None)
   """
-  filters = []
+  filters = [Transaction.id_is_duplicate_of == None]
   if account is not None:
     filters.append(or_(Transaction.id_source == account, Transaction.id_dest == account))
   if group is not None:
