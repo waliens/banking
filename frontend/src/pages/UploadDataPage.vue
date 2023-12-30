@@ -108,9 +108,12 @@ export default defineComponent({
       if (this.isMastercardPdf()) {
         args.id_mscard_account = this.mastercardAccount.id;
       }
+      this.loading = true;
       await Model.uploadFiles(this.files, "/upload_files", args).then(() => {
+        this.loading = false;
         return this.$router.push({name: 'dashboard'}).catch(() => {});
       }).catch(err => {
+        this.loading = false;
         this.$buefy.dialog.alert({
           title: 'Error',
           message: 'Could not upload the files: ' + err.message,
