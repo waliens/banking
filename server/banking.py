@@ -504,6 +504,56 @@ def delete_manual_transaction(id_transaction):
     session.commit()
 
 
+@app.route("/transaction/<int:id_transaction>/duplicate_of/candidates", methods=["GET"])
+@jwt_required()
+def get_candidate_duplicates(id_transaction: int):
+  days_offset = request.args.get("days", default=7, type=int)
+  session = Session()
+  with session.begin():
+    transaction = session.get(Transaction, id_transaction)
+    if transaction is None:
+      error_response("transaction not found", 404)
+    after_date = transaction.when - timedelta(days=days_offset)
+    before_date = transaction.when + timedelta(days=days_offset)
+    candidates = session.execute(select(Transaction).where(
+      Transaction.amount == transaction.amount,
+      Transaction.when < before_date,
+      Transaction.when > after_date,
+      Transaction.id != transaction.id, # the query transaction cannot be a candidate
+      Transaction.id_is_duplicate_of == None  # an existing duplicate cannot be a candidate
+    )).all()
+    return [t.as_dict() for t in candidates]
+
+
+@app.route("/transaction/<int:id_duplicate>/duplicate_of/<int:id_parent>", methods=["PUT"])
+@jwt_required()
+def set_duplicate_of(id_duplicate: int, id_parent: int):
+  session = Session()
+  with session.begin():
+    parent = session.get(Transaction, id_parent)
+    if parent is None:
+      return error_response("parent transaction not found", 404)
+    if parent.id_is_duplicate_of is not None:
+      return error_response("requested parent is already a duplicate", 403)
+    duplicate = session.get(Transaction, id_duplicate)
+    if duplicate is None:
+      return error_response("duplicate transaction not found", 404)
+    duplicate.id_is_duplicate_of = id_parent
+    session.flush()
+
+
+@app.route("/transaction/<int:id_transaction>/duplicate_of", methods=["DELETE", "PUT"])
+@jwt_required()
+def unset_duplicate_of(id_transaction):
+  session = Session()
+  with session.begin():
+    transaction = session.get(Transaction, id_transaction)
+    if transaction is None:
+      error_response("transaction not found", 404)
+    transaction.id_is_duplicate_of = None
+    session.flush()
+
+
 @app.route("/account/<int:id_account>", methods=["GET"])
 @jwt_required()
 def get_account(id_account):
