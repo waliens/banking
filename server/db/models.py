@@ -192,11 +192,12 @@ class Transaction(Base):
     id_currency = Column(Integer, ForeignKey('currency.id'))
     id_category = Column(Integer, ForeignKey('category.id', ondelete='SET NULL'), nullable=True)
     data_source = Column(String)
-
+    id_is_duplicate_of = Column(Integer, ForeignKey('transaction.id'), nullable=True, default=None, server_default=None)
     source = relationship("Account", foreign_keys=[id_source], lazy="joined", back_populates="as_source")
     dest = relationship("Account", foreign_keys=[id_dest], lazy="joined", back_populates="as_dest")
     currency = relationship("Currency", lazy="joined")
     category = relationship("Category", lazy="joined")
+    is_duplicate_of = relationship("Transaction", remote_side=[id])
 
     @hybrid_property
     def when_month(self):

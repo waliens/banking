@@ -1,7 +1,7 @@
-from ast import parse
+import bisect
 import logging
-from operator import eq
 import os
+from typing import Dict, Iterable
 
 from sqlalchemy import select, update, delete
 from sqlalchemy.sql.expression import bindparam
@@ -13,11 +13,65 @@ from impl.ing import IngParserOrchestrator
 from parsing.util import group_by
 from parsing.account import AccountBook
 
-from impl.mastercard import ms_identifier, parse_folder, parse_mastercard_pdf
+from impl.mastercard import ms_identifier, parse_folder
 
 
 class FileNotMatchingDataSource(ValueError):
   pass
+
+
+def find_duplicates(sess, transactions: Iterable[Transaction]) -> Dict[str, str]:
+  """Takes a set of un-saved/un-commited transactions and returns a mapping 
+  of duplicates as duplicate if they match any transaction in the database
+  or any transaction in the current set.
+  
+  They match if the amount, the source and target accounts and the day of the transaction (when) are the same. 
+  """
+  def key_fn(t):
+    return t.id_source if t.id_source is not None else -1, t.id_dest if t.id_dest is not None else -1, t.when, t.amount
+
+  remaining = list(transactions)
+  checked_not_dup = []
+  duplicate_map = dict()
+  while len(remaining) > 0:
+    transaction = remaining.pop()
+
+    results = sess.execute(select(Transaction).where(
+      Transaction.id_source == transaction.id_source,
+      Transaction.id_dest == transaction.id_dest,
+      Transaction.when == transaction.when,
+      Transaction.amount == transaction.amount,
+      Transaction.id_is_duplicate_of == None
+    )).unique().all()
+
+    if len(results) > 0:
+      duplicate_map[transaction.custom_id] = results[0][0].custom_id
+    else: 
+      # might still be duplicates inside the new transaction set
+      bisect_index = bisect.bisect_left(checked_not_dup, key_fn(transaction), key=key_fn)
+      if bisect_index < len(checked_not_dup) and key_fn(checked_not_dup[bisect_index]) == key_fn(transaction):      
+        duplicate_map[transaction.custom_id] = checked_not_dup[bisect_index].custom_id
+      else:
+        checked_not_dup.insert(bisect_index, transaction)
+  
+  return duplicate_map
+
+
+def set_duplicate_batch(sess, duplicate_map: Dict[str, str]):
+  if len(duplicate_map) == 0:
+    return
+  fetched = sess.execute(select(Transaction.id, Transaction.custom_id).where(Transaction.custom_id.in_(duplicate_map.values()))).all()
+  fetched_dict = {custom_id: id_ for id_, custom_id in fetched}
+
+  duplicate_set_stmt = update(Transaction).where(Transaction.custom_id == bindparam("cid"))
+  sess.connection().execute(
+    duplicate_set_stmt,
+    [
+      {"cid": cid, "id_is_duplicate_of": fetched_dict[parent_id]}
+      for cid, parent_id in duplicate_map.items()
+    ]
+  )
+  sess.commit()
 
 
 def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
@@ -117,12 +171,18 @@ def import_bank_csv(data_source: str, dirname: str, sess):
       amount=t.amount,
       id_currency=[c for c in currencies if t.currency == c.short_name][0].id,
       id_category=None,
-      data_source=data_source)
-    )
+      data_source=data_source,
+      id_is_duplicate_of=None
+    ))
   
   logging.getLogger("banking").info("uploading {} new transaction(s)".format(len(transacs)))
     
+  duplicate_map = find_duplicates(sess, transacs)
+
   save(transacs, sess=sess)
+
+  # handle duplicates
+  set_duplicate_batch(sess, duplicate_map=duplicate_map)
 
   return transacs
 
