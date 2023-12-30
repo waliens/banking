@@ -62,6 +62,7 @@ data_upload.mastercard_preview,MasterCard preview,Preview MasterCard
 data_upload.title,Upload,Upload
 data_upload.upload_file_type,File type,Type de fichier
 data_upload.duplicate,Duplicate,Doublon
+data_upload.manual,Manual,Manuelle
 date,Date,date
 edit,Edit,Éditer
 filter,Filter,Filtrer
@@ -147,7 +148,7 @@ tagging.tag_delete_warning.title,Category deletion,Suppression de catégorie
 tagging.tag_delete_warning.with_children,"This action cannot reverted. This category appears to have children categories. These will be moved as children of the parent of the deleted category.","Cette action est irréversible. Cette catégorie semble avoir des catégories filles. Celles-ci seront déplacées comment enfants de la catégorie parente."
 tagging.tag_delete_warning.without_children,"This action cannot reverted.","Cette action est irréversible."
 tagging.set_all,Set all,Tout changer
-tagging.current_category_is,"Current category: '{categName}' (click to reset in dropdown)","Catégorie actuelle: '{categName}' (cliquer pour appliquer au menu déroulant)" 
+tagging.current_category_is,"Current category: '{categName}' (click to reset in dropdown)","Catégorie actuelle: '{categName}' (cliquer pour appliquer au menu déroulant)"
 tagging.no_category,"No category for this transaction","Pas de catégorie pour cette transaction"
 tagging.link_all,Link all,Lier tout
 tagging.unlink_all,Unlink all,Délier tout
@@ -169,13 +170,13 @@ transaction.account.source,Source account,Compte source
 transaction.account.dest,Destination account,Compte de destination
 transaction.filters.enabled,Filters enabled,Filtres activés
 transaction.filters.periodFrom,Period start,Début période
-transaction.filters.periodTo,Period end,Fin période 
+transaction.filters.periodTo,Period end,Fin période
 transaction.filters.accountFrom,From account,Depuis le compte
 transaction.filters.accountTo,To account,Vers le compte
 transaction.filters.category,With category,Avec la catégorie
 transaction.filters.title,Filters,Filtres
 transaction.filters.include_labeled,Include labeled,Inclure non-catégorisés
-transaction.filters.in_group_tooltip,Filter to include or exclude transactions already linked to the current profile,Filtre pour inclure ou exclure les transactions déjà liées au profile actuel 
+transaction.filters.in_group_tooltip,Filter to include or exclude transactions already linked to the current profile,Filtre pour inclure ou exclure les transactions déjà liées au profile actuel
 transaction.filters.in_group,Profile,Profil
 transaction.filters.in_group_options.only_in_group,Keep linked only,Liées uniquement
 transaction.filters.in_group_options.both_in_out_group,Keep all,Toutes

@@ -12,12 +12,17 @@
       <b-navbar-item tag="router-link" :to="{ name: 'transactions-tagging' }">
         <span><b-icon icon="tag"/> {{$t('tagging.title')}}</span>
       </b-navbar-item>
-      <b-navbar-item tag="router-link" :to="{ name: 'upload-data' }">
-        <span><b-icon icon="upload"/> {{$t('data_upload.title')}}</span>
-      </b-navbar-item>
-      <b-navbar-item tag="router-link" :to="{ name: 'create-transaction' }">
-        <span><b-icon icon="plus"/> {{$t('transaction.title')}}</span>
-      </b-navbar-item>
+      <b-navbar-dropdown>
+        <template #label>
+          <span><b-icon icon="plus"/> {{$t('transaction.title')}}</span>
+        </template>
+        <b-navbar-item tag="router-link" :to="{ name: 'upload-data' }">
+          <span><b-icon icon="upload"/> {{$t('data_upload.title')}}</span>
+        </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ name: 'create-transaction' }">
+          <span><b-icon icon="hand-paper"/> {{$t('data_upload.manual')}}</span>
+        </b-navbar-item>
+      </b-navbar-dropdown>
       <b-navbar-dropdown>
         <template #label>
           <span><b-icon icon="pen"/> {{ $t('navbar.data') }}</span>
@@ -43,7 +48,7 @@
             <b-tag :type="group_tag_class">{{$t('profile')}}: <em>{{!!group ? group.name : $t('account_group.not_selected')}}</em></b-tag>
           </div>
         </b-navbar-item>
-        
+
         <b-navbar-dropdown v-if="loggedIn">
           <template #label>
             <b-tag type="is-info" >
