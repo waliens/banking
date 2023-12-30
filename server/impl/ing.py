@@ -17,12 +17,14 @@ def account_tag(a: Account):
 
 
 def identifier_fn(t: Transaction):
-  return "{when}/{valued}/{_from}/{_to}/{amount}".format(
+  return "{when}/{valued}/{_from}/{_to}/{amount}/{stmt_nb}-{transac_nb}".format(
     when=t.when.isoformat(),
     valued=t.metadata["valued_at"].isoformat(),
     _from=account_tag(t.source),
     _to=account_tag(t.dest),
-    amount=t.amount)
+    amount=t.amount,
+    stmt_nb=t.metadata["statement_nb"],
+    transac_nb=t.metadata["transaction_nb"])
 
 
 class IngParserOrchestrator(BankParserOrchestrator):

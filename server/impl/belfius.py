@@ -56,14 +56,13 @@ def extract_ref(transaction: str):
 
 
 def identifier_fn(t: Transaction):
-    return "{when}/{valued}/{_from}/{_to}/{amount}/{ref}".format(
+    return "{when}/{valued}/{_from}/{_to}/{amount:.2f}/{ref}".format(
         when=t.when.isoformat(),
         valued=t.metadata["valued_at"].isoformat(),
         _from=account_tag(t.source),
         _to=account_tag(t.dest),
         amount=t.amount,
         ref=extract_ref(t.metadata["transaction"]))
-
 
 
 class BelfiusParserOrchestrator(BankParserOrchestrator):
