@@ -1,14 +1,14 @@
-FROM python:3.9.9-slim-bullseye AS backend
+FROM python:3.10-slim-bullseye AS backend
 
-RUN pip install python-dotenv
-RUN pip install sqlalchemy sqlalchemy-utils
-RUN pip install flask flask-cors
-RUN pip install celery redis
-RUN pip install scikit-learn nltk
-RUN pip install pdfminer beautifulsoup4
-RUN pip install alembic psycopg2-binary
-RUN pip install Flask-JWT-Extended
-RUN pip install python-dateutil
+RUN pip install python-dotenv \
+    sqlalchemy sqlalchemy-utils \
+    flask flask-cors \
+    celery redis \
+    scikit-learn nltk \
+    pdfminer beautifulsoup4 \
+    alembic psycopg2-binary \
+    Flask-JWT-Extended \
+    python-dateutil
 
 WORKDIR /app
 
