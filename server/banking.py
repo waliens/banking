@@ -432,7 +432,7 @@ def create_manual_transaction():
       id_dest=id_dest,
       when=date_when,
       metadata_=metadata_,
-      amount=abs(amount),
+      amount=abs(Decimal(amount)),
       id_currency=id_currency,
       id_category=id_category,
       data_source="manual",
@@ -489,7 +489,7 @@ def edit_manual_transaction(id_transaction):
         return error_response("'amount' is empty, should be set to a decimal number")
       if amount < 0:
         new_source, new_dest = new_dest, new_source
-      transaction.amount = abs(amount)
+      transaction.amount = abs(Decimal(amount))
     transaction.id_dest = new_dest
     transaction.id_source = new_source
     return jsonify(transaction.as_dict())
