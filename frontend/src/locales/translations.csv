@@ -165,7 +165,7 @@ transaction.duplicate.unduplicate.error,Could not mark as a not a duplicate,Impo
 transaction.update,Update transaction,Mettre à jour une transaction
 transaction.success,Save successful,Sauvegarde réussie
 transaction.source,Source: {source},Source: {source}
-transaction.source_to_edit,"Source: {source}, click to edit",Source: {source}, clique pour mettre à jour"
+transaction.source_to_edit,"Source: {source}, click to edit (only manual can be edited)",Source: {source}, clique pour mettre à jour (seul les manuelles peuvent être éditées)"
 transaction.link,Link to current profile,Lier au profil actuel
 transaction.unlink,Unlink from current profile,Séparer du profil actuel
 transaction.transactions,Transactions,Transactions

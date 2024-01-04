@@ -31,13 +31,19 @@
         </b-field>
       </section >
       <section>
-        <b-collapse animation="slide" :open="false">
+        <b-collapse
+          class="card"
+          animation="slide"
+          v-model="isFiltersFormOpen">
           <template #trigger>
-            <div class="collapseHeader" role="button">
-              <p class="subtitle">{{$t('transaction.filters.title')}}</p>
+            <div
+              class="card-header has-background-primary"
+              role="button"
+              :aria-expanded="isFiltersFormOpen">
+              <p class="card-header-title filter-title">{{$t('transaction.filters.title')}}</p>
             </div>
           </template>
-          <div class="collapseInner">
+          <div class="card-content">
             <transactions-filter-form :clearFn="clearFormFilters" :filterFn="selectFormFilters"></transactions-filter-form>
           </div>
         </b-collapse>
@@ -61,23 +67,6 @@
           :aria-previous-label="$t('previous-page')"
           :aria-page-label="$t('page')"
           :aria-current-label="$t('current-page')">
-
-          <b-table-column field="data_source" v-slot="props">
-            <div v-if="props.row.data_source == 'manual'">
-              <b-tooltip :label="$t('transaction.source_to_edit', {'source': props.row.data_source})" type="is-info">
-                <b-button
-                  class="is-small is-secondary"
-                  icon-left="hand-paper"
-                  @click="$router.push({name: 'edit-transaction', params: {transactionid: props.row.id}})"
-                  ></b-button>
-              </b-tooltip>
-            </div>
-            <div v-else>
-              <b-tooltip :label="$t('transaction.source', {'source': props.row.data_source})" type="is-info">
-                <b-icon icon="upload"></b-icon>
-              </b-tooltip>
-            </div>
-          </b-table-column>
 
           <b-table-column field="when" :label="$t('account.when')" v-slot="props" sortable>
             <datetime-display :asdate="true" :datetime="props.row.when"></datetime-display>
@@ -103,9 +92,21 @@
             <currency-display :currency="props.row.currency" :amount="getAmountWithCurrency(props.row.amount)" :do-color="false"></currency-display>
           </b-table-column>
 
-          <b-table-column field="group_options" :label="$t('account_group.tag')" v-slot="props">
-            <div class="level">
-              <div class="level-item">
+          <b-table-column :label="$t('actions')" v-slot="props">
+            <b-field grouped class="buttons">
+              <!-- data source -->
+              <div>
+                <b-tooltip :label="$t('transaction.source_to_edit', {'source': props.row.data_source})" type="is-info">
+                  <b-button
+                    class="is-small"
+                    type="is-info"
+                    :icon-left="props.row.data_source == 'manual' ? 'hand-paper' : 'upload'"
+                    @click="$router.push({name: 'edit-transaction', params: {transactionid: props.row.id}})"
+                    :disabled="props.row.data_source != 'manual'" />
+                </b-tooltip>
+              </div>
+              <!-- group -->
+              <div class="button-in-bar">
                 <b-tooltip
                   :label="props.row.in_group ? $t('account_group.in_group_tooltip') : $t('account_group.not_in_group_tooltip')"
                   :type="props.row.in_group ? 'is-info' : 'is-warning' "
@@ -118,6 +119,15 @@
                   />
                 </b-tooltip>
               </div>
+              <!-- duplicate TODO -->
+
+            </b-field>
+          </b-table-column>
+
+          <!-- hidden for now because no interaction possible with transaction ratio
+          <b-table-column field="group_options" :label="$t('account_group.tag')" v-slot="props">
+            <div class="level">
+
               <div class="level-item group-info-level-item" v-if="props.row.contribution_ratio">
                 <b-tooltip :label="$t('account_group.individual_contribution_ratio_tooltip')">
                   <b-tag type="is-info">{{100 * props.row.contribution_ratio}} %</b-tag>
@@ -125,6 +135,7 @@
               </div>
             </div>
           </b-table-column>
+          -->
 
           <b-table-column field="category" :label="$t('category')" v-slot="props">
             <b-field class="level-item">
@@ -200,6 +211,7 @@ export default defineComponent({
       isLoading: false,
       sortField: 'when',
       sortOrder: 'desc',
+      isFiltersFormOpen: false,
       formFilters: null,
       totalTransactions: 0,
       globalCategory: null,
@@ -378,11 +390,11 @@ export default defineComponent({
       let currentGroup = new Group({id: this.$store.state.currentGroup.id});
       if (transaction.in_group) {
         await currentGroup.unlinkTransactions([transaction.id]).then(() => {
-          this.resetTransactionForUnlink();
+          this.resetTransactionForUnlink(transaction);
         });
       } else {
         await currentGroup.linkTransactions([transaction.id]).then(() => {
-          this.resetTransactionForLink();
+          this.resetTransactionForLink(transaction);
         });
       }
     },
@@ -488,25 +500,16 @@ export default defineComponent({
 section {
   margin-bottom: 10px;
 }
-.collapseInner {
-  padding: 10px;
-  background-color: $placeholder;
-  border: 1px solid rgba(0, 0, 0, .1);;
-}
-.collapseHeader {
-  background-color: $primary;
-  padding: 5px;
-  padding-left: 10px;
-  border-radius: 5px 5px 0px 0px;
-}
-.collapseHeader > .subtitle {
-  color: $primary-invert;
-}
-.collapse {
-  margin-bottom: 10px;
-}
 
 .group-info-level-item {
   margin-left: 2px;
+}
+
+.button-in-bar {
+  margin-left: 5px;
+}
+
+.filter-title {
+  color: white;
 }
 </style>
