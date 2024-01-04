@@ -154,8 +154,23 @@ def get_transaction_query(
       else:  # not in group
         filters.append(Transaction.id.not_in(sel_expr))
     if group_external_only:
+      # A: Transaction.id_dest == None
+      # B: Transaction.id_source == None
+      # C: Transaction.id_dest in group
+      # D: Transaction.id_source in group
+      #
+      # Condition:
+      # (!A || !B)
+      #  && (A || B || !C || !D)
+      #  && (C || D)
       accounts_sel_expr = select(AccountGroup.id_account).where(AccountGroup.id_group == group)
-      filters.append(Transaction.id_dest.in_(accounts_sel_expr) != Transaction.id_source.in_(accounts_sel_expr))
+      filters.append(
+        and_(
+          or_(Transaction.id_dest != None, Transaction.id_source != None),
+          or_(Transaction.id_dest == None, Transaction.id_source == None, Transaction.id_dest.not_in(accounts_sel_expr), Transaction.id_source.not_in(accounts_sel_expr)),
+          or_(Transaction.id_dest.in_(accounts_sel_expr), Transaction.id_source.in_(accounts_sel_expr))
+        )
+      )
   if labeled is not None:
     if not isinstance(labeled, bool):
       filters.append(Transaction.id_category == labeled)
