@@ -114,6 +114,12 @@ def error_response(msg, code=403):
   return response
 
 
+def basic_success(msg="success", code=200):
+  repsonse = jsonify({'msg': msg})
+  repsonse.status = code
+  return repsonse
+
+
 @app.route("/login", methods=["POST"])
 def login():
   username = request.json.get("username", None)
@@ -349,7 +355,7 @@ def tag_transactions():
   stmt = update(Transaction).where(Transaction.id == bindparam('id_transaction')).values({Transaction.id_category: bindparam('id_category')})
   sess.execute(stmt, request.json.get("categories", []))
   sess.commit()
-  return jsonify({'msg': 'success'})
+  return basic_success()
 
 
 @app.route("/transaction/<int:id_transaction>/category/<int:id_category>", methods=["PUT"])
@@ -547,6 +553,7 @@ def set_duplicate_of(id_duplicate: int, id_parent: int):
       return error_response("duplicate transaction not found", 404)
     duplicate.id_is_duplicate_of = id_parent
     session.flush()
+    return basic_success()
 
 
 @app.route("/transaction/<int:id_transaction>/duplicate_of", methods=["DELETE", "PUT"])
@@ -559,6 +566,7 @@ def unset_duplicate_of(id_transaction):
       error_response("transaction not found", 404)
     transaction.id_is_duplicate_of = None
     session.flush()
+    return basic_success()
 
 
 @app.route("/account/<int:id_account>", methods=["GET"])
@@ -753,7 +761,7 @@ def link_transactions(id_group):
     for tid in request.json.get("transactions", [])
   ])
   sess.commit()
-  return jsonify({'msg': 'success'})
+  return basic_success()
 
 
 @app.route("/account_group/<int:id_group>/transactions", methods=["DELETE"])
@@ -766,7 +774,7 @@ def unlink_transactions(id_group):
   ))
   sess.execute(stmt)
   sess.commit()
-  return jsonify({'msg': 'success'})
+  return basic_success()
 
 
 @app.route("/account_group/<int:id_group>/stats/incomeexpense")
@@ -897,7 +905,7 @@ def delete_category(id_category):
   session.execute(delete(Category).where(Category.id == id_category))
   session.execute(MLModelFile.invalidate_models_stmt())
   session.commit()
-  return jsonify({'msg': 'success'})
+  return basic_success()
 
 
 @app.route("/category", methods=["POST"])

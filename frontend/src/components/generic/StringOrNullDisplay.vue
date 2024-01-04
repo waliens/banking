@@ -10,7 +10,7 @@ import { defineComponent } from '@vue/composition-api'
 
 export default defineComponent({
   props: {
-    value: String,
+    value: {},
     truncate: { type: Number, default: -1 }  // truncate width in pixels
   },
   computed: {

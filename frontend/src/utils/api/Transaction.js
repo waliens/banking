@@ -50,6 +50,9 @@ export default class Transaction extends Model {
       },
       source(value) {
         return value ? new Account(value) : null;
+      },
+      is_duplicate_of(value) {
+        return value? new Transaction(value) : null;
       }
     }
   }
@@ -58,4 +61,9 @@ export default class Transaction extends Model {
     let {data} = await Model.backend().get(`${this.uri}/account_groups`);
     return new Set(data);
   }
+
+  async markAsNotDuplicate() {
+    return await Model.backend().delete(`${this.uri}/duplicate_of`);
+  }
+
 }

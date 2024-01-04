@@ -42,6 +42,7 @@ account.representative,Representative,Représentant
 account.source.name,Name (source),Nom (source)
 account.source.number,Number (source),Numéro de compte (source)
 account.when,Date,Date
+actions,Actions,Actions
 amount,Amount,Montant
 app_name,Banking,Banking
 back,Back,Retour
@@ -155,6 +156,12 @@ tagging.link_all,Link all,Lier tout
 tagging.unlink_all,Unlink all,Délier tout
 transaction.title,Transaction,Transaction
 transaction.create,Create transaction,Créer une transaction
+transaction.data_source,Data source,Source des Données
+transaction.duplicate-table.duplicate,Duplicate,Doublon
+transaction.duplicate-table.original,Original,Originale
+transaction.duplicate.unduplicate.tooltip,Mark as not a duplicate,Marquer comme n'étant pas un doublon
+transaction.duplicate.unduplicate.success,Successfully marked as not a duplicate,Marqué comme n'étant pas un doublon avec succès
+transaction.duplicate.unduplicate.error,Could not mark as a not a duplicate,Impossible de marquer la transaction comme n'étant pas un doublon
 transaction.update,Update transaction,Mettre à jour une transaction
 transaction.success,Save successful,Sauvegarde réussie
 transaction.source,Source: {source},Source: {source}

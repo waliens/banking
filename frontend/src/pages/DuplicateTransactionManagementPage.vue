@@ -19,7 +19,7 @@
           </div>
         </template>
         <div class="card-content">
-          <transactions-filter-form :clearFn="clearFormFilters" :filterFn="selectFormFilters"></transactions-filter-form>
+          <transactions-filter-form :clearFn="clearFormFilters" :filterFn="selectFormFilters" :enable-group-filters="false"></transactions-filter-form>
         </div>
       </b-collapse>
     </section>
@@ -67,10 +67,16 @@
           <currency-display :currency="props.row.currency" :amount="getAmountWithCurrency(props.row.amount)" :do-color="false"></currency-display>
         </b-table-column>
 
+        <b-table-column :label="$t('actions')" v-slot="props">
+          <b-field grouped class="buttons">
+            <b-tooltip :label="$t('transaction.duplicate.unduplicate.tooltip')" class="is-danger" position="is-left">
+              <b-button icon-left="times" class="is-danger is-small" @click="unduplicate(props.row)" />
+            </b-tooltip>
+          </b-field>
+        </b-table-column>
 
         <template #detail="props">
-          <!-- -->
-          {{ props.row.id }}
+          <duplicate-comparison-table :duplicate-transaction="props.row" />
         </template>
       </b-table>
     </section>
@@ -86,15 +92,23 @@ import CurrencyDisplay from '@/components/generic/CurrencyDisplay.vue';
 import StringOrNullDisplay from '@/components/generic/StringOrNullDisplay.vue';
 import AccountNumberDisplay from '@/components/generic/AccountNumberDisplay.vue';
 import { strcurrency } from '@/utils/helpers';
+import DuplicateComparisonTable from '@/components/transactions/DuplicateComparisonTable';
 
 
 export default defineComponent({
-  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TransactionsFilterForm, AccountNumberDisplay },
+  components: {
+    DatetimeDisplay,
+    CurrencyDisplay,
+    StringOrNullDisplay,
+    TransactionsFilterForm,
+    AccountNumberDisplay,
+    DuplicateComparisonTable
+  },
   data() {
     return {
       loading: false, // page loading
       transactions: [],
-      transactionsPerPage: 10,
+      transactionsPerPage: 25,
       currentPage: 1,
       totalTransactions: 0,
       isLoading: false, // table loading
@@ -195,6 +209,22 @@ export default defineComponent({
     getAmountWithCurrency(amount) {
       return strcurrency(amount);
     },
+    async unduplicate(transaction) {
+      await transaction.markAsNotDuplicate().then(() => {
+        this.$buefy.toast.open({
+          message: this.$t('transaction.duplicate.unduplicate.success'),
+          type: 'is-success'
+        });
+        this.updateTransactionsWithLoading();
+      }).catch(() => {
+        this.$buefy.toast.open({
+          message: this.$t('transaction.duplicate.unduplicate.error'),
+          type: 'is-danger'
+        });
+        this.updateTransactionsWithLoading();
+      })
+
+    }
   }
 })
 </script>
