@@ -76,7 +76,7 @@
         </b-table-column>
 
         <template #detail="props">
-          <duplicate-comparison-table :duplicate-transaction="props.row" />
+          <duplicate-comparison-table :duplicate-transaction="props.row" :original-transaction="props.row.is_duplicate_of" />
         </template>
       </b-table>
     </section>

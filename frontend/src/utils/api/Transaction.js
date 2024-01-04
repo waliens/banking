@@ -66,4 +66,14 @@ export default class Transaction extends Model {
     return await Model.backend().delete(`${this.uri}/duplicate_of`);
   }
 
+  async markAsDuplicate(id_original) {
+    let {data} = await Model.backend().put(`${this.uri}/duplicate_of/${id_original}`);
+    return data;
+  }
+
+  async getCandidateDuplicates(days=7) {
+    let {data} = await Model.backend().get(`${this.uri}/duplicate_of/candidates`, {params: {days}});
+    return data.map(t => new Transaction(t));
+  }
+
 }

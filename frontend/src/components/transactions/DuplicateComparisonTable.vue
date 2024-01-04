@@ -11,42 +11,42 @@
       <tr>
         <td>{{ $t('transaction.data_source') }}</td>
         <td>{{ duplicate.data_source }}</td>
-        <td>{{ original.data_source }}</td>
+        <td><div v-if="original">{{ original.data_source }}</div></td>
       </tr>
       <tr>
         <td>{{ $t('account.when') }}</td>
         <td><datetime-display :asdate="true" :datetime="duplicate.when" /></td>
-        <td><datetime-display :asdate="true" :datetime="original.when" /></td>
+        <td><div v-if="original"><datetime-display :asdate="true" :datetime="original.when" /></div></td>
       </tr>
       <tr>
         <td>{{ $t('account.source.number') }}</td>
         <td><account-number-display :number="duplicate.source ? duplicate.source.number : null"/></td>
-        <td><account-number-display :number="original.source ? original.source.number : null"/></td>
+        <td><div v-if="original"><account-number-display :number="original.source ? original.source.number : null"/></div></td>
       </tr>
       <tr>
         <td>{{ $t('account.source.name') }}</td>
         <td><string-or-null-display :value="duplicate.source ? duplicate.source.name : null"></string-or-null-display></td>
-        <td><string-or-null-display :value="original.source ? original.source.name : null"></string-or-null-display></td>
+        <td><div v-if="original"><string-or-null-display :value="original.source ? original.source.name : null"></string-or-null-display></div></td>
       </tr>
       <tr>
         <td>{{ $t('account.dest.number') }}</td>
         <td><account-number-display :number="duplicate.dest ? duplicate.dest.number : null"/></td>
-        <td><account-number-display :number="original.dest ? original.dest.number : null"/></td>
+        <td><div v-if="original"><account-number-display :number="original.dest ? original.dest.number : null"/></div></td>
       </tr>
       <tr>
         <td>{{ $t('account.dest.name') }}</td>
         <td><string-or-null-display :value="duplicate.dest ? duplicate.dest.name : null"></string-or-null-display></td>
-        <td><string-or-null-display :value="original.dest ? original.dest.name : null"></string-or-null-display></td>
+        <td><div v-if="original"><string-or-null-display :value="original.dest ? original.dest.name : null"></string-or-null-display></div></td>
       </tr>
       <tr>
         <td>{{ $t('amount') }}</td>
         <td><currency-display :currency="duplicate.currency" :amount="getAmountWithCurrency(duplicate.amount)" :do-color="false"></currency-display></td>
-        <td><currency-display :currency="original.currency" :amount="getAmountWithCurrency(original.amount)" :do-color="false"></currency-display></td>
+        <td><div v-if="original"><currency-display :currency="original.currency" :amount="getAmountWithCurrency(original.amount)" :do-color="false"></currency-display></div></td>
       </tr>
       <tr v-for="key in commonMetadataKeys" :key="key">
         <td>{{ humanReadable(key) }}</td>
         <td><string-or-null-display :value="duplicate.metadata_[key]" /></td>
-        <td><string-or-null-display :value="original.metadata_[key]" /></td>
+        <td><div v-if="original"><string-or-null-display :value="original.metadata_[key]" /></div></td>
       </tr>
     </tbody>
   </table>
@@ -74,21 +74,26 @@ export default defineComponent({
     duplicateTransaction: {
       type: Transaction,
       required: true,
+    },
+    originalTransaction: {
+      type: Transaction,
     }
   },
   computed: {
     original() {
-      return this.duplicateTransaction.is_duplicate_of;
+      return this.originalTransaction;
     },
     duplicate() {
       return this.duplicateTransaction;
     },
     commonMetadataKeys() {
       let duplicateKeys = Object.keys(this.duplicate.metadata_);
+      if (!this.original) {
+        return duplicateKeys;
+      }
       let originalKeys = Object.keys(this.original.metadata_);
       return Array.from(new Set([...duplicateKeys, ...originalKeys])).sort();
     }
-
   },
   methods: {
     getAmountWithCurrency(amount) {

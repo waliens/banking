@@ -44,6 +44,7 @@ account.source.number,Number (source),Numéro de compte (source)
 account.when,Date,Date
 actions,Actions,Actions
 amount,Amount,Montant
+apply,Apply,Valider
 app_name,Banking,Banking
 back,Back,Retour
 balance,Balance,Solde
@@ -103,7 +104,7 @@ ml_model.target,Target data,Données cibles
 ml_model.title,Models,Modèles,
 name,Name,Nom,
 navbar.data,Data,Données
-navbar.manage_duplicate,Manage duplicate transaction,Gérer les transactions en double
+navbar.manage_duplicate,Manage duplicate transactions,Gérer les transactions en double
 new,New,Nouveau
 next-page,Next page,Page suivante
 page,Page,Page
@@ -162,6 +163,11 @@ transaction.duplicate-table.original,Original,Originale
 transaction.duplicate.unduplicate.tooltip,Mark as not a duplicate,Marquer comme n'étant pas un doublon
 transaction.duplicate.unduplicate.success,Successfully marked as not a duplicate,Marqué comme n'étant pas un doublon avec succès
 transaction.duplicate.unduplicate.error,Could not mark as a not a duplicate,Impossible de marquer la transaction comme n'étant pas un doublon
+transaction.duplicate.mark.title,Mark as a duplicate,Marquer comme doublon
+transaction.duplicate.mark.original,Original transaction,Transaction originale
+transaction.duplicate.mark.success,Successfully marked as a duplicate,Marqué comme étant un doublon avec succès
+transaction.duplicate.mark.error,Could not mark as a a duplicate,Impossible de marquer la transaction comme étant un doublon
+transaction.duplicate.mark.no_candidate,No candidate original transaction,Pas de transaction originale candidate
 transaction.update,Update transaction,Mettre à jour une transaction
 transaction.success,Save successful,Sauvegarde réussie
 transaction.source,Source: {source},Source: {source}

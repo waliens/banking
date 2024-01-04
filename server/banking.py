@@ -528,14 +528,19 @@ def get_candidate_duplicates(id_transaction: int):
       error_response("transaction not found", 404)
     after_date = transaction.when - timedelta(days=days_offset)
     before_date = transaction.when + timedelta(days=days_offset)
-    candidates = session.execute(select(Transaction).where(
+    where = [
       Transaction.amount == transaction.amount,
       Transaction.when < before_date,
       Transaction.when > after_date,
       Transaction.id != transaction.id, # the query transaction cannot be a candidate
       Transaction.id_is_duplicate_of == None  # an existing duplicate cannot be a candidate
-    )).all()
-    return [t.as_dict() for t in candidates]
+    ]
+    if transaction.id_source != None:
+      where.append(or_(Transaction.id_source == None, Transaction.id_source == transaction.id_source))
+    if transaction.id_dest != None:
+      where.append(or_(Transaction.id_dest == None, Transaction.id_dest == transaction.id_dest))
+    candidates = session.execute(select(Transaction).where(*where)).unique().all()
+    return jsonify([t[0].as_dict() for t in candidates])
 
 
 @app.route("/transaction/<int:id_duplicate>/duplicate_of/<int:id_parent>", methods=["PUT"])

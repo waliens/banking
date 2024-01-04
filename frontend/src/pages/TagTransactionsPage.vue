@@ -115,12 +115,33 @@
                     :icon-right="props.row.in_group ? 'link' : 'unlink'"
                     :type="props.row.in_group ? 'is-info' : 'is-warning'"
                     class="is-small"
-                    v-on:click="() => { updateGroupLink(props.row); }"
+                    @click="() => { updateGroupLink(props.row); }"
                   />
                 </b-tooltip>
               </div>
               <!-- duplicate TODO -->
+              <div class="button-in-bar">
+                <b-tooltip :label="$t('transaction.duplicate.mark.title')" type="is-info">
+                  <b-button
+                    icon-right="copy"
+                    type="is-info"
+                    class="is-small"
+                    @click="activeDuplicateModals[props.row.id] = true"
+                  />
+                </b-tooltip>
 
+                <b-modal
+                  :active.sync="activeDuplicateModals[props.row.id]"
+                  has-modal-card
+                  trap-focus
+                  :destroy-on-hide="false">
+                  <template #default="modalProps">
+                    <mark-duplicate-transaction-form
+                      :candidate-transaction="props.row" @close="modalProps.close" />
+                  </template>
+                </b-modal>
+
+              </div>
             </b-field>
           </b-table-column>
 
@@ -190,7 +211,8 @@ import Vue from 'vue';
 import Transaction from '@/utils/api/Transaction';
 import TinyPieChartIcon from '../components/icons/TinyPieChartIcon';
 import StringOrNullDisplay from '../components/generic/StringOrNullDisplay';
-  import AccountNumberDisplay from '@/components/generic/AccountNumberDisplay';
+import AccountNumberDisplay from '@/components/generic/AccountNumberDisplay';
+import MarkDuplicateTransactionForm from '../components/transactions/MarkDuplicateTransactionForm';
 import TransactionsFilterForm from '../components/transactions/TransactionsFilterForm';
 import CategorySelector from '../components/categories/CategorySelector';
 import DatetimeDisplay from '@/components/generic/DatetimeDisplay'
@@ -201,7 +223,16 @@ import { strcurrency } from '@/utils/helpers';
 import { defineComponent } from '@vue/composition-api'
 
 export default defineComponent({
-  components: { DatetimeDisplay, CurrencyDisplay, StringOrNullDisplay, TinyPieChartIcon, TransactionsFilterForm, CategorySelector, AccountNumberDisplay },
+  components: {
+    DatetimeDisplay,
+    CurrencyDisplay,
+    StringOrNullDisplay,
+    TinyPieChartIcon,
+    TransactionsFilterForm,
+    CategorySelector,
+    AccountNumberDisplay,
+    MarkDuplicateTransactionForm
+  },
   name: "TagTransactionPage",
   data() {
     return {
@@ -218,6 +249,7 @@ export default defineComponent({
       selectedCategories: {},
       commitedCategories: {},
       categories: [],
+      activeDuplicateModals: {},
       perPageNumbers: [5, 10, 25, 50, 100],
     }
   },
@@ -311,6 +343,12 @@ export default defineComponent({
         Vue.set(this.commitedCategories, transaction.id, null);
       });
     },
+    setAllDuplicateModalInactive() {
+      this.activeDuplicateModals = {};
+      this.transactions.forEach(transaction => {
+        Vue.set(this.activeDuplicateModals, transaction.id, false);
+      });
+    },
     getAmountWithCurrency(amount) {
       return strcurrency(amount);
     },
@@ -332,6 +370,7 @@ export default defineComponent({
       this.transactions = await this.getFilteredTransactions();
       this.totalTransactions = await Transaction.countAll(this.getAllParams());
       this.setSelectedCategories();
+      this.setAllDuplicateModalInactive();
     },
     async getFilteredTransactions() {
       return await Transaction.fetchAll(this.getAllParams());
