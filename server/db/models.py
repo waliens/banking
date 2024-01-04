@@ -43,7 +43,7 @@ def no_load(query, *keys):
 
 class User(Base):
     __tablename__  = "user"
-    
+
     id = Column(Integer, primary_key=True)
     username = Column(String(255), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
@@ -51,7 +51,7 @@ class User(Base):
     # NOTE: In a real application make sure to properly hash and salt passwords
     def check_password(self, password):
         return check_password_hash(self.password, password)
-    
+
     @staticmethod
     def hash_password_string(password):
         return generate_password_hash(password)
@@ -116,7 +116,7 @@ class Account(Base):
     @hybrid_property
     def balance_pos(self):
         return self._balance_generic_instance(self.as_dest)
-    
+
     @balance_pos.expression
     def balance_pos(cls):
         return cls._balance_generic_expr(Transaction.id_dest)
@@ -132,7 +132,7 @@ class Account(Base):
     @hybrid_property
     def balance(self):
         return self.initial - self.balance_neg + self.balance_pos
-    
+
     @staticmethod
     def _balance_generic_instance(transacs):
         return sum([t.amount for t in transacs])
@@ -155,14 +155,14 @@ class Account(Base):
             fields.append("balance")
         return AsDictSerializer(
             *fields,
-            currency=AsDictSerializer.as_dict_fn(**kwargs), 
+            currency=AsDictSerializer.as_dict_fn(**kwargs),
             aliases=AsDictSerializer.iter_as_dict_fn(**kwargs)
         ).serialize(self)
 
     @staticmethod
     def accounts_by_name(name):
         return Account.query.filter(or_(
-            Account.name==name, 
+            Account.name==name,
             Account.id.in_(select(AccountAlias.id_account).where(AccountAlias.name==name))
         )).all()
 
@@ -214,15 +214,21 @@ class Transaction(Base):
     @when_year.expression
     def when_year(cls):
         return func.extract('year', cls.when)
-    
-    def as_dict(self, **kwargs):
-        return AsDictSerializer(
+
+    def as_dict(self, show_is_duplicate_of=False, **kwargs):
+        fields = [
             "id", "custom_id", "id_source", "id_dest", "when",
             "metadata_", "amount", "id_currency", "id_category",
-            "data_source",
-            when=lambda v: v.isoformat(), amount=str,
+            "data_source", "id_is_duplicate_of"
+        ]
+        mappings = {
+            "when": lambda v: v.isoformat(),
+            "amount": str,
             **{k: AsDictSerializer.as_dict_fn() for k in ["source", "dest", "currency", "category"]}
-        ).serialize(self)
+        }
+        if show_is_duplicate_of:
+            mappings["is_duplicate_of"] = AsDictSerializer.as_dict_fn(**kwargs)
+        return AsDictSerializer(*fields, **mappings).serialize(self)
 
     def __repr__(self):
         return "<Transaction(id='{}', amount='{}')>".format(self.id, self.amount)
@@ -237,7 +243,7 @@ class AccountGroup(Base):
     id_group = Column(Integer, ForeignKey('group.id'), primary_key=True)
     id_account = Column(Integer, ForeignKey('account.id'), primary_key=True)
     contribution_ratio = Column(Float, default=1.0)
-    
+
     account = relationship("Account", lazy="joined")
 
     def as_dict(self, **kwargs):
@@ -264,7 +270,7 @@ class Group(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     description = Column(String(1024))
-    
+
     account_groups = relationship("AccountGroup", lazy="joined")
     transactions = relationship("TransactionGroup")
 

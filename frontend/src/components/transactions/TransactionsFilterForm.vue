@@ -49,7 +49,7 @@
       </b-field>
 
     </b-field>
-    <b-field grouped>
+    <b-field grouped v-if="enableGroupFilters">
       <b-field label-position="on-border">
         <template #label>
           <b-tooltip :label="$t('transaction.filters.in_group_tooltip')">{{$t('transaction.filters.in_group')}}</b-tooltip>
@@ -57,12 +57,12 @@
         <b-select v-model="keepCurrentGroup">
           <option v-for="option in inCurrentGroupOptions" :key="option" :value="option">
             {{ $t(`transaction.filters.in_group_options.${option}`) }}
-          </option> 
+          </option>
         </b-select>
       </b-field>
       <b-field>
         <b-tooltip :label="$t('transaction.filters.include_intra_profile_tooltip')">
-          <b-switch v-model="includeIntraProfile">
+          <b-switch v-model="includeIntraGroup">
             {{ $t('transaction.filters.include_intra_profile') }}
           </b-switch>
         </b-tooltip>
@@ -95,13 +95,14 @@ export default defineComponent({
     accounts: { type: Array, default: () => [] },
     categories: { type: Array, default: () => [] },
     filterFn: { type: Function, default: () => { () => { return; } }},
-    clearFn: { type: Function, default: () => { () => { return; } }}
+    clearFn: { type: Function, default: () => { () => { return; } }},
+    enableGroupFilters: { type: Boolean, default: true }
   },
   data() {
     return {
       // filters
       includeLabeled: false,
-      includeIntraProfile: false,
+      includeIntraGroup: false,
       keepCurrentGroup: "only_in_group",
       amountRange: [0, 999999],
       periodFrom: null,
@@ -128,7 +129,7 @@ export default defineComponent({
       this.categories_ = this.categories;
     }
 
-    if (this.accounts.length == 0) { 
+    if (this.accounts.length == 0) {
       this.accounts_ = await Account.fetchAll();
     } else {
       this.accounts_ = this.accounts;
@@ -173,7 +174,7 @@ export default defineComponent({
       this.categoryId = null;
       this.includeLabeled = false;
       this.amountRange = [0, 999999];
-      this.includeIntraProfile = false;
+      this.includeIntraGroup = false;
       this.inCurrentGroupOptions = "only_in_group";
       this.clearFn();
     },
@@ -182,14 +183,16 @@ export default defineComponent({
         periodFrom: this.periodFrom,
         periodTo: this.periodTo,
         accountFrom: this.accountFrom,
-        accountTo: this.accountTo, 
+        accountTo: this.accountTo,
         category: this.categoryId,
         amountFrom: this.amountRange[0],
         amountTo: this.amountRange[1],
-        includeIntraProfile: this.includeIntraProfile,
-        includeLabeled: this.includeLabeled,
-        keepCurrentGroup: this.keepCurrentGroup
+        includeLabeled: this.includeLabeled
       };
+      if (this.enableGroupFilters) {
+        filters.includeIntraGroup = this.includeIntraGroup;
+        filters.keepCurrentGroup = this.keepCurrentGroup;
+      }
       this.filterFn(filters);
     },
     categoryUpdated(newValue, oldValue) {
@@ -199,7 +202,7 @@ export default defineComponent({
     },
     includeLabeledUpdated(newValue, oldValue) {
       if (newValue != oldValue) {
-        this.categoryId = null;        
+        this.categoryId = null;
       }
     }
   }

@@ -1,7 +1,7 @@
 <template>
   <div>
     <section v-if="!groupSelected">
-      <b-message 
+      <b-message
         :has-icon="true"
         icon="info-circle"
         icon-size="small"
@@ -30,6 +30,7 @@
           </b-field>
         </b-field>
       </section >
+      <section>
         <b-collapse animation="slide" :open="false">
           <template #trigger>
             <div class="collapseHeader" role="button">
@@ -40,7 +41,6 @@
             <transactions-filter-form :clearFn="clearFormFilters" :filterFn="selectFormFilters"></transactions-filter-form>
           </div>
         </b-collapse>
-      <section>
       </section>
       <section>
         <b-table
@@ -59,14 +59,14 @@
           detail-transition="fade"
           :aria-next-label="$t('next-page')"
           :aria-previous-label="$t('previous-page')"
-          :aria-page-label="$t('page')" 
+          :aria-page-label="$t('page')"
           :aria-current-label="$t('current-page')">
 
           <b-table-column field="data_source" v-slot="props">
             <div v-if="props.row.data_source == 'manual'">
               <b-tooltip :label="$t('transaction.source_to_edit', {'source': props.row.data_source})" type="is-info">
-                <b-button 
-                  class="is-small is-secondary" 
+                <b-button
+                  class="is-small is-secondary"
                   icon-left="hand-paper"
                   @click="$router.push({name: 'edit-transaction', params: {transactionid: props.row.id}})"
                   ></b-button>
@@ -82,7 +82,7 @@
           <b-table-column field="when" :label="$t('account.when')" v-slot="props" sortable>
             <datetime-display :asdate="true" :datetime="props.row.when"></datetime-display>
           </b-table-column>
-          
+
           <b-table-column :label="$t('account.source.number')" field="source.number" v-slot="props">
             <account-number-display :number="props.row.source ? props.row.source.number : null"></account-number-display>
           </b-table-column>
@@ -106,12 +106,12 @@
           <b-table-column field="group_options" :label="$t('account_group.tag')" v-slot="props">
             <div class="level">
               <div class="level-item">
-                <b-tooltip 
+                <b-tooltip
                   :label="props.row.in_group ? $t('account_group.in_group_tooltip') : $t('account_group.not_in_group_tooltip')"
                   :type="props.row.in_group ? 'is-info' : 'is-warning' "
                 >
-                  <b-button 
-                    :icon-right="props.row.in_group ? 'link' : 'unlink'" 
+                  <b-button
+                    :icon-right="props.row.in_group ? 'link' : 'unlink'"
                     :type="props.row.in_group ? 'is-info' : 'is-warning'"
                     class="is-small"
                     v-on:click="() => { updateGroupLink(props.row); }"
@@ -200,7 +200,7 @@ export default defineComponent({
       isLoading: false,
       sortField: 'when',
       sortOrder: 'desc',
-      formFilters: null, 
+      formFilters: null,
       totalTransactions: 0,
       globalCategory: null,
       selectedCategories: {},
@@ -214,7 +214,7 @@ export default defineComponent({
       this.isLoading = true;
       this.categories = await Category.getFlattenedCategoryTree();
       await this.updateTransactions();
-      this.isLoading = false; 
+      this.isLoading = false;
     }
   },
   computed: {
@@ -237,7 +237,7 @@ export default defineComponent({
   methods: {
     humanReadable(s) {
       if (s) {
-        return (s.charAt(0).toUpperCase() + s.slice(1)).replaceAll("_", " ");        
+        return (s.charAt(0).toUpperCase() + s.slice(1)).replaceAll("_", " ");
       } else {
         return "";
       }
@@ -261,7 +261,7 @@ export default defineComponent({
       if (!selected || !this.categoryMap[selected]) {
         return "";
       }
-      // TODO determine if expense or income based on group 
+      // TODO determine if expense or income based on group
       return "";
     },
     getButtonClass(transaction) {
@@ -314,14 +314,14 @@ export default defineComponent({
     async updateTransactionsWithLoading() {
       this.isLoading = true;
       await this.updateTransactions();
-      this.isLoading = false; 
+      this.isLoading = false;
     },
     async updateTransactions() {
       this.transactions = await this.getFilteredTransactions();
       this.totalTransactions = await Transaction.countAll(this.getAllParams());
       this.setSelectedCategories();
     },
-    async getFilteredTransactions() { 
+    async getFilteredTransactions() {
       return await Transaction.fetchAll(this.getAllParams());
     },
     getAllParams() {
@@ -334,7 +334,7 @@ export default defineComponent({
     },
     getPaginateParams() {
       return {
-        order: this.sortOrder,        
+        order: this.sortOrder,
         sort_by: this.sortField,
         count: this.transactionsPerPage,
         start: this.pageStart,
@@ -346,7 +346,7 @@ export default defineComponent({
       let model = new Transaction(transaction);
       let categoryId = this.selectedCategories[model.id];
       await model.setCategory(categoryId);
-      this.commitedCategories[model.id] = model.category; 
+      this.commitedCategories[model.id] = model.category;
       transaction.id_category = categoryId;
       transaction.category = this.categoryMap[categoryId];
     },
@@ -365,7 +365,6 @@ export default defineComponent({
         this.selectedCategories[t.id] = this.globalCategory;
       });
     },
-    
     /** LINK with GROUPS */
     resetTransactionForUnlink(transaction) {
       transaction.in_group = false;
@@ -409,7 +408,7 @@ export default defineComponent({
       await this.updateTransactionsWithLoading();
     },
     async clearFormFilters() {
-      let needsRefresh = !!this.formFilters; 
+      let needsRefresh = !!this.formFilters;
       this.formFilters = null;
       if (needsRefresh) {
         await this.updateTransactionsWithLoading();
@@ -466,7 +465,7 @@ export default defineComponent({
             break;
         }
       }
-      if (this.formFilters.includeIntraProfile) {
+      if (this.formFilters.includeIntraGroup) {
         filters.group_external_only = false;
       }
       return filters;

@@ -3,7 +3,7 @@ import store from './store';
 
 const groupSelectedOnly = async (to, from, next) => {
   await store.dispatch('initializeStore');
-  
+
   if (store.state.currentUser != null && store.state.currentGroup) {
     next();
     return;
@@ -98,6 +98,12 @@ const routes = [
     name: 'edit-transaction',
     path: '/transaction/:transactionid',
     component: require('./pages/CreateUpdateManualTransactionPage.vue').default,
+    beforeEnter: authenticatedOnly
+  },
+  {
+    name: 'manage-duplicate-transactions',
+    path: '/duplicates',
+    component: require('./pages/DuplicateTransactionManagementPage.vue').default,
     beforeEnter: authenticatedOnly
   },
   {

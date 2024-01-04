@@ -226,6 +226,7 @@ def get_transactions():
   date_to = request.args.get("date_to", type=date_type, default=None)
   amount_from = request.args.get("amount_from", type=Decimal, default=None)
   amount_to = request.args.get("amount_to", type=Decimal, default=None)
+  duplicate_only = request.args.get("duplicate_only", type=bool_type, default=False)
 
   ## conditional content
   # add fields: ml_category (object), ml_proba (float)
@@ -241,8 +242,8 @@ def get_transactions():
     return error_response("cannot have a date_from after date_to")
   if amount_from is not None and amount_to is not None and amount_from > amount_to:
     return error_response("cannot have a amount_from greater than amount_to")
-  if (group_data or in_group is not None or group_external_only) and group is None:
-    return error_response("group id must be provided if group_data or in_group or group_external_only is requested")
+  if (group_data or group_external_only) and group is None:
+    return error_response("group id must be provided if group_data or group_external_only is requested")
 
   # not filtering by group
   if in_group == -1:
@@ -262,9 +263,14 @@ def get_transactions():
     date_from=date_from,
     date_to=date_to,
     amount_from=amount_from,
-    amount_to=amount_to
+    amount_to=amount_to,
+    duplicate_only=duplicate_only
   )[start:(start+count)]
-  to_return = [t.as_dict() for t in transactions]
+
+  to_return = [
+    t.as_dict(show_is_duplicate_of=duplicate_only)
+    for t in transactions
+  ]
 
   if ml_category:
     categories, probas = predict_categories(transactions)
@@ -303,7 +309,7 @@ def get_transactions_count():
   date_to = request.args.get("date_to", type=date_type, default=None)
   amount_from = request.args.get("amount_from", type=Decimal, default=None)
   amount_to = request.args.get("amount_to", type=Decimal, default=None)
-
+  duplicate_only = request.args.get("duplicate_only", type=bool_type, default=False)
 
   if account is not None and group is not None:
     return error_response("cannot set both account and account_group when fetching transactions")
@@ -311,8 +317,8 @@ def get_transactions_count():
     return error_response("cannot have a date from after date_to")
   if amount_from is not None and amount_to is not None and amount_from > amount_to:
     return error_response("cannot have a amount_from greater than amount_to")
-  if (in_group is not None or group_external_only) and group is None:
-    return error_response("group id must be provided if group_data or in_group or group_external_only is requested")
+  if group_external_only and group is None:
+    return error_response("group id must be provided if group_data or group_external_only is requested")
 
   # not filtering by group
   if in_group == -1:
@@ -331,6 +337,7 @@ def get_transactions_count():
     date_to=date_to,
     amount_from=amount_from,
     amount_to=amount_to,
+    duplicate_only=duplicate_only
   )
   return jsonify({'count': query.count() })
 

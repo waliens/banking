@@ -118,7 +118,8 @@ def get_transaction_query(
     order="desc",
     amount_from=None,
     amount_to=None,
-    labeled=None
+    labeled=None,
+    duplicate_only: bool=False
   ):
   """
   Params
@@ -136,8 +137,13 @@ def get_transaction_query(
   amount_to: Decimal (default: None)
   include_labeled: bool (default: False)
   category: int|bool (default: None)
+  duplicate_only: bool (default: False)
   """
-  filters = [Transaction.id_is_duplicate_of == None]
+  filters = []
+  if duplicate_only:
+    filters.append(Transaction.id_is_duplicate_of != None)
+  else:
+    filters.append(Transaction.id_is_duplicate_of == None)
   if account is not None:
     filters.append(or_(Transaction.id_source == account, Transaction.id_dest == account))
   if group is not None:

@@ -102,6 +102,7 @@ ml_model.target,Target data,Données cibles
 ml_model.title,Models,Modèles,
 name,Name,Nom,
 navbar.data,Data,Données
+navbar.manage_duplicate,Manage duplicate transaction,Gérer les transactions en double
 new,New,Nouveau
 next-page,Next page,Page suivante
 page,Page,Page

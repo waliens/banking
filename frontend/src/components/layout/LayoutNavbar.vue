@@ -28,13 +28,16 @@
           <span><b-icon icon="pen"/> {{ $t('navbar.data') }}</span>
         </template>
         <b-navbar-item tag="router-link" :to="{ name: 'edit-tag-tree' }">
-          {{$t('tagging.tree')}}
+          <span><b-icon icon="sitemap"/> {{$t('tagging.tree')}} </span>
         </b-navbar-item>
         <b-navbar-item tag="router-link" :to="{ name: 'merge-accounts' }">
-          {{$t('account.merge')}}
+          <span><b-icon icon="random" /> {{$t('account.merge')}}</span>
         </b-navbar-item>
         <b-navbar-item tag="router-link" :to="{ name: 'models' }">
-          {{$t('ml_model.title')}}
+          <span><b-icon icon="hat-wizard"/> {{$t('ml_model.title')}}</span>
+        </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ name: 'manage-duplicate-transactions' }">
+          <span><b-icon icon="copy"/> {{$t('navbar.manage_duplicate')}} </span>
         </b-navbar-item>
       </b-navbar-dropdown>
       <b-navbar-item tag="router-link" :to="{ name: 'help' }">
