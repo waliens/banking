@@ -26,6 +26,9 @@ export default defineComponent({
   watch: {
     selected() {
       this.$emit('input', this.selected);
+    },
+    value() {
+      this.selected = this.value;
     }
   }
 });

@@ -265,6 +265,9 @@ export default defineComponent({
     groupSelected() {
       return !!this.$store.state.currentGroup;
     },
+    currentGroup() {
+      return this.$store.state.currentGroup;
+    },
     pageStart() {
       return (this.currentPage - 1) * this.transactionsPerPage;
     },
@@ -302,11 +305,26 @@ export default defineComponent({
     },
     getSelectedIconClass(transaction) {
       let selected = this.selectedCategories[transaction.id];
-      if (!selected || !this.categoryMap[selected]) {
+      if (!this.groupSelected || !selected || !this.categoryMap[selected]) {
         return "";
       }
-      // TODO determine if expense or income based on group
-      return "";
+      // group contribution ratio for source and target 
+      let sourceRatio = 0.0, destRatio = 0.0;
+      let accountGroup = this.currentGroup;
+      accountGroup.account_groups.forEach(ag => {
+        if (ag.id_account == transaction.id_source) {
+          sourceRatio = ag.contribution_ratio;
+        }
+        if (ag.id_account == transaction.id_dest) {
+          destRatio = ag.contribution_ratio;
+        }
+      });
+
+      if (sourceRatio > destRatio) {
+        return "expenseClass";
+      } else {
+        return "incomeClass";
+      }
     },
     getButtonClass(transaction) {
       let commited = this.commitedCategories[transaction.id];
