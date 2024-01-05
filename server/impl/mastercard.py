@@ -17,7 +17,7 @@ SMALL_DATE_PATTERN = r"^[0-9]{2}/[0-9]{2}$"
 
 
 def ms_identifier(t):
-  return re.sub(r"\s+", "", "mastercard/{}/{}/{}/{}/{}/{}/{}/{}".format(
+  return re.sub(r"\s+", "", "mastercard/{}/{}/{}/{}/{}/{}/{}/{}/{}".format(
     t["amount"],
     t["account"].name if isinstance(t["account"], Account) else t["account"],
     t["closing_date"].isoformat(),
@@ -25,7 +25,8 @@ def ms_identifier(t):
     t["when"].isoformat(),
     t["value_date"].isoformat(),
     t["country_code"],
-    t["country_or_site"]
+    t["country_or_site"],
+    t["index"]
   ))
 
 
@@ -102,14 +103,14 @@ def parse_conversion_data(s):
   splitted = s.split(src_currency)
   original_amount = splitted[0].strip()
   rate = splitted[1].rsplit("=", 1)[1].strip()
-  return Decimal(original_amount.replace(",", ".")), src_currency, rate
+  return Decimal(original_amount.replace(".", "").replace(",", ".")), src_currency, rate
 
 
 def parse_amount(s):
-  match = re.match("^([0-9]+(?:,[0-9]+))\s*([A-Z]+)\s*([-+])$", s)
+  match = re.match("^([0-9]{1,3}(?:\.[0-9]{3})?(?:,[0-9]*)?)\s*([A-Z]+)\s*([-+])$", s)
   if match is None:
     raise ValueError("cannot parse amount '{}'".format(s))
-  amount = Decimal(match.group(1).replace(",","."))
+  amount = Decimal(match.group(1).replace(".", "").replace(",","."))
   if match.group(3) == "-":
     amount *= -1
   return amount, match.group(2)
@@ -152,7 +153,7 @@ class PageInfo():
   @property
   def transactions(self):
     return self._data_dict.get("transactions", [])
-      
+
   @classmethod
   def _parse_page(cls, page_soup):
     data = {}
@@ -183,7 +184,7 @@ class PageInfo():
     closing_y, _ = extract_pos(closing_label)
     debit_label = debits[0]
     debit_y, _ = extract_pos(debit_label)
-    date_pattern = re.compile("[0-9]{2}/[0-9]{2}/[0-9]{4}") 
+    date_pattern = re.compile("[0-9]{2}/[0-9]{2}/[0-9]{4}")
     found_divs = [d for d in divs if date_pattern.match(d.text.strip()) is not None and extract_pos(d)[0] in {closing_y, debit_y}]
     if len(found_divs) != 2:
       raise ValueError("did not find date divs for debit and closing")
@@ -192,7 +193,7 @@ class PageInfo():
     else:
       closing_date_div, debit_date_div = found_divs
     return {
-      'closing_date': datetime.strptime(closing_date_div.text.strip(), '%d/%m/%Y').date(), 
+      'closing_date': datetime.strptime(closing_date_div.text.strip(), '%d/%m/%Y').date(),
       'debit_date': datetime.strptime(debit_date_div.text.strip(), '%d/%m/%Y').date()
     }
 
@@ -204,8 +205,8 @@ class PageInfo():
   def _parse_transactions(cls, page_soup):
     divs = page_soup.find_all("div")
 
-    """ 
-    find rows ! 
+    """
+    find rows !
     1) locate first row by locating first div with matching date string pattern
     2) associated index from there:
         - every matching string pattern div at the same x coordinate is a row (so we get the y for this row)
@@ -215,20 +216,20 @@ class PageInfo():
     small_date_pattern = re.compile(SMALL_DATE_PATTERN)
     while small_date_pattern.match(divs[index_first_row].text.strip()) is None:
       index_first_row += 1
-    
-    # extract coord 
+
+    # extract coord
     y_to_row_index, index_last_row = index_rows(divs, index_first_row)
 
     # extract data
     data = defaultdict(list)
-    
+
     for div_index in range(index_first_row, len(divs)):
       div = divs[div_index]
       y, _ = extract_pos(div)
       actual_y = get_closest_y_from_index(y_to_row_index, y)
       if actual_y < 0:
         # skip div not in table
-        continue 
+        continue
       data[y_to_row_index[actual_y]].append(div)
 
     debit_closing = cls._closing_debit_dates(page_soup)
@@ -241,10 +242,7 @@ class PageInfo():
 
       c_data = dict()
       if len(t_data) > 6:  # has another currency
-        c_data['original_amount'], c_data['original_currency'], c_data['rate_to_final'] = parse_conversion_data(t_data[5]) 
-        amount_index = 6
-      else:
-        amount_index = 5
+        c_data['original_amount'], c_data['original_currency'], c_data['rate_to_final'] = parse_conversion_data(t_data[5])
 
       f_data = {
         'when': late_date,
@@ -254,6 +252,7 @@ class PageInfo():
         'country_code': t_data[4]
       }
 
+      amount_index = -1  # amount always last
       amount, currency = parse_amount(t_data[amount_index])
       f_data.update(c_data)
       f_data.update({ 'amount': amount, 'currency': currency })
@@ -272,7 +271,7 @@ def parse_folder(dirname):
   page_infos = list()
   for filename in os.listdir(dirname):
     page_infos.extend(parse_mastercard_pdf(os.path.join(dirname, filename)))
-  
+
   # extract transactions and account names
   transactions = list()
   account_names = set()
@@ -280,14 +279,10 @@ def parse_folder(dirname):
   for page_info in page_infos:
     ts = page_info.transactions
     transactions.extend(ts)
-    for t in ts:
+    for i, t in enumerate(ts):
+      t["index"] = i  # index of the transaction in the page
       account2currency[t["account"]] = t.get("original_currency", t["currency"])
       account_names.add(t["account"])
-    
+
   return page_infos, transactions, account_names, account2currency
 
-
-if __name__ == "__main__":
-  pages = parse_mastercard_pdf("/mnt/d/Git/banking/personal/6291106679_01_02_2022_01_36_32.pdf")
-  import pprint
-  pprint.pprint([p.transactions for p in pages])

@@ -21,11 +21,11 @@ class FileNotMatchingDataSource(ValueError):
 
 
 def find_duplicates(sess, transactions: Iterable[Transaction]) -> Dict[str, str]:
-  """Takes a set of un-saved/un-commited transactions and returns a mapping 
+  """Takes a set of un-saved/un-commited transactions and returns a mapping
   of duplicates as duplicate if they match any transaction in the database
   or any transaction in the current set.
-  
-  They match if the amount, the source and target accounts and the day of the transaction (when) are the same. 
+
+  They match if the amount, the source and target accounts and the day of the transaction (when) are the same.
   """
   def key_fn(t):
     return t.id_source if t.id_source is not None else -1, t.id_dest if t.id_dest is not None else -1, t.when, t.amount
@@ -46,14 +46,14 @@ def find_duplicates(sess, transactions: Iterable[Transaction]) -> Dict[str, str]
 
     if len(results) > 0:
       duplicate_map[transaction.custom_id] = results[0][0].custom_id
-    else: 
+    else:
       # might still be duplicates inside the new transaction set
       bisect_index = bisect.bisect_left(checked_not_dup, key_fn(transaction), key=key_fn)
-      if bisect_index < len(checked_not_dup) and key_fn(checked_not_dup[bisect_index]) == key_fn(transaction):      
+      if bisect_index < len(checked_not_dup) and key_fn(checked_not_dup[bisect_index]) == key_fn(transaction):
         duplicate_map[transaction.custom_id] = checked_not_dup[bisect_index].custom_id
       else:
         checked_not_dup.insert(bisect_index, transaction)
-  
+
   return duplicate_map
 
 
@@ -79,7 +79,7 @@ def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
   all_db_accounts = {**db_accounts}
   removed = [a for k, a in db_accounts.items() if k not in reference_accounts_set]
   id_default_currency = Currency.short_name_to_id("EUR")
-  
+
   # create new accounts
   new = [
     Account(number=a.number, name=a.name, initial=0, id_currency=id_default_currency)
@@ -109,7 +109,7 @@ def save_diff_db_parsed_accounts(db_accounts, account_book: AccountBook, sess):
     sess.connection().execute(delete_stmt, [{'old_id': a.id} for a in removed])
 
     for a in removed:
-      all_db_accounts.pop((a.number, a.name)) 
+      all_db_accounts.pop((a.number, a.name))
 
   if len(removed) > 0 or len(old_new_ids) > 0:
     sess.commit()
@@ -140,16 +140,16 @@ def import_bank_csv(data_source: str, dirname: str, sess):
     parser = IngParserOrchestrator(dirname)
   else:
     raise ValueError("invalid data source")
-  
+
   if not parser.check_transaction_files(dirname):
     raise FileNotMatchingDataSource()
-  
+
   groups = parser.read(dirname, add_env_group=True)
   env = groups[0]
-  
+
   db_accounts = save_diff_db_parsed_accounts(db_accounts, env.account_book, sess=sess)
   currencies = Currency.query.all()
-  
+
   existing_ids = {s[0] for s in sess.query(Transaction.custom_id).all()}
 
   def get_account_id(accounts, identifier):
@@ -174,9 +174,9 @@ def import_bank_csv(data_source: str, dirname: str, sess):
       data_source=data_source,
       id_is_duplicate_of=None
     ))
-  
+
   logging.getLogger("banking").info("uploading {} new transaction(s)".format(len(transacs)))
-    
+
   duplicate_map = find_duplicates(sess, transacs)
 
   save(transacs, sess=sess)
@@ -204,7 +204,7 @@ def check_existing_mastercard_accounts(account_names):
 def make_mscard_metadata(t):
   toisoformat = lambda v: v.isoformat()
   serializer = AsDictSerializer(
-    "country_code", "country_or_site", "rate_to_final", "original_currency", 
+    "country_code", "country_or_site", "rate_to_final", "original_currency",
     closing_date=toisoformat, debit_date=toisoformat, value_date=toisoformat,
     original_amount=(lambda v: None if v is None else str(v)),
   )
@@ -217,8 +217,8 @@ def get_mastercard_preview(dirname, sess):
   logging.getLogger('banking').info("found {} transaction(s) in pdf file(s)".format(len(transactions)))
 
   existing = sess.execute(select(Transaction.custom_id).where(Transaction.data_source == "mastercard"))
-  existing_mcard_ids = {t["custom_id"] for t in existing}
- 
+  existing_mcard_ids = {t.custom_id for t in existing}
+
   currencies = {c.short_name: c for c in Currency.query.all()}
   for t in transactions:
     account_name = t["account"]
@@ -233,7 +233,7 @@ def get_mastercard_preview(dirname, sess):
   serializer = AsDictSerializer(
     "account_name", "country_code", "country_or_site", "rate_to_final", "duplicate",
     closing_date=toisoformat, debit_date=toisoformat,
-    when=toisoformat, value_date=toisoformat, amount=str, 
+    when=toisoformat, value_date=toisoformat, amount=str,
     original_amount=(lambda v: None if v is None else str(v)),
     **{k: AsDictSerializer.as_dict_fn() for k in ["original_currency", "account", "currency"]}
   )
@@ -257,13 +257,13 @@ def import_mastercard_pdf(dirname, id_mc_account, sess):
   all_accounts.update(new_accounts)
 
   existing = sess.execute(select(Transaction.custom_id).where(Transaction.data_source == "mastercard"))
-  existing_mcard_ids = {t["custom_id"] for t in existing}
+  existing_mcard_ids = {t.custom_id for t in existing}
 
   new_transactions = list()
   for t in transactions:
     custom_id = ms_identifier(t)
     if custom_id in existing_mcard_ids:
-      continue 
+      continue
     amount = t["amount"]
     id_source, id_dest = id_mc_account, all_accounts[t["account"]].id
     if amount > 0:  # income
@@ -278,7 +278,7 @@ def import_mastercard_pdf(dirname, id_mc_account, sess):
       id_category=None,
       data_source="mastercard"
     ))
-  
+
   sess.bulk_save_objects(new_transactions)
   sess.commit()
 

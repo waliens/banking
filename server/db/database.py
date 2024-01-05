@@ -1,3 +1,4 @@
+import csv
 from decimal import getcontext, setcontext
 import os
 import logging
@@ -15,11 +16,17 @@ from .util import save
 
 def add_currencies(sess=None):
     from .models import Currency
-    stmt = insert(Currency).values([
-        {"symbol":"€", "short_name":"EUR", "long_name":"Euro"},
-        {"symbol":"$", "short_name":"USD", "long_name":"US Dollar"},
-        {"symbol":"£", "short_name":"GBP", "long_name":"GB Pounds"}
-    ])
+    filepath = os.path.join(os.path.dirname(__file__), "init_data", 'currencies.csv')
+    with open(filepath, 'r', encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        stmt = insert(Currency).values([
+            {
+                "symbol": row["symbol"],
+                "short_name": row["code"],
+                "long_name": row["name"]
+            }
+            for row in reader
+        ])
     sess.execute(stmt)
 
 
@@ -27,16 +34,16 @@ def add_tags(sess=None):
     from .models import Category
     from parsing.tags import TagTree
     tree = TagTree.tree_from_file("parsing")
-    import numpy as np 
+    import numpy as np
     v, c = np.unique([t.identifier for t in tree._tags.values()], return_counts=True)
     if np.any(c > 1):
         raise ValueError("duplicate tags identifiers")
-   
+
     stmt = insert(Category).values([{
-        "id": t.identifier, 
-        "name": t.name, 
-        "id_parent": t.parent_id, 
-        "color": t.color, 
+        "id": t.identifier,
+        "name": t.name,
+        "id_parent": t.parent_id,
+        "color": t.color,
         "icon": t.icon
     } for _, t in tree._tags.items()])
     sess.execute(stmt)
@@ -49,7 +56,7 @@ def add_default_user(sess=None):
         password=User.hash_password_string("root")
     )
     sess.execute(stmt)
-    
+
 
 def init_db():
     from .models import Base

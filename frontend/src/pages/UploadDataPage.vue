@@ -36,17 +36,17 @@
     </section>
     <section v-if="isMastercardPdf()" class="mscard-section">
       <account-drop-down-selector :label="$t('data_upload.mastercard_account')" :accounts="accounts" v-model="mastercardAccount" horizontal/>
-      <b-table 
-        v-if="mastercardPreview" 
+      <b-table
+        v-if="mastercardPreview"
         :data="mastercardPreview" >
 
         <b-table-column :label="$t('account.name')" v-slot="props">
           <div v-if="props.row.account"><string-or-null-display :value="props.row.account.name"></string-or-null-display> / <account-number-display :number="props.row.account.number"></account-number-display></div>
-          <div v-else><p>{{props.row.account_name}}</p></div>      
+          <div v-else><p>{{props.row.account_name}}</p></div>
         </b-table-column>
 
-        <b-table-column v-slot="props"> 
-          <b-tag v-if="!props.row.account" class="is-primary is-small">New</b-tag> 
+        <b-table-column v-slot="props">
+          <b-tag v-if="!props.row.account" class="is-primary is-small">New</b-tag>
         </b-table-column>
 
         <b-table-column :label="$t('date')" v-slot="props">
@@ -133,7 +133,9 @@ export default defineComponent({
       return await Account.fetchAll();
     },
     async triggerMastercardPreview() {
+      this.loading = true;
       let previewData = await Model.uploadFiles(this.files, "/upload_files", {'format': 'mastercard_pdf_preview'});
+      this.loading = false;
       this.mastercardPreview = previewData.data;
     }
   },
