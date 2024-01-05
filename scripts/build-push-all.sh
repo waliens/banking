@@ -16,7 +16,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "building task runner..."
-docker build -t rmormont/banking-task-runner:latest -t rmormont/banking-task-runner:$VERSION --target server server/
+docker build -t rmormont/banking-task-runner:latest -t rmormont/banking-task-runner:$VERSION --target task-runner server/
 if [ $? -ne 0 ]; then
   echo "/!\ task-runner build failed, aborting..."
 fi
