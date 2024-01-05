@@ -17,11 +17,12 @@ import LayoutNavbar from './components/layout/LayoutNavbar';
 import LayoutFooter from './components/layout/LayoutFooter';
 import constants from '@/utils/constants.js';
 import axios from 'axios';
+import { doRefreshToken } from './store.js';
 
 export default {
   name: 'App',
   components: {
-    LayoutNavbar, 
+    LayoutNavbar,
     LayoutFooter
   },
   computed: {
@@ -41,7 +42,8 @@ export default {
     }
     Object.freeze(constants);
 
-    this.$store.dispatch('initializeStore');
+    setInterval(doRefreshToken, 30 * 1000 * 3600); // refresh token every 30min
+    await this.$store.dispatch('initializeStore');
   }
 }
 </script>

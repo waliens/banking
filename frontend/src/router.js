@@ -3,7 +3,6 @@ import store from './store';
 
 const groupSelectedOnly = async (to, from, next) => {
   await store.dispatch('initializeStore');
-
   if (store.state.currentUser != null && store.state.currentGroup) {
     next();
     return;
@@ -11,10 +10,8 @@ const groupSelectedOnly = async (to, from, next) => {
   next({name: 'select-account-group'});
 };
 
-
 const authenticatedOnly = async (to, from, next) => {
   await store.dispatch('initializeStore');
-
   if (store.state.currentUser != null) {
     next();
     return;

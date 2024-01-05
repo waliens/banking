@@ -1,5 +1,5 @@
 <template>
-  <div class="columns"> 
+  <div class="columns">
     <section class="column is-one-quarter">
       <b-menu class="scrollable" :label="$t('users.title')">
         <b-menu-list >
@@ -13,7 +13,7 @@
           </template>
           <b-menu-item v-for="(user, index) in users" :key="user.id" :active.sync="activeItems[index]">
             <template #label>
-              <b-icon icon="user" /> 
+              <b-icon icon="user" />
               <span v-if="!user.id"><em> {{ user.username }} </em></span>
               <span v-else> {{ user.username }} </span>
             </template>
@@ -26,7 +26,7 @@
         <div class="level-left">
           <h3 class="title">
             <span v-if="activeUser && activeUser.id">{{ $t('user.edit') }}</span>
-            <span v-else>{{ $t('user.create') }}</span> 
+            <span v-else>{{ $t('user.create') }}</span>
           </h3>
         </div>
         <div class="level-right">
@@ -88,9 +88,6 @@ export default defineComponent({
       if (this.users) {
         this.resetActive();
       }
-    },
-    clickUserInMenu(index) {
-      console.log(index);
     },
     resetActive() {
       this.activeItems = Array(this.users.length).fill(false);

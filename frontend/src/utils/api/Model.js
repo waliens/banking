@@ -19,30 +19,6 @@ export default class Model {
     let instance = axios.create({
       baseURL: constants.BACKEND_BASE_URL
     });
-
-    // refresh token
-    instance.interceptors.response.use((response) => response, async function (error) {
-      let originalRequest = error.config;
-      let refreshToken = window.localStorage.refreshToken;
-      if (error.response.status === 401 && !originalRequest._retry && refreshToken) {
-        originalRequest._retry = true;
-        return await axios.post(
-          `${constants.BACKEND_BASE_URL}/refresh`, {}, {
-            headers: {
-              'Authorization': `Bearer ${refreshToken}`
-            }
-          }
-        ).then(({data}) => {
-          window.localStorage.accessToken = data.accessToken;
-          let header = 'Bearer ' + data.access_token;
-          axios.defaults.headers.common.Authorization = header;
-          originalRequest.headers.Authorization = header;
-          return instance(originalRequest);
-        });
-      }
-      return Promise.reject(error);
-    })
-
     return instance;
   }
 
@@ -90,9 +66,9 @@ export default class Model {
 
   /**
    * Map field using on the mappers
-   * @param {*} key 
-   * @param {*} value 
-   * @returns 
+   * @param {*} key
+   * @param {*} value
+   * @returns
    */
   mapField(key, value) {
     let defaultMappers = this.mappers();
@@ -168,8 +144,8 @@ export default class Model {
 
   /**
    * Count number of entries returned by fetchAll
-   * @param {*} params 
-   * @returns 
+   * @param {*} params
+   * @returns
    */
   static async countAll(params={}) {
     let {data} = await this.backend().get(`${this.collectionName}/count`, {

@@ -3,8 +3,10 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 
 import axios from 'axios';
+import constants from '@/utils/constants.js';
 import Group from '@/utils/api/Group';
 import User from '@/utils/api/User';
+
 
 const state = {
   currentGroupId: null,
@@ -29,7 +31,7 @@ const mutations = {
   },
 
   clearCurrentGroup(state) {
-    window.localStorage.currentGroupId = undefined;
+    window.localStorage.removeItem("currentGroupId");
     state.currentGroupId = null;
     state.currentGroup = null;
   },
@@ -50,6 +52,8 @@ const actions = {
     }
     setAccessToken(accessToken);
     setRefreshToken(refreshToken);
+
+    await doRefreshToken();
     await dispatch('fetchUser');
 
     let groupId = window.localStorage.currentGroupId;
@@ -114,13 +118,41 @@ const actions = {
   }
 };
 
+export async function doRefreshToken() {
+  let refreshToken = window.localStorage.refreshToken;
+  if (!refreshToken) {
+    return;
+  }
+  return await axios.post(
+    `${constants.BACKEND_BASE_URL}/refresh`, {}, {
+      headers: {
+        'Authorization': `Bearer ${refreshToken}`
+      }
+    }
+  ).then(({data}) => {
+    setAccessToken(data.access_token);
+    return data.access_token;
+  }).catch(() => {
+    console.error("could not refresh token");
+  });
+}
+
 function setAccessToken(token) {
-  window.localStorage.accessToken = token;
-  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  if (!token) {
+    window.localStorage.removeItem("accessToken");
+    axios.defaults.headers.common['Authorization'] = undefined;
+  } else {
+    window.localStorage.accessToken = token;
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
 }
 
 function setRefreshToken(token) {
-  window.localStorage.refreshToken = token;
+  if (!token) {
+    window.localStorage.removeItem("refreshToken");
+  } else {
+    window.localStorage.refreshToken = token;
+  }
 }
 
 function cleanAuthenticationState() {
