@@ -1,15 +1,15 @@
+import multiprocessing
 import os 
 import logging
 
 import numpy as np
 from joblib import dump
-from scipy.sparse import data
-from scipy.sparse.construct import rand
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.metrics import accuracy_score, make_scorer
 
+from sqlalchemy import select
 from sqlalchemy.sql.expression import update
 
 from db.models import MLModelFile, MLModelState, Transaction
@@ -17,6 +17,10 @@ from .feature_extractor import belfius_transformer, CategoryEncoder
 
 
 class ModelBeingTrainedException(Exception):
+  pass
+
+
+class NotEnoughDataToTrain(Exception):
   pass
 
 
@@ -31,15 +35,21 @@ def train_model(session, data_source="belfius", required_sample_size=50, random_
     raise ValueError("not supported for other data then beflius")
 
   transformer = belfius_transformer()
-  transactions = Transaction.query.filter(Transaction.data_source == data_source).all()
-  labeled_idxs = np.array([i for i, t in enumerate(transactions) if t.id_category is not None])
+  query_results = session.execute(
+    select(Transaction).where(
+      Transaction.data_source == data_source,
+      Transaction.id_category != None
+    )
+  ).unique().all()
+  transactions = [r[0] for r in query_results]
+  labeled_idxs = np.arange(len(transactions))
 
   n_samples = labeled_idxs.shape[0]
 
   if MLModelFile.has_models_in_state(MLModelState.TRAINING, target=data_source):
     raise ModelBeingTrainedException("model being trained for target")
   if n_samples < required_sample_size:
-    return
+    raise NotEnoughDataToTrain(f"not enough data to train, only got {n_samples} samples, but requires {required_sample_size}")
 
   # save model in training mode
   model_filename = MLModelFile.generate_filename()
@@ -57,7 +67,8 @@ def train_model(session, data_source="belfius", required_sample_size=50, random_
     y = encoder.transform(categories)
 
     # create model
-    estimator = ExtraTreesClassifier(n_estimators=500, random_state=random_state)
+    n_jobs = min(multiprocessing.cpu_count() // 2, 4)
+    estimator = ExtraTreesClassifier(n_estimators=500, random_state=random_state, n_jobs=n_jobs)
     
     n_features = features.shape[1]
     param_grid = { 'min_samples_leaf': get_max_samples_leaf(n_samples), 'max_features': [int(np.sqrt(n_features)), n_features// 2, n_features] }
