@@ -2,34 +2,73 @@
   <div class="content">
     <section>
       <h1 class="title">Help page</h1>
-      <h2 class="subtitle">Data upload</h2>
+      <h2 class="subtitle">Adding transactions</h2>
+      <h3 class="subtitle">Data upload</h3>
       <p>See <router-link :to="{name: 'upload-data'}">upload page</router-link> </p>
       <p>The app requires that you upload data to work with. Currently, two import file formats are supported: </p>
       <ul>
         <li>Belfius CSV file (more info <a href="https://www.belfius.be/webapps/fr/selfcare/belfius/comptes/solde-historique/Comment-exporter-mon-historique-vers-un-fichier-CSV-(Excel)-en-Belfius-Direct-Net-">here</a>)</li>
+        <li>ING CSV file</li>
         <li>Mastercard spending monthly statement (PDF file from Belfius)</li> 
       </ul>
       <p>
-        The upload system should be robust enough to support upload of duplicate transactions. It also attempts to auto-detect and  <br/>
-        merge accounts with different names but same number (matching old belgian account numbers with IBAN if necessary). Merging account <br/> 
-        is useful for machine learning (see section <em>Machine learning models</em>). Accounts which were not auto-merge can also be <br/>
-        merged manually on the <router-link :to="{name: 'merge-accounts'}">merging page</router-link>.
+        The upload system is robust enough to support upload of duplicate transactions (see <a href="#help-duplicate-transactions">below</a>). It also attempts to auto-detect and  <br/>
+        merge accounts with different names but same number (e.g. matching legacy belgian account numbers with IBAN if necessary). <br /> 
+        Merging account is useful for machine learning (see section <em>Machine learning models</em>). Accounts which were not auto-merge 
+        can also be merged manually on the <router-link :to="{name: 'merge-accounts'}">merging page</router-link>.
       </p>
+      <p><em>Note:</em> the mastercard PDF upload requires you to also associate the credit card account.</p>
+      <h3 class="subtitle">Manual transactions</h3>
+      <p>See <router-link :to="{name: 'create-transaction'}">create transaction page</router-link></p>
+      <p>
+        Upload is not the only way one can add transactions to the application. It is also possible to add transactions manually.<br />
+        Manual transaction are the only transactions of the platform that can be edited.
+      </p>
+      <h3 class="subtitle" id="help-duplicate-transactions">Duplicate transactions</h3>
+      <p>
+        A duplicate transaction is a transaction that appears several times in the database. The application attempts to automatically <br />
+        prevent the creation of duplicate. This is done for instance by making upload idempotent, i.e. re-uploading several times the same <br />
+        transaction file (csv, pdf, etc.) does not create duplicate transactions. 
+      </p>
+      <p>
+        Unfortunately, it is not always possible to automatically prevent the creation of duplicates. For instance, if a transaction is uploaded <br />
+        twice with two different files from two different banks, the information provided in these files do not allow to identify them as identical. <br />
+        To mitigate this issue, the application will automatically mark as duplicate any two transactions that match all of the following conditions:
+        <ul>
+          <li>they involve the exact same amount of money</li>
+          <li>they originate same source account</li>
+          <li>they target same destination account</li>
+          <li>they were accounted on the same date</li>
+        </ul>
+        This ruleset is not perfect as it can falsly flag a transaction as duplicate that is not (false positive). It can also miss actual <br />
+        duplicates (e.g. when the two banks have not accounted the transaction on the same day) (false negative). The application provides <br />
+        tools to deal with these false positives and negatives. <router-link :to="{name: 'manage-duplicate-transactions'}">This page</router-link> allows to manually unflag false positives. In the <router-link :to="{name: 'transactions-tagging'}">transactions labeling page</router-link>, <br />
+        false negative transactions can manually be marked as duplicates.  
+      </p>
+      <h3 class="subtitle">Initial account balance</h3>
       <p>
         As it is not always possible to upload the entire transaction history of an account, its balance will not be equal to its real balance by default. <br/>
         To correct the difference, it is possible to add an <em>initial amount</em> in the account edition page. The amount can be positive or negative.
       </p>
-      <p><em>Note:</em> the mastercard PDF upload requires you to also associate the debit account (to which the balance is transferred every month).</p>
 
-      <h2 class="subtitle">Account group</h2>
-      <p>See <router-link :to="{name: 'select-account-group'}">account group page</router-link></p>
+      <h2 class="subtitle">Profiles</h2>
+      <p>See <router-link :to="{name: 'select-account-group'}">profile page</router-link></p>
       <p>
-        An account group is a set of accounts. It can be seen as a system with internal transactions and boundary transactions flowing in and out. <br/>
-        Some report features on the app will only consider transactions crossing the boundaries of the system (e.g. incomes and expenses).
+        A profile is a set of accounts. It can be seen as a system with internal transactions and boundary transactions flowing in and out. <br/>
+        Some report features on the app will only consider transactions crossing the boundaries of this system (e.g. incomes and expenses).
       </p>
       <p>
-        An account group must be created to access the reporting features of the app (it can contain only one account if necessary). <br/>
-        After creation, the account group must be selected which gives access to the reporting page. 
+        A profile must be created to access the reporting features of the app (it can contain only one account if necessary). <br/>
+        After creation, the profile must be selected which gives access to the reporting page. 
+      </p>
+      <p>
+        A transaction must be explicitely associated to a profile for this transaction to be considered in the different profile-related <br />
+        pages. Association of transactions and profiles are automated <strong>ONLY on two occasions</strong>: 
+        <ul>
+          <li>The transaction is added to the app and is involved with one of the accounts of a profile, this transaction is automatically associated to the profile</li>
+          <li>A group is created, all transactions involved with at least one account of the profile are associated with this profile</li>
+        </ul>
+        In any other case, the transaction must be manually associated to the currently selected profile in the <router-link :to="{name: 'transactions-tagging'}">transactions labeling page</router-link>.
       </p>
 
       <h2 class="subtitle">Reporting</h2>
@@ -52,8 +91,9 @@
       <h2 class="subtitle">Labeling transactions</h2>
       <p>See <router-link :to="{name: 'transactions-tagging'}">transactions labeling page</router-link></p>
       <p>
-        The app provides a labeling page for making easier to label the uploaded transactions. This page provides a filterable list of transactions <br/>
-        and different tools for labeling individual transactions or a batch of transaction. A machine learning model can be used to suggest labels (see section <em>Machine learning models</em>).
+        The app provides a labeling page for making easier to label the uploaded transactions. This page provides a filterable <br/>
+        list of transactions and different tools for labeling individual transactions or a batch of transaction. A machine <br />
+        learning model can be used to suggest labels (see section <em>Machine learning models</em>).
       </p> 
       <p>Tips for faster labeling:</p>
       <ul> 
