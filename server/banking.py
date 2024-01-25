@@ -352,8 +352,8 @@ def get_transactions_count():
 @jwt_required()
 def tag_transactions():
   sess = Session()
-  stmt = update(Transaction).where(Transaction.id == bindparam('id_transaction')).values({Transaction.id_category: bindparam('id_category')})
-  sess.execute(stmt, request.json.get("categories", []))
+  transaction_data = [{"id": o["id_transaction"], "id_category": o["id_category"]} for o in request.json.get("categories", [])]
+  sess.execute(update(Transaction), transaction_data, execution_options={"synchronize_session": False})
   sess.commit()
   return basic_success()
 
