@@ -53,7 +53,10 @@ class AccountsOneHot(TransformerMixin):
     self._encoder = OneHotEncoder(handle_unknown="ignore")  # validate 'ignore'
 
   def _accounts(self, X):
-    return [[x.id_source, x.id_dest] for x in X]
+    return np.array([[
+      x.id_source if x.id_source is not None else -1,
+      x.id_dest if x.id_dest is not None else -1
+    ] for x in X])
 
   def fit(self, X, y=None):
     self._encoder.fit(self._accounts(X))
