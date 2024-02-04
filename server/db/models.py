@@ -117,13 +117,17 @@ class Account(Base):
     def balance_pos(self):
         return self._balance_generic_instance(self.as_dest)
 
-    @balance_pos.expression
-    def balance_pos(cls):
-        return cls._balance_generic_expr(Transaction.id_dest)
-
     @hybrid_property
     def balance_neg(self):
         return self._balance_generic_instance(self.as_source)
+
+    @staticmethod
+    def _balance_generic_instance(transacs):
+        return sum([t.amount for t in transacs if t.id_is_duplicate_of is None])
+
+    @balance_pos.expression
+    def balance_pos(cls):
+        return cls._balance_generic_expr(Transaction.id_dest)
 
     @balance_neg.expression
     def balance_neg(cls):
@@ -133,13 +137,13 @@ class Account(Base):
     def balance(self):
         return self.initial - self.balance_neg + self.balance_pos
 
-    @staticmethod
-    def _balance_generic_instance(transacs):
-        return sum([t.amount for t in transacs])
-
     def _balance_generic_expr(cls, field):
         # TODO consider also other currencies
-        return select([func.sum(Transaction.amount)]).where(and_(cls.id == field, cls.id_currency == Transaction.id_currency)).correlate_except(Transaction).as_scalar()
+        return select([func.sum(Transaction.amount)]).where(and_(
+            cls.id == field,
+            cls.id_currency == Transaction.id_currency,
+            Transaction.id_is_duplicate_of == None
+        )).correlate_except(Transaction).as_scalar()
 
     __table_args__ = (
         UniqueConstraint('number', 'name', name='account_name_number_unique_constraint'),
