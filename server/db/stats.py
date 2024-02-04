@@ -9,23 +9,24 @@ from db.models import AccountGroup, Category, Currency, Transaction, Transaction
 from db.util import tag_tree_from_database, get_tags_descendants, get_tags_at_level
 
 
-def _join_account_groups(query, contribution_ratio: bool=True):
+def _join_account_groups(query, id_group, contribution_ratio: bool=True):
   # contribution ratios
-  AccountGroupDest = aliased(AccountGroup)
-  AccountGroupSource = aliased(AccountGroup)
-  query = query.outerjoin(AccountGroupDest, Transaction.id_dest == AccountGroupDest.id_account) \
-    .outerjoin(AccountGroupSource, Transaction.id_source == AccountGroupSource.id_account)
+  group_subquery = select(AccountGroup).where(AccountGroup.id_group == id_group).subquery()
+  ag_dest_subquery = aliased(group_subquery)
+  ag_source_subquery = aliased(group_subquery)
+  query = query.outerjoin(ag_dest_subquery, Transaction.id_dest == ag_dest_subquery.c.id_account) \
+    .outerjoin(ag_source_subquery, Transaction.id_source == ag_source_subquery.c.id_account)
   if contribution_ratio:
-    dest_cr_label = case((AccountGroupDest.id_account != None, AccountGroupDest.contribution_ratio), else_=0.0).label("dest_contribution_ratio")
-    src_cr_label = case((AccountGroupSource.id_account != None, AccountGroupSource.contribution_ratio), else_=0.0).label("source_contribution_ratio")
-    return query, AccountGroupSource, AccountGroupDest, src_cr_label, dest_cr_label
+    dest_cr_label = case((ag_dest_subquery.c.id_account != None, ag_dest_subquery.c.contribution_ratio), else_=0.0).label("dest_contribution_ratio")
+    src_cr_label = case((ag_source_subquery.c.id_account != None, ag_source_subquery.c.contribution_ratio), else_=0.0).label("source_contribution_ratio")
+    return query, ag_source_subquery, ag_dest_subquery, src_cr_label, dest_cr_label
   else:
-    return query, AccountGroupSource, AccountGroupDest
+    return query, ag_source_subquery, ag_dest_subquery
 
 
-def _build_labeled_group_aware_amount(src_cr_label, dest_cr_label, label: str="total"):
+def _build_labeled_group_aware_amount(tgroup_table, src_cr_label, dest_cr_label, label: str="total"):
   cr_diff = func.abs(dest_cr_label - src_cr_label)
-  return func.sum(TransactionGroup.contribution_ratio * cr_diff * Transaction.amount).label(label)
+  return func.sum(tgroup_table.c.contribution_ratio * cr_diff * Transaction.amount).label(label)
 
 
 def _build_period_aggregate_transactions_by_group_query(
@@ -49,11 +50,12 @@ def _build_period_aggregate_transactions_by_group_query(
   else:
     filters.append(Transaction.when_month==month)
 
+  tgroup_subquery = select(TransactionGroup).where(TransactionGroup.id_group == id_group).subquery()
   query = select(*fields) \
-    .join(TransactionGroup, TransactionGroup.id_transaction == Transaction.id) \
+    .join(tgroup_subquery, tgroup_subquery.c.id_transaction == Transaction.id, isouter=False) \
     .group_by(*group_bys)
 
-  query, _, _, src_cr_label, dest_cr_label = _join_account_groups(query, contribution_ratio=True)
+  query, _, _, src_cr_label, dest_cr_label = _join_account_groups(query, id_group, contribution_ratio=True)
 
   if expenses is not None:
     if expenses:
@@ -61,7 +63,7 @@ def _build_period_aggregate_transactions_by_group_query(
     else:
       filters.append(src_cr_label < dest_cr_label)
 
-  query = query.add_columns(_build_labeled_group_aware_amount(src_cr_label, dest_cr_label, label="total"))
+  query = query.add_columns(_build_labeled_group_aware_amount(tgroup_subquery, src_cr_label, dest_cr_label, label="total"))
   query = query.where(*filters)
 
   # compute value expr
@@ -147,10 +149,7 @@ def per_category(
   ##########
   fields = [Transaction.id_category, Transaction.id_currency]
   group_bys = [Transaction.id_category, Transaction.id_currency]
-  joins = []
   filters = [Transaction.id_is_duplicate_of == None]
-  if group is not None:
-    joins.append((TransactionGroup, TransactionGroup.id_transaction == Transaction.id))
   if period_from is not None:
     filters.append(Transaction.when >= period_from)
   if period_to is not None:
@@ -182,17 +181,17 @@ def per_category(
   query = select(*fields)
 
   if group is not None:
-    query, _, _, src_cr_label, dest_cr_label = _join_account_groups(query, contribution_ratio=True)
+    query, _, _, src_cr_label, dest_cr_label = _join_account_groups(query, group, contribution_ratio=True)
     if income_only:
       filters.append(src_cr_label < dest_cr_label)
     else:
       filters.append(src_cr_label > dest_cr_label)
-    query = query.add_columns(_build_labeled_group_aware_amount(src_cr_label, dest_cr_label, label="amount"))
+      
+    tgroup_subquery = select(TransactionGroup).where(TransactionGroup.id_group == group).subquery()
+    query = query.join(tgroup_subquery, tgroup_subquery.c.id_transaction == Transaction.id, isouter=False)
+    query = query.add_columns(_build_labeled_group_aware_amount(tgroup_subquery, src_cr_label, dest_cr_label, label="amount"))
 
   query = query.where(*filters).group_by(*group_bys)
-
-  for join_table, join_on in joins:
-    query = query.join(join_table, join_on)
 
   ###########
   # Buckets #
