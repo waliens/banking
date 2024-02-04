@@ -219,7 +219,7 @@ export default defineComponent({
     },
     getMonths() {
       let length = 12;
-      return Array.from({length}, (_, i) => { return {name: this.monthMap[i + 1], number: i + 1}; });
+      return Array.from({length}, (_, i) => { return {name: this.monthMap[i], number: i}; });
     },
     getCurrentMonth() {
       return moment().month();
