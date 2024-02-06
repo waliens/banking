@@ -35,7 +35,7 @@ def _build_period_aggregate_transactions_by_group_query(
   year: Optional[int]=None,
   month: Optional[int]=None
 ):
-  filters = [TransactionGroup.id_group == id_group, Transaction.id_is_duplicate_of == None]
+  filters = [Transaction.id_is_duplicate_of == None]
   fields = [Transaction.id_currency]
   group_bys = [Transaction.id_currency]
   if year is None:
