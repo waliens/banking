@@ -1,33 +1,31 @@
 # Banking app
 
-Requires docker. To launch the production server (from repository root): `docker-compose -f docker-compose.yml build && docker-compose -f docker-compose.yml up`
 
-Services:
-- Client (frontend) served on `localhost:8080`
-- Server (api) served on `localhost:5000`
-- Redis server: `localhost:6379`
-- Postgres database: `localhost:5432`
-- Celery worker (not served, interaction through redis)
+## Install
 
-Data:
-- machine learning model files stored in docker `models_volume` volume
-- postgres database stored in docker `db_volume_pg` volume
+Requires Docker and Compose. Will use ´./data´ folder to persist data (database and ML models).
 
-Any change in database schema should be handled automatically when launching the production app.    
+Start the app:
+
+```bash
+docker compose pull
+docker compose up -d 
+```
 
 # Devlopment env
 
-We provide a docker compose file for development. This allows code modifications to directly be taken into account and repercuted on the running application without the need for relaunching the whole architecture.
+A working dev environment can be started with helper scripts:
 
-```docker-compose -f docker-compose.dev.yml build && docker-compose -f docker-compose.dev.yml up```
+```
+./scripts/dev-launch-env.sh
+```
 
-For generating database migrations on schema change (with alembic), use `docker-compose.db-revision.yml`.
+And can be stopped with:
 
-# Future features
-
-- automated integration of data from Splitwise/Tricount to correct repayment values
-- automated integration of investments data (pension savings, stocks, crypto)
-- tabular yearly report for expenses
+```
+# also deletes dev data
+./scripts/dev-stop-env.sh
+```
 
 # Security disclaimer
-This app is authentication-free and stores sensitive banking transactions history information. This is inherently insecure so please only deploy this application if you know what you are doing.
+This app stores sensitive banking transactions history information that you upload. Please only deploy this application if you know what you are doing.
