@@ -34,7 +34,7 @@
         <b-tab-item :label="$t('stats.tabs.category_monthly')">
           <per-category-monthly-chart :group="group" :visible="activeTab==3"></per-category-monthly-chart>
         </b-tab-item>
-        <b-tab-item>
+        <b-tab-item :label="$t('stats.tabs.tabular')">
           <tabular-summary :group="group" :visible="activeTab==4"></tabular-summary>
         </b-tab-item>
       </b-tabs>
@@ -51,10 +51,12 @@ import CurrencyDisplay from '@/components/generic/CurrencyDisplay.vue';
 import IncomeExpenseChart from '@/components/statistics/IncomeExpenseChart.vue';
 import PerCategoryChart from '@/components/statistics/PerCategoryChart.vue';
 import PerCategoryMonthlyChart from '@/components/statistics/PerCategoryMonthlyChart.vue';
+import TabularSummary from '@/components/statistics/TabularSummary';
 
 export default defineComponent({
   components: {
-    AccountGroupTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart, PerCategoryMonthlyChart
+    AccountGroupTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart, 
+    PerCategoryMonthlyChart, TabularSummary
   },
   data() {
     return {

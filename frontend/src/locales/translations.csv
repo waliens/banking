@@ -118,6 +118,7 @@ select,Select,Sélectionner
 stats.tabs.inout,In/Out,Entrée/Sortie
 stats.tabs.category,Per category,Par catégorie
 stats.tabs.category_monthly,Per category (monthly),Par catégorie (mensuel)
+stats.tabs.tabular,Tabular,Tabulaire
 stats.category.period_selector,Period (type),Période (type)
 stats.category.period_trom,From,De,
 stats.category.period_to,To,à,
@@ -133,6 +134,10 @@ stats.category.category,Category,Catégorie
 stats.switch.incomes,Incomes,Rentrées
 stats.switch.expenses,Expenses,Dépenses
 stats.switch.both,Both,Total
+stats.table.total,Total,Total
+stats.table.show_zeroes,Show empty rows,Montrer les lignes vides
+stats.table.expand_all,Expand all,Étendre tout
+stats.table.collapse_all,Collapse all,Réduire tout
 string.matching.auto-match,Auto-matching,Matching automatique
 string.matching.match_score,match score,score du match
 string.matching.matches,Possible matches,Correspondances possibles

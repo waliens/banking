@@ -9,9 +9,10 @@ import { strcurrency } from '@/utils/helpers';
 
 export default defineComponent({
   props: {
-    'currency': Object,
+    'currency': {},
     'amount': {},
-    'doColor': {type: Boolean, default: false}
+    'doColor': {type: Boolean, default: false},
+    'reduceAlphaOnZero': {type: Boolean, default: false}
   },
   computed: {
     formattedAmount() {
@@ -26,24 +27,31 @@ export default defineComponent({
         negativePattern: '! -#',
         pattern: '! #'
       };
-
-      if (this.currency instanceof String) {
+      
+      if (typeof this.currency === 'string') {
         formatFmtObj.symbol = this.currency;
-      } else if ('symbol' in this.currency) {
-        formatFmtObj.symbol = this.currency.symbol;
+      } else {
+        formatFmtObj.symbol = this.currency.symbol;  
       }
 
       return currency(parsed, formatFmtObj).format();
     },
     colorClass() {
-      if (!this.doColor) {
-        return "";
-      }
       let amount = strcurrency(this.amount);
-      if (amount.value >= 0) {
-        return "amountPositive";
+      if (amount.value == 0) {
+        if (this.reduceAlphaOnZero) {
+          return "amountZero";
+        } else {
+          return "";
+        }
+      } else if (this.doColor){
+        if (amount.value > 0) {
+          return "amountPositive";
+        } else {
+          return "amountNegative";
+        }
       } else {
-        return "amountNegative";
+        return "";
       }
     }
   }
@@ -58,4 +66,10 @@ export default defineComponent({
 .amountPositive {
   color: $amount-positive;
 }
+
+// reduce alpha on zero
+.amountZero {
+  color: rgba(black, 0.25);
+}
+
 </style>

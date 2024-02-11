@@ -38,6 +38,10 @@ const routes = [
     beforeEnter: groupSelectedOnly
   },
   {
+    path: '/test',
+    component: require('./pages/TestPage.vue').default,
+  },
+  {
     name: 'login',
     path: '/login',
     component: require('./pages/LoginPage.vue').default,

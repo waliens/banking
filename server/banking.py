@@ -28,7 +28,7 @@ from ml.model_train import train_model
 from ml.predict import NoValidModelException, TooManyAvailableModelsException, predict_categories, predict_category
 
 from background.celery_init import make_celery
-from db.stats import incomes_expenses, per_category
+from db.stats import incomes_expenses, per_category, per_category_aggregated
 from parsing.date import parse_date
 
 # load environment
@@ -800,18 +800,30 @@ def get_group_stats_per_category(id_group):
   level = request.args.get("level", type=int, default=-1)
   unlabeled = request.args.get("unlabeled", type=bool_type, default=True)
   id_category = request.args.get("id_category", type=int, default=None)
-  income_only = request.args.get("income_only", type=bool_type, default=True)
+  # if omitted, fetch both income and expense
   session = Session()
-  buckets = per_category(
-    session,
-    id_group,
-    income_only=income_only,
-    period_from=period_from,
-    period_to=period_to,
-    id_category=id_category,
-    include_unlabeled=unlabeled,
-    bucket_level=level
-  )
+  if "income_only" in request.args:
+    income_only = request.args.get("income_only", type=bool_type)
+    buckets = per_category(
+      session,
+      id_group,
+      income_only=income_only,
+      period_from=period_from,
+      period_to=period_to,
+      id_category=id_category,
+      include_unlabeled=unlabeled,
+      bucket_level=level
+    )
+  else: 
+    buckets = per_category_aggregated(
+      session,
+      id_group,
+      period_from=period_from,
+      period_to=period_to,
+      id_category=id_category,
+      include_unlabeled=unlabeled,
+      bucket_level=level
+    )    
   return jsonify(buckets[-1] if len(buckets) > 0 else {})
 
 

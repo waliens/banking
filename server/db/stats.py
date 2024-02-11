@@ -142,7 +142,8 @@ def per_category(
     if specified: filter to keep only categories at this depth in the category tree
   include_unlabeled:
     if True, also includes transactions of this group with no categories in the comp
-  period_bucket
+  period_bucket:
+    one of 'month', 'year'
   """
   ##########
   # Filter #
@@ -250,3 +251,84 @@ def per_category(
         curr_buckets[bucket_key]["amount"] += bottom_level_bucket["amount"]
 
   return {k: list(v.values()) for k, v in buckets.items()}
+
+
+def per_category_aggregated(
+  session,
+  group: Optional[int]=None,
+  period_from: Optional[date]=None,
+  period_to: Optional[date]=None,
+  id_category: Optional[int]=None,
+  bucket_level: int=-1,
+  include_unlabeled: bool=False,
+  period_bucket: Optional[str]=None
+):
+  """Like per_category but aggregates incomes and expenses
+  """
+  kwargs = {
+    "group": group,
+    "period_from": period_from,
+    "period_to": period_to,
+    "id_category": id_category,
+    "bucket_level": bucket_level,
+    "include_unlabeled": include_unlabeled,
+    "period_bucket": period_bucket
+  }
+
+  incomes = per_category(session, income_only=True, **kwargs)
+  expenses = per_category(session, income_only=False, **kwargs)
+
+  # negate expenses
+  for _, expense_buckets in expenses.items():
+    for expense_bucket in expense_buckets:
+      expense_bucket["amount"] = -expense_bucket["amount"] 
+
+  # merge income and expenses
+  target_dict = defaultdict(list)
+  for key in set(incomes.keys()).union(expenses.keys()):
+    if key not in incomes and key in expenses:
+      target_dict[key] = expenses[key]
+    elif key in incomes and key not in expenses:
+      target_dict[key] = incomes[key]
+    else:
+      target_dict[key] = merge_buckets(expenses[key], incomes[key])
+  
+  return target_dict
+
+
+def merge_buckets(buckets1, buckets2):
+  """Merges two lists of buckets.
+  Bucket with same category id and currency id are merged.
+ 
+  Args:
+    buckets1 (list): list of buckets
+    buckets2 (list): list of buckets
+  
+  Returns:
+    list: merged list of buckets
+  """
+  def category_or_int(id_category):
+    if id_category is None:
+      return -1
+    return id_category
+  buckets1 = sorted(buckets1, key=lambda x: (category_or_int(x["id_category"]), x["id_currency"]))
+  buckets2 = sorted(buckets2, key=lambda x: (category_or_int(x["id_category"]), x["id_currency"]))
+  index1, index2 = 0, 0
+  merged_buckets = []
+  while index1 < len(buckets1) and index2 < len(buckets2):
+    bucket_id1 = (category_or_int(buckets1[index1]["id_category"]), buckets1[index1]["id_currency"])
+    bucket_id2 = (category_or_int(buckets2[index2]["id_category"]), buckets2[index2]["id_currency"])
+    if bucket_id1 < bucket_id2:
+      merged_buckets.append(buckets1[index1])
+      index1 += 1
+    elif bucket_id1 > bucket_id2:
+      merged_buckets.append(buckets2[index2])
+      index2 += 1
+    else:
+      merged_buckets.append(buckets1[index1])
+      merged_buckets[-1]["amount"] += buckets2[index2]["amount"]
+      index1 += 1
+      index2 += 1
+  merged_buckets.extend(buckets1[index1:])
+  merged_buckets.extend(buckets2[index2:])
+  return merged_buckets
