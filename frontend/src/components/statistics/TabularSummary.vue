@@ -1,10 +1,6 @@
 <template>
   <div v-if="visible">
-    <section class="level">
-      <div class="level-item level-center" >
-      
-      </div>
-    </section>
+    <b-loading :is-full-page="false" :active="loading"/>
     <section v-if="true">
       <per-category-report-table :categories="categoryTree" :periods="periods" :default-currency="defaultCurency"></per-category-report-table>
     </section>
@@ -29,6 +25,7 @@ export default defineComponent({
   components: {NoDataBox, PerCategoryReportTable},
   data() {
     return {
+      loading: true,
       categoryTree: [],
       periods: []
     };
@@ -70,6 +67,7 @@ export default defineComponent({
     },
     async fetchPeriods() {
       let years = this.lastTenYears;
+      this.loading = true;
       this.periods = await Promise.all(
         years.map(year => this.group.getPerCategoryStats({
           period_from: `${year}-01-01`,
@@ -77,6 +75,7 @@ export default defineComponent({
           level: -1
         }))
       ).then(allPeriodBuckets => {
+        this.loading = false;
         return allPeriodBuckets.map((periodBuckets, i) => ({name: `Y${years[i]}`, value: years[i], buckets: periodBuckets}));
       });
     },
