@@ -25,17 +25,17 @@
         <b-tab-item :label="$t('account.accounts')">
           <account-group-table :account-groups="group.account_groups"></account-group-table>
         </b-tab-item>
+        <b-tab-item :label="$t('stats.tabs.tabular')">
+          <tabular-summary :group="group" :visible="activeTab==1"></tabular-summary>
+        </b-tab-item>
         <b-tab-item :label="$t('stats.tabs.inout')">
-          <income-expense-chart :group="group" :visible="activeTab==1"></income-expense-chart>
+          <income-expense-chart :group="group" :visible="activeTab==2"></income-expense-chart>
         </b-tab-item>
         <b-tab-item :label="$t('stats.tabs.category')">
-          <per-category-chart :group="group" :visible="activeTab==2"></per-category-chart>
+          <per-category-chart :group="group" :visible="activeTab==3"></per-category-chart>
         </b-tab-item>
         <b-tab-item :label="$t('stats.tabs.category_monthly')">
-          <per-category-monthly-chart :group="group" :visible="activeTab==3"></per-category-monthly-chart>
-        </b-tab-item>
-        <b-tab-item :label="$t('stats.tabs.tabular')">
-          <tabular-summary :group="group" :visible="activeTab==4"></tabular-summary>
+          <per-category-monthly-chart :group="group" :visible="activeTab==4"></per-category-monthly-chart>
         </b-tab-item>
       </b-tabs>
     </section>
