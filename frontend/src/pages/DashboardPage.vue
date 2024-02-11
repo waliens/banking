@@ -34,6 +34,9 @@
         <b-tab-item :label="$t('stats.tabs.category_monthly')">
           <per-category-monthly-chart :group="group" :visible="activeTab==3"></per-category-monthly-chart>
         </b-tab-item>
+        <b-tab-item>
+          <tabular-summary :group="group" :visible="activeTab==4"></tabular-summary>
+        </b-tab-item>
       </b-tabs>
     </section>
   </div>
@@ -41,16 +44,18 @@
 
 <script>
 import { defineComponent } from '@vue/composition-api'
-import AccountGroupTable from '../components/accounts/AccountGroupTable.vue';
+import AccountGroupTable from '@/components/accounts/AccountGroupTable.vue';
 import currency from 'currency.js';
 import { strcurrency } from '@/utils/helpers';
-import CurrencyDisplay from '../components/generic/CurrencyDisplay.vue';
-import IncomeExpenseChart from '../components/charts/IncomeExpenseChart.vue';
-import PerCategoryChart from '../components/charts/PerCategoryChart.vue';
-import PerCategoryMonthlyChart from '../components/charts/PerCategoryMonthlyChart.vue';
+import CurrencyDisplay from '@/components/generic/CurrencyDisplay.vue';
+import IncomeExpenseChart from '@/components/statistics/IncomeExpenseChart.vue';
+import PerCategoryChart from '@/components/statistics/PerCategoryChart.vue';
+import PerCategoryMonthlyChart from '@/components/statistics/PerCategoryMonthlyChart.vue';
 
 export default defineComponent({
-  components: {AccountGroupTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart, PerCategoryMonthlyChart},
+  components: {
+    AccountGroupTable, CurrencyDisplay, IncomeExpenseChart, PerCategoryChart, PerCategoryMonthlyChart
+  },
   data() {
     return {
       activeTab: 0
