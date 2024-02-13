@@ -824,7 +824,7 @@ def get_group_stats_per_category(id_group):
       include_unlabeled=unlabeled,
       bucket_level=level
     )    
-  return jsonify(buckets[-1] if len(buckets) > 0 else {})
+  return jsonify(buckets[-1] if len(buckets) > 0 else [])
 
 
 @app.route("/account_group/<int:id_group>/stats/percategorymonthly")

@@ -256,7 +256,7 @@ td, th {
   vertical-align: middle;
 }
 
-.amountCell {
+.amountCell, th.amountCell {
   text-align: right;
 }
 
