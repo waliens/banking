@@ -122,6 +122,11 @@ export default defineComponent({
     await this.updateTransactionsWithLoading();
     this.loading = false;
   },
+  computed: {
+    pageStart() {
+      return (this.currentPage - 1) * this.transactionsPerPage;
+    }
+  },
   methods: {
     async onPageChange(page) {
       this.currentPage = page;
