@@ -26,11 +26,22 @@ export default defineComponent({
   },
   data() {
     return {
-      maxValue: 6,
-      minValue: 0,
-      range: [0, 6],
-      step: 0.003, // 3 / 1000 (change of scale at 3)
+      maxValue: 6,  // 10^6
+      minValue: 0,  // 10^0 = 1
+      defaultRange: [0, 6],
+      step: 0.003, // 3 / 1000 (change of scale at 10^3)
     };
+  },
+  computed: {
+    range: {
+      get() {
+        let range = !this.value ? this.defaultRange : this.value;
+        return range.map(this.convertAmountToSlider)
+      },
+      set(value) {
+        this.$emit('input', value.map(this.convertSliderToAmount));
+      }
+    }
   },
   methods: {
     convertSliderToAmount(x) {
@@ -49,20 +60,6 @@ export default defineComponent({
     },
     formatLabel(x) {
       return `${this.convertSliderToAmount(x).toFixed(0)} ${this.currencySymbol}`; 
-    }
-  },
-  watch: {
-    range(newVal, oldVal) {
-      if(newVal.length == 2 && (newVal[0] != oldVal[0] || newVal[1] != oldVal[1])) {
-        this.value[0] = this.convertSliderToAmount(newVal[0]);
-        this.value[1] = this.convertSliderToAmount(newVal[1]);
-      }
-    },
-    value(newVal, oldVal) {
-      if(newVal.length == 2 && (newVal[0] != oldVal[0] || newVal[1] != oldVal[1])) {
-        this.range[0] = this.convertAmountToSlider(newVal[0]);
-        this.range[1] = this.convertAmountToSlider(newVal[1]);
-      }
     }
   }
 })
