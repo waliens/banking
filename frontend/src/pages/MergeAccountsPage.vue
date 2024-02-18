@@ -1,5 +1,6 @@
 <template>
   <div>
+    <b-loading :is-full-page="false" :active="loading"/>
     <section class="level">
       <div class="level-left"><h3 class="level-item title">{{$t('account.merge')}}</h3></div>
       <div class="level-right">
@@ -52,7 +53,7 @@
           <b-field :label="$t('account.alias')" expanded>
             <account-drop-down-selector 
               v-model="selectedAlias"
-              :accounts="accounts">
+              :accounts="candidateAliases">
             </account-drop-down-selector>
           </b-field>
           <account-alias-table
@@ -70,23 +71,24 @@ import { defineComponent } from '@vue/composition-api'
 import AccountDropDownSelector from '../components/accounts/AccountDropDownSelector.vue'
 import Account from '@/utils/api/Account';
 import AccountAliasTable from '../components/accounts/AccountAliasTable.vue';
-import { getStrategies, matchAndSortArray } from '@/utils/stringmatch';
+import { getStrategies, matchAndSortArray, LONGEST_COMMON_SUBSTRING } from '@/utils/stringmatch';
 
 export default defineComponent({
   components: { AccountDropDownSelector, AccountAliasTable },
   data() {
     return {
+      loading: false,
       accounts: [],
       selectedRepr: null,
       selectedAlias: null,
       matchStrategies: getStrategies(),
-      matchStrategy: getStrategies()[0].name,
+      matchStrategy: LONGEST_COMMON_SUBSTRING,
       matchingCurrentIndex: -1,
       matchCandidates: []
     };
   },
   async created() {
-    this.accounts = await this.fetchAccounts(); 
+    await this.resetToRepr(null);
   },
   methods: {
     async fetchAccounts() {
@@ -123,8 +125,8 @@ export default defineComponent({
       if (!this.selectedRepr || !this.selectedAlias) {
         return;
       }
-      await Account.merge(this.selectedRepr.id, this.selectedAlias.id).then(() => {
-        this.$router.go();
+      await Account.merge(this.selectedRepr.id, this.selectedAlias.id).then(async () => {
+        await this.resetToRepr(this.selectedRepr.id);
       }).catch(e => {
         this.$buefy.toast.open({
             message: e.response.data.msg,
@@ -156,11 +158,29 @@ export default defineComponent({
     prevMatch() {
       this.matchingCurrentIndex--;
       this.selectedAlias = this.matchCandidates[this.matchingCurrentIndex].obj;
+    },
+    async resetToRepr(reprId) {
+      this.loading = true;
+      this.selectedAlias = null;
+      this.selectedRepr = null;
+      this.accounts = await this.fetchAccounts();
+      if (reprId != null) { // find repr)
+        let filtered = this.accounts.filter(a => a.id == reprId);
+        this.selectedRepr = filtered.length > 0 ? filtered[0] : null;
+      }
+      this.loading = false;
     }
   },
   computed: {
     isValidMatchIndex() {
       return this.matchingCurrentIndex >= 0 && this.matchingCurrentIndex < this.matchCandidates.length;
+    },
+    candidateAliases() {
+      if (this.selectedRepr == null) {
+        return this.accounts;
+      } else {
+        return this.accounts.filter(a => a.id != this.selectedRepr.id);
+      }
     }
   },
   watch: {
