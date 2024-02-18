@@ -1,5 +1,6 @@
 from collections import defaultdict
-from sqlalchemy import Float, and_, or_, select, func, cast, Integer
+from typing import Optional
+from sqlalchemy import Float, String, and_, or_, select, func, cast, Integer
 from sqlalchemy.orm import sessionmaker
 
 from parsing.util import UnionFind
@@ -105,7 +106,15 @@ def get_tags_descendants(identifier, tree=None):
   return [identifier] + get_children_recur(identifier)
 
 
+def _search_metadata_query(field, query):
+  return and_(
+    Transaction.metadata_[field] != None,
+    cast(Transaction.metadata_[field], String).ilike(f"%{query}%")
+  )
+
+
 def get_transaction_query(
+    search_query: Optional[str]=None,
     account=None,
     group=None,
     group_external_only=False,
@@ -124,6 +133,7 @@ def get_transaction_query(
   """
   Params
   ------
+  search_query: str (default: None)
   account: int (default: None)
   group: int (default: None)
   group_external_only: bool (default: False)
@@ -190,6 +200,9 @@ def get_transaction_query(
     filters.append(Transaction.amount <= amount_to)
   if amount_from is not None:
     filters.append(Transaction.amount >= amount_from)
+  if search_query is not None:
+    filters.append(_search_metadata_query("communication", search_query))
+    filters.append(_search_metadata_query("transaction", search_query))
 
   query = Transaction.query.filter(and_(*filters))
 

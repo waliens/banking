@@ -1,6 +1,16 @@
 <template>
   <div>
-    <b-field :label="$t('amount')" class="amountRangeField">
+    <b-field :label="$t('search')" label-position="on-border" expanded>
+      <b-input
+        v-model="queryString"
+        :icon-right="queryStringValid ? '' : 'info-circle'"
+        :icon-right-type="queryStringValid ? '' : 'is-danger'">
+      </b-input>
+    </b-field>
+    <b-field class="amountRangeField">
+      <template #label>
+        <p class="is-small">{{$t('amount')}}</p>
+      </template>
       <amount-range-log-slider v-model="amountRange" expanded></amount-range-log-slider>
     </b-field>
     <b-field grouped>
@@ -73,7 +83,7 @@
     <b-field class="level">
       <div class="level-right">
         <b-button class="level-item is-small is-primary" @click="clickClear" icon-right="times">{{$t('clear')}}</b-button>
-        <b-button class="level-item is-small is-primary" @click="clickFilter" icon-right="filter">{{$t('filter')}}</b-button>
+        <b-button :disabled="!formValid" class="level-item is-small is-primary" @click="clickFilter" icon-right="filter">{{$t('filter')}}</b-button>
       </div>
     </b-field>
   </div>
@@ -101,6 +111,7 @@ export default defineComponent({
   data() {
     return {
       // filters
+      queryString: null,
       includeLabeled: false,
       includeIntraGroup: false,
       keepCurrentGroup: "only_in_group",
@@ -154,6 +165,12 @@ export default defineComponent({
       set(value) {
         this.periodTo = value ? moment(value) : null;
       }
+    },
+    queryStringValid() {
+      return this.queryString == null ||  this.queryString.length == 0 || this.queryString.length >= 3;
+    },
+    formValid() {
+      return this.queryStringValid;
     }
   },
   methods: {
@@ -167,6 +184,7 @@ export default defineComponent({
     clickClear() {
       this.clearDate(true);
       this.clearDate(false);
+      this.queryString = null;
       this.periodFromDate = null;
       this.periodToDate = null;
       this.accountFrom = null;
@@ -180,6 +198,7 @@ export default defineComponent({
     },
     clickFilter() {
       let filters = {
+        queryString: this.queryString,
         periodFrom: this.periodFrom,
         periodTo: this.periodTo,
         accountFrom: this.accountFrom,
@@ -189,6 +208,9 @@ export default defineComponent({
         amountTo: this.amountRange[1],
         includeLabeled: this.includeLabeled
       };
+      if (this.queryString != null && this.queryString.length == 0) {
+        this.queryString = null;
+      }
       if (this.enableGroupFilters) {
         filters.includeIntraGroup = this.includeIntraGroup;
         filters.keepCurrentGroup = this.keepCurrentGroup;

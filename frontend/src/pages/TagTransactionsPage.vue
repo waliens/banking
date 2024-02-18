@@ -541,6 +541,9 @@ export default defineComponent({
       if (this.formFilters.includeIntraGroup) {
         filters.group_external_only = false;
       }
+      if (this.formFilters.queryString) {
+        filters.search_query = this.formFilters.queryString;
+      }
       return filters;
     }
   }

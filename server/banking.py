@@ -233,6 +233,7 @@ def get_transactions():
   amount_from = request.args.get("amount_from", type=Decimal, default=None)
   amount_to = request.args.get("amount_to", type=Decimal, default=None)
   duplicate_only = request.args.get("duplicate_only", type=bool_type, default=False)
+  search_query = request.args.get("search_query", type=str, default=None)
 
   ## conditional content
   # add fields: ml_category (object), ml_proba (float)
@@ -250,6 +251,8 @@ def get_transactions():
     return error_response("cannot have a amount_from greater than amount_to")
   if (group_data or group_external_only) and group is None:
     return error_response("group id must be provided if group_data or group_external_only is requested")
+  if search_query is not None and len(search_query) < 3:
+    return error_response("cannot search for search query of length < 3")
 
   # not filtering by group
   if in_group == -1:
@@ -257,6 +260,7 @@ def get_transactions():
 
   # fetch
   transactions = get_transaction_query(
+    search_query=search_query,
     account=account,
     group=group,
     group_external_only=group_external_only,
@@ -316,6 +320,7 @@ def get_transactions_count():
   amount_from = request.args.get("amount_from", type=Decimal, default=None)
   amount_to = request.args.get("amount_to", type=Decimal, default=None)
   duplicate_only = request.args.get("duplicate_only", type=bool_type, default=False)
+  search_query = request.args.get("search_query", type=str, default=None)
 
   if account is not None and group is not None:
     return error_response("cannot set both account and account_group when fetching transactions")
@@ -325,13 +330,16 @@ def get_transactions_count():
     return error_response("cannot have a amount_from greater than amount_to")
   if group_external_only and group is None:
     return error_response("group id must be provided if group_data or group_external_only is requested")
-
+  if search_query is not None and len(search_query) < 3:
+    return error_response("cannot search for search query of length < 3")
+  
   # not filtering by group
   if in_group == -1:
     in_group = None
 
   # fetch
   query = get_transaction_query(
+    search_query=search_query,
     account=account,
     group=group,
     group_external_only=group_external_only,
