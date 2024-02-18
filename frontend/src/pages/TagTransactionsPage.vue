@@ -37,7 +37,7 @@
           v-model="isFiltersFormOpen">
           <template #trigger>
             <div
-              class="card-header has-background-primary"
+              class="card-header has-background-light"
               role="button"
               :aria-expanded="isFiltersFormOpen">
               <p class="card-header-title filter-title">{{$t('transaction.filters.title')}}</p>
@@ -570,9 +570,6 @@ section {
   margin-left: 5px;
 }
 
-.filter-title {
-  color: white;
-}
 
 .no-data {
   text-align: center;
