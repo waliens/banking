@@ -175,7 +175,7 @@ export default defineComponent({
       this.includeLabeled = false;
       this.amountRange = [0, 999999];
       this.includeIntraGroup = false;
-      this.inCurrentGroupOptions = "only_in_group";
+      this.keepCurrentGroup = "only_in_group";
       this.clearFn();
     },
     clickFilter() {
