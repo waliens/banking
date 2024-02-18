@@ -200,6 +200,10 @@
               </tbody>
             </table>
           </template>
+
+          <template #empty>
+            <p class="no-data">{{$t('charts.no_data')}}</p>
+          </template>
         </b-table>
       </section>
     </div>
@@ -568,5 +572,9 @@ section {
 
 .filter-title {
   color: white;
+}
+
+.no-data {
+  text-align: center;
 }
 </style>
