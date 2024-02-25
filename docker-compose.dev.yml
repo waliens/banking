@@ -19,9 +19,6 @@ services:
   # flask server
   server:
     <<: *base-server
-    profiles: 
-      - default
-      - backend
     entrypoint: ["/bin/sh"]  # to make the container hang
     ports:
       - 5000:5000
@@ -46,25 +43,15 @@ services:
       context: frontend/
       dockerfile: Dockerfile
       target: dev-server
-    profiles: 
-      - default
-      - frontend
     volumes:
       - ./frontend:/app  # to share code and having refresh on update
 
   # message broker for background tasks
   redis:
     image: redis:6-alpine
-    profiles: 
-      - default
-      - backend
 
   database:
     image: postgres:16.1-alpine3.19
-    profiles: 
-      - migration
-      - default
-      - backend
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_DB=banking
@@ -82,7 +69,6 @@ services:
       dockerfile: Dockerfile
     command: "celery -A banking.celery worker"
     profiles:
-      - default 
       - backend
     environment:
       - DB_HOST=database
@@ -106,6 +92,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - 80:80
+
 volumes:
   db:
   models:
