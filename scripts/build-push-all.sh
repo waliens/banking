@@ -28,7 +28,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "building reverse-proxy..."
-docker build -t rmormont/banking-reverse-proxy:latest -t rmormont/banking-reverse-proxy:$VERSION
+docker build -t rmormont/banking-reverse-proxy:latest -t rmormont/banking-reverse-proxy:$VERSION reverse-proxy/
 if [ $? -ne 0 ]; then
   echo "/!\ reverse-proxy build failed, aborting..."
 fi
