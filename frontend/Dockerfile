@@ -28,9 +28,7 @@ RUN apk update && apk add --no-cache gettext bash
 
 RUN mkdir /docker-entrypoint-banking.d/
 COPY --chmod=774 ./scripts/banking-entrypoint.sh /usr/local/bin/
-COPY --chmod=774 ./scripts/envsubst-on-templates-and-move.sh /docker-entrypoint-banking.d/500-envsubst-on-templates-and-move.sh
 COPY --chmod=774 ./scripts/run-yarn-install.sh /docker-entrypoint-banking.d/750-run-yarn-install.sh
-COPY ./scripts/samples/configuration.json.sample /samples/app/public/
 
 ENTRYPOINT ["banking-entrypoint.sh", "docker-entrypoint.sh"]
 
