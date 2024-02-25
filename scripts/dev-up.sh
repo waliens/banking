@@ -1,4 +1,4 @@
 #!/bin/sh
-docker compose -f docker-compose.dev.yml --profile default up --build -d
+./scripts/dev-compose up -d --build
 
 echo "To start backend development server, execute 'flask run --debug' inside backend container." 
