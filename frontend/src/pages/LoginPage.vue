@@ -31,7 +31,7 @@ export default defineComponent({
   methods: {
     async login() {
       await this.$store.dispatch('login', this.getCredentials()).then(() => {
-        this.$router.push(this.next);
+        this.$router.push(this.next).catch(() => {});
       }).catch(() => {
         this.$buefy.toast.open({
           message: this.$t('login.invalid-username-or-password'),

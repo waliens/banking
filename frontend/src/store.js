@@ -3,6 +3,8 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 
 import axios from 'axios';
+import moment from 'moment';
+
 import constants from '@/utils/constants.js';
 import Group from '@/utils/api/Group';
 import User from '@/utils/api/User';
@@ -45,19 +47,18 @@ const actions = {
 
     let accessToken = window.localStorage.accessToken;
     let refreshToken = window.localStorage.refreshToken;
-    if(!refreshToken || !accessToken) {
+    let refreshTokenStoredAt = window.localStorage.refreshTokenStoredAt;
+    if(!refreshToken || !accessToken || !refreshTokenStoredAt || moment(refreshTokenStoredAt).diff(moment(), 'months') >= 1) {
       cleanAuthenticationState();
       commit('setInitialized');
       return;
     }
-    setAccessToken(accessToken);
-    setRefreshToken(refreshToken);
 
-    await doRefreshToken();
+    initAxiosToken(accessToken);
     await dispatch('fetchUser');
 
     let groupId = window.localStorage.currentGroupId;
-    if(!groupId || groupId == "undefined") {
+    if(!groupId) {
       commit('setInitialized');
       return;
     }
@@ -73,15 +74,27 @@ const actions = {
     await dispatch('fetchUser');
   },
 
+  /**
+   * @returns null if refresh was not possible, a valid 'recent' access token 
+   */
+  async checkTokenRefresh() {
+    if (!window.localStorage.accessTokenStoredAt) {
+      return null;
+    }
+    let accessTokenStoredAt = moment(window.localStorage.accessTokenStoredAt)
+    if (moment().diff(accessTokenStoredAt, 'minutes') >= 30) { // after 30 minutes, refresh
+      return await doRefreshToken();
+    }
+    return window.localStorage.accessToken;
+  },
+
   async fetchUser({commit}) {
     let user = null;
 
     try {
       user = await User.fetchCurrent();
-    }
-    catch (e) {
+    } catch (e) {
       console.log('Error while fetching current user.');
-
       cleanAuthenticationState();
       commit('setCurrentUser', null);
       return;
@@ -121,10 +134,15 @@ const actions = {
 export async function doRefreshToken() {
   let refreshToken = window.localStorage.refreshToken;
   if (!refreshToken) {
-    return;
+    return null;
+  }
+  let refreshTokenStoredAt = moment(window.localStorage.refreshTokenStoredAt);
+  if (refreshTokenStoredAt.diff(moment(), 'months') >= 1) {
+    cleanAuthenticationState();
+    return null;
   }
   return await axios.post(
-    `${constants.BACKEND_BASE_URL}/refresh`, {}, {
+    `${window.location.origin}/${constants.API_PREFIX}refresh`, {}, {
       headers: {
         'Authorization': `Bearer ${refreshToken}`
       }
@@ -134,30 +152,40 @@ export async function doRefreshToken() {
     return data.access_token;
   }).catch(() => {
     console.error("could not refresh token");
+    return null;
   });
+}
+
+function initAxiosToken(accessToken) {
+  axios.defaults.headers.common['Authorization'] = accessToken ? `Bearer ${accessToken}` : undefined;
 }
 
 function setAccessToken(token) {
   if (!token) {
-    window.localStorage.removeItem("accessToken");
-    axios.defaults.headers.common['Authorization'] = undefined;
+    window.localStorage.removeItem('accessTokenStoredAt');
+    window.localStorage.removeItem('accessToken');
   } else {
     window.localStorage.accessToken = token;
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    window.localStorage.accessTokenStoredAt = moment().toISOString();
   }
+  initAxiosToken(token);
 }
 
 function setRefreshToken(token) {
   if (!token) {
-    window.localStorage.removeItem("refreshToken");
+    window.localStorage.removeItem('refreshTokenStoredAt');
+    window.localStorage.removeItem('refreshToken');
   } else {
     window.localStorage.refreshToken = token;
+    window.localStorage.refreshTokenStoredAt = moment().toISOString();
   }
 }
 
 function cleanAuthenticationState() {
   window.localStorage.removeItem('accessToken');
+  window.localStorage.removeItem('accessTokenStoredAt');
   window.localStorage.removeItem('refreshToken');
+  window.localStorage.removeItem('refreshTokenStoredAt');
   delete axios.defaults.headers.common['Authorization'];
 }
 

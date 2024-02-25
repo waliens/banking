@@ -15,7 +15,6 @@
 <script>
 import LayoutNavbar from './components/layout/LayoutNavbar';
 import LayoutFooter from './components/layout/LayoutFooter';
-import { doRefreshToken } from './store.js';
 
 export default {
   name: 'App',
@@ -29,8 +28,13 @@ export default {
     }
   },
   async created() {
-    setInterval(doRefreshToken, 30 * 1000 * 3600); // refresh token every 30min
     await this.$store.dispatch('initializeStore');
+    setInterval(async () => {
+      let token = await this.$store.dispatch('checkTokenRefresh');
+      if (!token) {
+        this.$router.push({name: 'login'});
+      }
+    }, 60 * 1000); // refresh token every 60sec
   }
 }
 </script>
