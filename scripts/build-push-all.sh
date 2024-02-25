@@ -27,6 +27,12 @@ if [ $? -ne 0 ]; then
   echo "/!\ ui build failed, aborting..."
 fi
 
+echo "building reverse-proxy..."
+docker build -t rmormont/banking-reverse-proxy:latest -t rmormont/banking-reverse-proxy:$VERSION
+if [ $? -ne 0 ]; then
+  echo "/!\ reverse-proxy build failed, aborting..."
+fi
+
 # echo "pusing all images"
 docker push rmormont/banking-server:latest
 docker push rmormont/banking-server:$VERSION
@@ -34,3 +40,5 @@ docker push rmormont/banking-task-runner:latest
 docker push rmormont/banking-task-runner:$VERSION 
 docker push rmormont/banking-ui:latest
 docker push rmormont/banking-ui:$VERSION 
+docker push rmormont/banking-reverse-proxy:latest
+docker push rmormont/banking-reverse-proxy:$VERSION 

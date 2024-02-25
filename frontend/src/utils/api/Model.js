@@ -17,7 +17,7 @@ export default class Model {
 
   static backend() {
     let instance = axios.create({
-      baseURL: constants.BACKEND_BASE_URL
+      baseURL: `${window.location.origin}/${constants.API_PREFIX}`
     });
     return instance;
   }

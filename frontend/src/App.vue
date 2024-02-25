@@ -15,8 +15,6 @@
 <script>
 import LayoutNavbar from './components/layout/LayoutNavbar';
 import LayoutFooter from './components/layout/LayoutFooter';
-import constants from '@/utils/constants.js';
-import axios from 'axios';
 import { doRefreshToken } from './store.js';
 
 export default {
@@ -31,17 +29,6 @@ export default {
     }
   },
   async created() {
-    // fetch configuration for API URL
-    let settings;
-    await axios
-      .get('configuration.json')
-      .then(response => (settings = response.data));
-
-    for (let i in settings) {
-      constants[i] = settings[i];
-    }
-    Object.freeze(constants);
-
     setInterval(doRefreshToken, 30 * 1000 * 3600); // refresh token every 30min
     await this.$store.dispatch('initializeStore');
   }

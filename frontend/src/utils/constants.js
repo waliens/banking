@@ -1,4 +1,4 @@
 
 export default {
-  BACKEND_BASE_URL: 'http://localhost:5000'
+  API_PREFIX: 'api/'
 };

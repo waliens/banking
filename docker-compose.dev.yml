@@ -49,10 +49,6 @@ services:
     profiles: 
       - default
       - frontend
-    environment:
-      - BACKEND_BASE_URL=http://localhost:5000
-    ports:
-      - 8080:8080
     volumes:
       - ./frontend:/app  # to share code and having refresh on update
 
@@ -104,7 +100,12 @@ services:
     volumes:
       - models:/models
 
-    
+  reverse-proxy: 
+    build:
+      context: reverse-proxy/
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
 volumes:
   db:
   models:

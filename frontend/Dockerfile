@@ -45,17 +45,11 @@ ARG NGINX_VERSION
 
 WORKDIR /app
 
-# copying entrypoint scripts
-RUN mkdir /docker-entrypoint-banking.d/
-COPY --chmod=774 ./scripts/banking-entrypoint.sh /usr/local/bin/
-COPY --chmod=774 ./scripts/envsubst-on-templates-and-move.sh /docker-entrypoint-banking.d/500-envsubst-on-templates-and-move.sh
-COPY ./scripts/samples/configuration.json.sample /samples/app/
-
 # nginx configuration
 COPY scripts/configs/nginx.conf /etc/nginx/nginx.conf
 
 # actual front end
 COPY --from=frontend-builder /app/dist /app
 
-ENTRYPOINT ["banking-entrypoint.sh", "/docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

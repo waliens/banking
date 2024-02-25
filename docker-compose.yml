@@ -3,8 +3,6 @@ services:
   server:
     image: rmormont/banking-server:latest
     restart: always
-    ports:
-      - ${BACKEND_PORT:-5000}:5000
     environment:
       - DB_HOST=database
       - DB_PORT=5432
@@ -22,10 +20,6 @@ services:
   # vue client
   frontend:
     image: rmormont/banking-ui:latest
-    environment:
-      - BACKEND_BASE_URL=http://${BACKEND_HOST:-localhost}:${BACKEND_PORT:-5000}
-    ports:
-      - ${FRONTEND_PORT:-8080}:80
 
   # message broker for background tasks
   redis:
@@ -60,3 +54,7 @@ services:
     volumes:
       - ./data/models:/models
 
+  reverse-proxy: 
+    image: rmormont/banking-reverse-proxy:latest
+    ports:
+      - 80:80
