@@ -66,16 +66,16 @@
         pages. Association of transactions and profiles are automated <strong>ONLY on two occasions</strong>: 
         <ul>
           <li>The transaction is added to the app and is involved with one of the accounts of a profile, this transaction is automatically associated to the profile</li>
-          <li>A group is created, all transactions involved with at least one account of the profile are associated with this profile</li>
+          <li>A profile is created, all transactions involved with at least one account of the profile are associated with this profile</li>
         </ul>
         In any other case, the transaction must be manually associated to the currently selected profile in the <router-link :to="{name: 'transactions-tagging'}">transactions labeling page</router-link>.
       </p>
 
       <h2 class="subtitle">Reporting</h2>
       <p> See <router-link :to="{name: 'dashboard'}">report (dashboard) page</router-link></p>
-      <p>When an account group has been selected, reports regarding this group can be found on the dashboard page including:</p>
+      <p>When a profile has been selected, reports regarding this profile can be found on the dashboard page including:</p>
       <ul>
-        <li>Global balance and list of all accounts of the group (and their balances)</li>
+        <li>Global balance and list of all accounts of the profile (and their balances)</li>
         <li><em>Incomes and expenses charts</em>: only consider boundary transactions</li>
         <li><em>Summary per category</em>: only consider boundary transactions and requires transactions to be labeled (see <em>Labeling transactions</em> section)</li>
       </ul>
