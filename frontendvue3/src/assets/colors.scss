@@ -1,0 +1,29 @@
+
+// Set your colors
+$primary: #0476D0;
+$light-primary: #74BEFC;
+$primary-invert: findColorInvert($primary);
+
+$secondary: #C7466B;
+$light-secondary: #FF7D9E;
+$secondary-invert: findColorInvert($secondary);
+
+// Links
+$link: $secondary;
+$link-invert: $secondary-invert;
+$link-focus-border: $link;
+
+$custom_colors: (
+    "primary": ($primary, $primary-invert),
+    "secondary": ($secondary, $secondary-invert),
+    "light-secondary": ($light-secondary, $secondary-invert),
+    "link": ($link, $link-invert)
+);
+
+$colors: $custom_colors;
+
+$amount-positive: #63BE7B;
+$amount-negative: #F8696B;
+
+$placeholder: #FAFAFA;
+$placeholder-text: #5A5A5A;
