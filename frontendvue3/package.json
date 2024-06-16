@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
+    "translations-csv2json": "node ./scripts/export_i18n_csv.mjs ./src/i18n/translations.csv ./src/i18n/json",
+    "watch-translations": "onchange -i 'src/i18n/translations.csv' -- npm run translations-csv2json",
     "test:e2e": "start-server-and-test preview http://localhost:4173 'cypress run --e2e'",
     "test:e2e:dev": "start-server-and-test 'vite dev --port 4173' http://localhost:4173 'cypress open --e2e'",
     "test:unit": "cypress run --component",
@@ -17,8 +19,10 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "onchange": "^7.1.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
+    "vue-i18n": "^9.13.1",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {

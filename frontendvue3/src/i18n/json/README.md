@@ -1,0 +1,1 @@
+Translations files will be generated here
