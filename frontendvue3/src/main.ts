@@ -3,15 +3,16 @@ import './assets/main.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
-import { languages, defaultLocale } from './i18n'
 
 import App from './App.vue'
 import router from './router'
 
+import en from './i18n/json/en.json'
+import fr from './i18n/json/fr.json'
 const i18n = createI18n({
-  fallbackLocale: defaultLocale,
-  locale: defaultLocale,
-  messages: languages
+  fallbackLocale: 'en',
+  locale: 'en',
+  messages: { en, fr }
 })
 
 const app = createApp(App)
