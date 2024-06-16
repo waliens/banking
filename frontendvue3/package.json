@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "npm run watch-translations & vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "translations-csv2json": "node ./scripts/export_i18n_csv.mjs ./src/i18n/translations.csv ./src/i18n/json",
@@ -19,6 +19,9 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "axios": "^1.7.2",
+    "jsonwebtoken": "^9.0.2",
     "onchange": "^7.1.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
