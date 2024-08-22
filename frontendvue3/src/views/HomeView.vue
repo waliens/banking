@@ -1,9 +1,5 @@
-<script setup lang="ts">
-
-</script>
-
 <template>
   <main>
-    Authenticated
+    aaaa
   </main>
 </template>

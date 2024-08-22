@@ -28,6 +28,3 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-
-# locales
-src/i18n/json/*.json

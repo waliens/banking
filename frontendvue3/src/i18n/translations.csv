@@ -45,7 +45,7 @@ account.when,Date,Date
 actions,Actions,Actions
 amount,Amount,Montant
 apply,Apply,Valider
-app_name,Banking,Banking
+app-name,Banking,Banking
 back,Back,Retour
 balance,Balance,Solde
 clear,Clear,Réinitialiser
