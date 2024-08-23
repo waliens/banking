@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "translations-csv2json": "node ./scripts/export_i18n_csv.mjs ./src/i18n/translations.csv ./src/i18n/json",
-    "watch-translations": "onchange -i 'src/locales/translations.csv' -- yarn translations-csv2json",
+    "watch-translations": "onchange -i 'src/i18n/translations.csv' -- npm run translations-csv2json",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
