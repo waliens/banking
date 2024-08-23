@@ -13,17 +13,17 @@ const items = ref([
   {
     label: t('dashboard'),
     icon: 'fa fa-chart-pie',
-    // routerLink: { name: 'dashboard' }
+    command: () => router.push({ 'name': 'dashboard' })
   },
   {
     label: t('account_group.groups'),
     icon: 'fa fa-user',
-    // routerLink: { name: 'select-account-group' }
+    command: () => router.push({ 'name': 'select-account-group' })
   },
   {
     label: t('tagging.title'),
     icon: 'fa fa-tag',
-    // routerLink: { name: 'transactions-tagging' }
+    command: () => router.push({ 'name': 'transactions-tagging' })
   },
   {
     label: t('transaction.title'),
@@ -32,12 +32,12 @@ const items = ref([
       {
         label: t('data_upload.title'),
         icon: 'fa fa-upload',
-        // routerLink: { name: 'upload-data' }
+        command: () => router.push({ 'name': 'upload-data' })
       },
       {
         label: t('data_upload.manual'),
         icon: 'fa fa-hand',
-        // routerLink: { name: 'create-transaction' }
+        command: () => router.push({ 'name': 'create-transaction' })
       }
     ]
   },
@@ -48,34 +48,34 @@ const items = ref([
       {
         label: t('tagging.tree'),
         icon: 'fa fa-sitemap',
-        // routerLink: { name: 'edit-tag-tree' }
+        command: () => router.push({ 'name': 'edit-tag-tree' })
       },
       {
         label: t('account.merge'),
         icon: 'fa fa-tags',
-        // routerLink: { name: 'merge-accounts' }
+        command: () => router.push({ 'name': 'merge-accounts' })
       },
       {
         label: t('ml_model.title'),
         icon: 'fa fa-hat-wizard',
-        // routerLink: { name: 'models' }
+        command: () => router.push({ 'name': 'models' })
       },
       {
         label: t('navbar.manage_duplicate'),
         icon: 'fa fa-copy',
-        // routerLink: { name: 'manage-duplicate-transactions' }
+        command: () => router.push({ 'name': 'manage-duplicate-transactions' })
       },
       {
         label: t('users.manage'),
         icon: 'fa fa-users',
-        // routerLink: { name: 'manage-users' }
+        command: () => router.push({ 'name': 'manage-users' })
       }
     ]
   },
   {
     label: t('help'),
     icon: 'fa fa-question-circle',
-    // routerLink: { name: 'help' }
+    command: () => router.push({ 'name': 'help' })
   }
 ]);
 
@@ -89,12 +89,12 @@ function get_username_first_letter() {
 
 function logout() {
   auth_store.logout();
-  router.push('/login');
+  router.push({ 'name': 'login' });
 }
 </script>
 
 <template>
-  <Menubar :model="items" class="m-4">
+  <Menubar :model="items" class="mb-4">
     <template #start>
       <RouterLink to="/" class="p-mr-2">
         <span class="px-4 font-bold">{{t('app-name')}}</span>

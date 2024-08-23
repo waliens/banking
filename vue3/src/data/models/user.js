@@ -5,5 +5,6 @@ export default class User extends Model {
   _init_properties() {
     super._init_properties();
     this.username = null;
+    this.password = null;
   }
 }

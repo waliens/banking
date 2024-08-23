@@ -12,6 +12,18 @@ const router = createRouter({
           path: '/',
           name: 'dashboard',
           component: () => import('@/views/Dashboard.vue')
+        },
+        {
+          path: '/users/manage',
+          name: 'manage-users',
+          component: () => import('@/views/users/ManageUsers.vue'),
+          children: [
+            {
+              path: '/users/manage/create',
+              name: 'create-user',
+              component: () => import('@/views/users/CreateUser.vue')
+            }
+          ]
         }
       ],
       meta: { requiresAuth: true } 
