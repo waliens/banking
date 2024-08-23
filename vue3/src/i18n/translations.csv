@@ -70,6 +70,7 @@ edit,Edit,Éditer
 filter,Filter,Filtrer
 month,Month,Mois
 year,Year,Année
+dashboard,Dashboard,Tableau de bord
 description,Description,Description
 double-table-select.nothing-selected,"Nothing selected","Pas de sélection"
 double-table-select.selected-too-many,"Too many elements selected (selected: {selected}, maximum: {max})","Le nombre d'élément(s) sélectionné(s) est trop élevé (sélectionné(s): {selected}, maximum: {max})"

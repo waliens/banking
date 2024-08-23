@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import Menubar from 'primevue/menubar';
 
 import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
+const { t, locale, availableLocales } = useI18n()
 
 const items = ref([
   {
@@ -75,19 +75,28 @@ const items = ref([
   }
 ]);
 
+// TODO read from global state
 const username = ref("test");
 </script>
 
 <template>
-  
   <Menubar :model="items" class="m-4">
     <template #start>
       <RouterLink to="/" class="p-mr-2">
-        {{t('app-name')}}
+        <span class="px-4 font-bold">{{t('app-name')}}</span>
       </RouterLink>
     </template>
     <template #end>
       <div class="flex items-center gap-2">
+        <!-- Because t() is not reactive, this does not trigger a direct change of names -->
+        <Select v-model="locale" :options="availableLocales" disabled >
+          <template #value="props">
+            {{ !!props.value ? props.value.toUpperCase() : '' }}
+          </template>
+          <template #option="props">
+            {{ !!props.option ? props.option.toUpperCase() : '' }}
+          </template>
+        </Select>
         <Avatar v-tooltip.left="username" :label="username[0].toUpperCase()" class="mr-2" shape="circle" />
         <Button v-tooltip.left="t('logout.title')" icon="fa fa-right-from-bracket" class="p-button-rounded p-button-text" severity="danger" />
       </div>

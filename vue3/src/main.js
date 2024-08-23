@@ -8,6 +8,11 @@ const app = createApp(App)
 import router from './router'
 app.use(router)
 
+// store
+import { createPinia } from 'pinia'
+const pinia = createPinia()
+app.use(pinia)
+
 // i18n
 import { createI18n } from 'vue-i18n'
 import en from '@/i18n/json/en.json'
