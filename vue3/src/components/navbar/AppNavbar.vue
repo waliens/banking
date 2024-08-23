@@ -113,7 +113,12 @@ function logout() {
         </Select>
         -->
         <Avatar class="mr-2" shape="circle" v-tooltip.left="get_username()" :label="get_username_first_letter()" />
-        <Button v-tooltip.left="t('logout.title')" icon="fa fa-right-from-bracket" class="p-button-rounded p-button-text" severity="danger" @click="logout" />
+        <Button
+          v-tooltip.left="t('logout.title')"
+          icon="fa fa-right-from-bracket"
+          class="p-button-rounded p-button-text"
+          severity="danger"
+          @click="logout" />
       </div>
     </template>
   </Menubar>
