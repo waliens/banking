@@ -44,7 +44,7 @@ export default class BaseService {
    */
   async fetch(config={}) {
     let {data} = await axios.get(this.fetch_path(), config);
-    return this.model_class()(data);
+    return new this.model_class(data);
   }
 
   /** 
@@ -56,7 +56,7 @@ export default class BaseService {
    */
   async create(model, config={}) {
     let {data} = await axios.post(this.create_path(), model, config);
-    return this.model_class()(data);
+    return new this.model_class(data);
   }
 
   /**
@@ -69,7 +69,7 @@ export default class BaseService {
    */
   async update(id, model, config={}) {
     let {data} = await axios.put(this.update_path(id), model, config);
-    return this.model_class()(data);
+    return new this.model_class(data);
   }
 
   /**

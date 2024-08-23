@@ -1,5 +1,6 @@
 import BaseService from "./base"
 import User from "@/data/models/user"
+import axios from "@/utils/axios";
 
 export default class UserService extends BaseService {
 
@@ -20,8 +21,8 @@ export default class UserService extends BaseService {
   }
 
   async fetch_current_user() {
-    let {data} = await axios.get('/user');
-    return this.model_class()(data);    
+    let {data} = await axios.get('/user/current');
+    return new this.model_class(data);    
   }
 
   async login(username, password) {

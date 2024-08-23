@@ -1,9 +1,13 @@
-<script setup lang="ts">
+<script setup>
 import { ref } from 'vue';
 import Menubar from 'primevue/menubar';
-
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'vue-router'
+
 const { t, locale, availableLocales } = useI18n()
+const auth_store = useAuthStore();
+const router = useRouter();
 
 const items = ref([
   {
@@ -75,8 +79,18 @@ const items = ref([
   }
 ]);
 
-import { useAuthStore } from '@/stores/auth';
-const authStore = useAuthStore();
+function get_username() {
+  return auth_store.user?.username;
+}
+
+function get_username_first_letter() {
+  return get_username()?.charAt(0).toUpperCase();
+}
+
+function logout() {
+  auth_store.logout();
+  router.push('/login');
+}
 </script>
 
 <template>
@@ -88,7 +102,7 @@ const authStore = useAuthStore();
     </template>
     <template #end>
       <div class="flex items-center gap-2">
-        <!-- Because t() is not reactive, this does not trigger a direct change of names -->
+        <!-- Because t() is not reactive, this does not trigger a direct change of names 
         <Select v-model="locale" :options="availableLocales" disabled >
           <template #value="props">
             {{ !!props.value ? props.value.toUpperCase() : '' }}
@@ -97,8 +111,9 @@ const authStore = useAuthStore();
             {{ !!props.option ? props.option.toUpperCase() : '' }}
           </template>
         </Select>
-        <Avatar v-tooltip.left="authStore.user?.username" :label="authStore.user?.username[0].toUpperCase()" class="mr-2" shape="circle" />
-        <Button v-tooltip.left="t('logout.title')" icon="fa fa-right-from-bracket" class="p-button-rounded p-button-text" severity="danger" />
+        -->
+        <Avatar class="mr-2" shape="circle" v-tooltip.left="get_username()" :label="get_username_first_letter()" />
+        <Button v-tooltip.left="t('logout.title')" icon="fa fa-right-from-bracket" class="p-button-rounded p-button-text" severity="danger" @click="logout" />
       </div>
     </template>
   </Menubar>

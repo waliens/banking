@@ -8,6 +8,9 @@ axios.defaults.baseURL = `${window.location.origin}/${API_PREFIX}`; // connect t
 axios.interceptors.response.use(
   response => response,
   async error => {
+    if (error.response.request.responseURL.includes('/login') || error.response.request.responseURL.includes('/refresh')) {
+      return Promise.reject(error);
+    }
     if (error.response.status === 401) {
       const authStore = useAuthStore();
       await authStore.refreshToken();
