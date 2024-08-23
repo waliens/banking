@@ -76,6 +76,7 @@ double-table-select.nothing-selected,"Nothing selected","Pas de sélection"
 double-table-select.selected-too-many,"Too many elements selected (selected: {selected}, maximum: {max})","Le nombre d'élément(s) sélectionné(s) est trop élevé (sélectionné(s): {selected}, maximum: {max})"
 drop_or_upload,"Drop your files here","Dépose tes fichiers ici"
 explore,Explore,Explorer
+error,Error,Erreur
 failure,Failure,Échec
 group,Group,Groupe
 profile,Profile,Profil

@@ -41,6 +41,7 @@ app.component("font-awesome-icon", FontAwesomeIcon)
 import PrimeVue from 'primevue/config';
 import 'primeicons/primeicons.css'
 import Aura from '@primevue/themes/aura';
+import ToastService from 'primevue/toastservice';
 app.use(PrimeVue, {
   theme: {
     preset: Aura,
@@ -51,6 +52,7 @@ app.use(PrimeVue, {
     }
   }
 })
+app.use(ToastService);
 
 /* ***** */
 app.mount('#app')

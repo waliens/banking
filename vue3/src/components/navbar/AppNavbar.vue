@@ -75,8 +75,8 @@ const items = ref([
   }
 ]);
 
-// TODO read from global state
-const username = ref("test");
+import { useAuthStore } from '@/stores/auth';
+const authStore = useAuthStore();
 </script>
 
 <template>
@@ -97,7 +97,7 @@ const username = ref("test");
             {{ !!props.option ? props.option.toUpperCase() : '' }}
           </template>
         </Select>
-        <Avatar v-tooltip.left="username" :label="username[0].toUpperCase()" class="mr-2" shape="circle" />
+        <Avatar v-tooltip.left="authStore.user?.username" :label="authStore.user?.username[0].toUpperCase()" class="mr-2" shape="circle" />
         <Button v-tooltip.left="t('logout.title')" icon="fa fa-right-from-bracket" class="p-button-rounded p-button-text" severity="danger" />
       </div>
     </template>
