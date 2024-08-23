@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import router from './router'
 import PrimeVue from 'primevue/config';
-import Aura from '@/presets/aura'
+import Aura from '@primevue/themes/aura';
 
 import { createI18n } from 'vue-i18n'
 import en from '@/i18n/json/en.json'
@@ -22,8 +22,14 @@ const app = createApp(App)
 app.use(router)
 app.use(i18n)
 app.use(PrimeVue, {
-  unstyled: true,
-  pt: Aura
+  theme: {
+    preset: Aura,
+    options: {
+      prefix: 'p',
+      darkModeSelector: 'system',
+      cssLayer: false
+    }
+  }
 })
 
 app.mount('#app')
