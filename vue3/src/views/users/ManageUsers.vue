@@ -1,3 +1,40 @@
+<script setup>
+import { onMounted, ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import router from '@/router';
+import { RouterView } from 'vue-router';
+import { useUsersStore } from '@/stores/users';
+
+onMounted(async () => {
+  await usersStore.update_users();
+});
+
+const usersStore = useUsersStore();
+const { t } = useI18n();
+
+const menuItems = computed(() => {
+  return [
+    {
+      label: t('user.create'),
+      icon: 'fa fa-plus',
+      command: () => router.push({ name: 'create-user' })
+    },
+    { 
+      label: t('users.title'),
+      icon: 'fa fa-users',
+      items: usersStore.users.map(u => {
+        return {
+          label: u.username,
+          icon: 'fa fa-user',
+          command: () => router.push({ name: 'edit-user', params: { id: u.id } })
+        };
+      })
+    }
+  ];
+});
+
+</script>
+
 <template>
   <div class="grid grid-cols-4 gap-x-4">
     <section class="col-span-1">
@@ -34,82 +71,3 @@
     </section> -->
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import router from '@/router';
-import { RouterView } from 'vue-router';
-
-const { t } = useI18n();
-const menuItems = ref([
-  {
-    label: t('user.create'),
-    icon: 'fa fa-plus',
-    command: () => router.push({ name: 'create-user' })
-  },
-  { 
-    label: t('users.title'),
-    icon: 'fa fa-users',
-    children: []
-  }
-]);
-
-
-
-// const fetchUsers = async () => {
-//   users.value = await User.fetchAll();
-//   if (users.value) {
-//     resetActive();
-//   }
-// };
-
-// const resetActive = () => {
-//   activeItems.value = Array(users.value.length).fill(false);
-// };
-
-// const addNewUser = () => {
-//   const user = new User();
-//   user.username = "???";
-//   users.value.push(user);
-//   resetActive();
-//   activeItems.value[activeItems.value.length - 1] = true;
-// };
-
-// const isAnyUserMenuActive = computed(() => {
-//   return !activeItems.value.every(b => !b);
-// });
-
-// const isAnyUserInMenuNotSaved = computed(() => {
-//   return !users.value.every(u => !!u.id);
-// });
-
-// const activeUser = computed(() => {
-//   for (let i = 0; i < activeItems.value.length; ++i) {
-//     if (activeItems.value[i]) {
-//       return users.value[i];
-//     }
-//   }
-//   return null;
-// });
-
-// const passwordDoMatch = computed(() => {
-//   return activeUser.value && activeUser.value.password === activeUser.value.password2;
-// });
-
-// const isFormValid = () => {
-//   if (!activeUser.value) {
-//     return false;
-//   }
-//   return passwordDoMatch.value && activeUser.value.username.length > 0;
-// };
-
-// const saveUser = async () => {
-//   // empty password fields
-//   activeUser.value.password2 = undefined;
-//   await activeUser.value.save();
-//   activeUser.value.password = undefined;
-//   resetActive();
-// };
-
-</script>

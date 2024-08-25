@@ -90,6 +90,8 @@ user.username,Username,Nom d'utilisateur
 user.password,Password,Mot de passe
 user.repeat_password,Repeat password,Répéter le mot de passe
 user.edit,Edit user,Modifier l'utilisateur
+user.updated,User updated,Utilisateur mis à jour
+user.created,User created,Utilisateur créé
 user.create,Create user,Nouvel utilisateur
 users.title,Users,Utilisateurs
 users.manage,Manage users,Gérer les utilisateurs
@@ -219,3 +221,4 @@ september,September,Septembre
 october,October,Octobre
 november,November,Novembre
 december,December,Décembre
+success,Success,Réussite

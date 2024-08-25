@@ -18,7 +18,7 @@ export default class BaseService {
   }
 
   // -- accessors for path name fetch, update, create, delete API endpoints
-  fetch_path() {
+  fetch_path(id) {
     return `/${this.resource_prefix}/${id}`;
   }
 
@@ -34,16 +34,25 @@ export default class BaseService {
     return this.fetch_path(id);
   }
 
+  /** 
+   * Override this method to fetch all resources with custom path 
+   * @returns 
+   */
+  fetch_all_path() {
+    return `${this.resource_prefix}s`;
+  }
+
   // --- default methods
 
   /**
    * Fetch a single resource by id.
+   * @param {*} id Identifier of the resource
    * @param {F} config Axios config for the request.
    * @returns An instance of the resource model class.
    * @throws {Error} If the request fails (e.g. because it does not exist).
    */
-  async fetch(config={}) {
-    let {data} = await axios.get(this.fetch_path(), config);
+  async fetch(id, config={}) {
+    let {data} = await axios.get(this.fetch_path(id), config);
     return new this.model_class(data);
   }
 
@@ -84,4 +93,14 @@ export default class BaseService {
     return true;
   }
 
+  /**
+   * Fetch all resources.
+   * @param {*} config Axios config for the request.
+   * @returns An array of instances of the resource model class.
+   * @throws {Error} If the request fails.
+   */
+  async fetch_all(config={}) {
+    let {data} = await axios.get(this.fetch_all_path(), config);
+    return data.map((item) => new this.model_class(item));
+  }
 }
