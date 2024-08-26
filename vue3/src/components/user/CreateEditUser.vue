@@ -58,7 +58,7 @@ const valid_username = computed(() => {
 </script>
 
 <template>
-  <Form>
+  <form>
     <Toast />
     <section class="w-full">
       <div class="grid grid-cols-6 gap-2">
@@ -73,6 +73,6 @@ const valid_username = computed(() => {
         </div>
       </div>
     </section>
-  </Form>
+  </form>
 </template>
 
