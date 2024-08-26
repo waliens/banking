@@ -24,6 +24,9 @@ export const useUsersStore = defineStore('users', {
     },
     async update_user(user) {
       const index = this.users.findIndex(u => u.id == user.id);
+      if (index < 0) {
+        throw new Error(`User with id ${user.id} not found.`);
+      }
       this.users[index] = user;
     }
   },

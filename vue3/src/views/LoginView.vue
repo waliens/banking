@@ -6,14 +6,14 @@ import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
-const username = ref('');
-const password = ref('');
+const username = ref('')
+const password = ref('')
 
-const toast = useToast();
+const toast = useToast()
 const router = useRouter()
 
 const login = async () => {
-  const authStore = useAuthStore();
+  const authStore = useAuthStore()
   await authStore.login(username.value, password.value).then(
     () => {
       router.push('/');

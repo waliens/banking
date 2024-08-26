@@ -1,13 +1,9 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import router from '@/router';
 import { RouterView } from 'vue-router';
 import { useUsersStore } from '@/stores/users';
-
-onMounted(async () => {
-  await usersStore.update_users();
-});
 
 const usersStore = useUsersStore();
 const { t } = useI18n();

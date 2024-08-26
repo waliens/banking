@@ -1,7 +1,7 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import CreateEditUser from '@/components/user/CreateEditUser.vue';
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useUsersStore } from '@/stores/users';
 
 const route = useRoute();
