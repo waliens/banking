@@ -21,7 +21,6 @@ const props = defineProps({
 const save = async () => {
   const user_service = new UserService();
   const user = props.user;
-  let id = user.id;
   if (user.id) {
     await user_service.update(user.id, user);
     usersStore.update_user(user);
