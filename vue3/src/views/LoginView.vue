@@ -4,19 +4,22 @@ import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router'
+import { useUsersStore } from '@/stores/users';
 
 const { t } = useI18n()
 const username = ref('')
 const password = ref('')
 
+const usersStore = useUsersStore();
 const toast = useToast()
 const router = useRouter()
 
 const login = async () => {
   const authStore = useAuthStore()
   await authStore.login(username.value, password.value).then(
-    () => {
-      router.push('/');
+    async () => {
+      await usersStore.init()
+      router.push('/')
     },
     (error) => {
       console.log(error);

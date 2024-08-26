@@ -12,6 +12,7 @@ onMounted(async () => {
   ];
   await Promise.all(stores.map(store => store.init()));
 });
+
 </script>
 
 <template>
