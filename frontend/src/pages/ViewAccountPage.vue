@@ -4,7 +4,7 @@
       <div class="level-right"><h3 class="level-item title">{{$t('account.details')}}</h3></div>
       <div class="level-left"> <b-button v-on:click="goToEditEvent" class="level-item is-small" icon-right="pen">{{$t('edit')}}</b-button></div>
     </section>
-    
+
     <section class="level">
       <div class="level-item has-text-centered">
         <div>
@@ -37,7 +37,12 @@
     </section>
 
     <section v-if="transactions && account">
-      <transaction-table :transactions="transactions" :reference-account="account" :title="$t('transaction.transactions')"></transaction-table>
+      <transaction-table
+        :transactions="transactions"
+        :reference-account="account"
+        :title="$t('transaction.transactions')"
+        @load-more-transactions="loadMoreTransactions"
+      ></transaction-table>
     </section>
   </div>
 </template>
@@ -54,7 +59,9 @@ export default defineComponent({
   data() {
     return {
       account: null,
-      transactions: null
+      transactions: [],
+      start: 0,
+      count: 50
     };
   },
   async created() {
@@ -77,10 +84,16 @@ export default defineComponent({
     },
     async fetchTransactions() {
       if (this.account) {
-        return await this.account.transactions();
+        let result = await this.account.transactions({start: this.start, count: this.count});
+        this.start += this.count;
+        return result;
       } else {
         return [];
       }
+    },
+    async loadMoreTransactions() {
+      let moreTransactions = await this.fetchTransactions();
+      this.transactions = [...this.transactions, ...moreTransactions];
     },
     formatAlias(alias) {
       return Account.formatNameByObj(alias, this);

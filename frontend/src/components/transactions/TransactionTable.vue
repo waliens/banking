@@ -1,45 +1,48 @@
 <template>
-  <table-with-query-filter :data="transactions" :columns="columns" :filter-from-query="queryFilter" :title="title">
+  <div>
+    <table-with-query-filter :data="transactions" :columns="columns" :filter-from-query="queryFilter" :title="title">
 
-    <template slot="amount" slot-scope="props">
-      <currency-display :currency="props.row.currency" :amount="getSignedAmount(props.row)" :do-color="!!referenceAccount"></currency-display>
-    </template>
+      <template slot="amount" slot-scope="props">
+        <currency-display :currency="props.row.currency" :amount="getSignedAmount(props.row)" :do-color="!!referenceAccount"></currency-display>
+      </template>
 
-    <template slot="description" slot-scope="props">
-      <string-or-null-display :truncate="75" :value="getTransactionDescription(props.row)"></string-or-null-display>
-    </template>
+      <template slot="description" slot-scope="props">
+        <string-or-null-display :truncate="75" :value="getTransactionDescription(props.row)"></string-or-null-display>
+      </template>
 
-    <!-- when there is a reference account -->
-    <template slot="conterpart.number" slot-scope="props" v-if="referenceAccount">
-      <account-number-display :number="getCounterpartNumber(props.row)"></account-number-display>
-    </template>
+      <!-- when there is a reference account -->
+      <template slot="conterpart.number" slot-scope="props" v-if="referenceAccount">
+        <account-number-display :number="getCounterpartNumber(props.row)"></account-number-display>
+      </template>
 
-    <template slot="conterpart.name" slot-scope="props" v-if="referenceAccount">
-      <string-or-null-display :value="getCounterpartName(props.row)"></string-or-null-display>
-    </template>
-    
-    <!-- when there is no reference account -->
-    <template slot="source.number" slot-scope="props" v-if="!referenceAccount">
-      <account-number-display :number="props.row.source.number"></account-number-display>
-    </template>
+      <template slot="conterpart.name" slot-scope="props" v-if="referenceAccount">
+        <string-or-null-display :value="getCounterpartName(props.row)"></string-or-null-display>
+      </template>
 
-    <template slot="source.name" slot-scope="props" v-if="!referenceAccount">
-      <string-or-null-display :value="props.row.source.name"></string-or-null-display>
-    </template>
+      <!-- when there is no reference account -->
+      <template slot="source.number" slot-scope="props" v-if="!referenceAccount">
+        <account-number-display :number="props.row.source.number"></account-number-display>
+      </template>
 
-    <template slot="dest.number" slot-scope="props" v-if="!referenceAccount">
-      <account-number-display :number="props.row.dest.number"></account-number-display>
-    </template>
+      <template slot="source.name" slot-scope="props" v-if="!referenceAccount">
+        <string-or-null-display :value="props.row.source.name"></string-or-null-display>
+      </template>
 
-    <template slot="dest.name" slot-scope="props" v-if="!referenceAccount">
-      <string-or-null-display :value="props.row.dest.name"></string-or-null-display>
-    </template>
+      <template slot="dest.number" slot-scope="props" v-if="!referenceAccount">
+        <account-number-display :number="props.row.dest.number"></account-number-display>
+      </template>
 
-    <template slot="category" slot-scope="props">
-      <category-tag :category="props.row.category"></category-tag>
-    </template>
+      <template slot="dest.name" slot-scope="props" v-if="!referenceAccount">
+        <string-or-null-display :value="props.row.dest.name"></string-or-null-display>
+      </template>
 
-  </table-with-query-filter>
+      <template slot="category" slot-scope="props">
+        <category-tag :category="props.row.category"></category-tag>
+      </template>
+
+    </table-with-query-filter>
+    <b-button @click="loadMoreTransactions" expanded type="is-primary">{{ $t('load_more') }}</b-button>
+  </div>
 </template>
 
 <script>
@@ -85,7 +88,7 @@ export default defineComponent({
     },
     getSignedAmount(t) {
       if (!!this.referenceAccount && t.source.id == this.referenceAccount.id) {
-        return strcurrency(t.amount).multiply(-1); 
+        return strcurrency(t.amount).multiply(-1);
       } else {
         return t.amount;
       }
@@ -124,6 +127,9 @@ export default defineComponent({
         }
       }
       return null;
+    },
+    loadMoreTransactions() {
+      this.$emit('load-more-transactions');
     }
   }
 })
