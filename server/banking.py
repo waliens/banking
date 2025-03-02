@@ -47,6 +47,7 @@ app.config.update(
   JWT_REFRESH_TOKEN_EXPIRES=timedelta(days=30),
   JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=1),
   APPLICATION_ROOT=os.environ.get('API_PREFIX_PATH', default="/api"),
+  JWT_VERIFY_SUB = False
 )
 
 # celery workers
@@ -333,7 +334,7 @@ def get_transactions_count():
     return error_response("group id must be provided if group_data or group_external_only is requested")
   if search_query is not None and len(search_query) < 3:
     return error_response("cannot search for search query of length < 3")
-  
+
   # not filtering by group
   if in_group == -1:
     in_group = None
@@ -823,7 +824,7 @@ def get_group_stats_per_category(id_group):
       include_unlabeled=unlabeled,
       bucket_level=level
     )
-  else: 
+  else:
     buckets = per_category_aggregated(
       session,
       id_group,
@@ -832,7 +833,7 @@ def get_group_stats_per_category(id_group):
       id_category=id_category,
       include_unlabeled=unlabeled,
       bucket_level=level
-    )    
+    )
   return jsonify(buckets[-1] if len(buckets) > 0 else [])
 
 
