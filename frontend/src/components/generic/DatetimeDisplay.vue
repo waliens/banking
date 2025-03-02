@@ -23,22 +23,22 @@ export default defineComponent({
     formattedDatetime() {
       let datetime = this.datetime;
       if (this.datetime instanceof Date) {
-        datetime = moment(this.datetime)  
+        datetime = moment(this.datetime)
       }
       if (this.datetime instanceof moment) {
         datetime = this.datetime.toISOString();
       }
-      return this.asdate ? this.formatDate(datetime) : this.formatDatetime(datetime); 
+      return this.asdate ? this.formatDate(datetime) : this.formatDatetime(datetime);
     }
   },
   methods: {
     formatDate(iso8601) {
       const datetime = moment(iso8601);
-      return datetime.format('L');
+      return datetime.format('DD/MM/YYYY');
     },
     formatDatetime(iso8601) {
       const datetime = moment(iso8601);
-      return datetime.format('LLL');
+      return datetime.format('DD/MM/YYYY HH:mm');
     }
   }
 })
