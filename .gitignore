@@ -6,3 +6,4 @@ server/.env
 /.idea/
 .env
 /backups/
+./server/.vscode
