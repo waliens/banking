@@ -3,18 +3,18 @@ ARG NGINX_VERSION=1.27.1
 
 #######################################################################################
 ## Stage: build front-end
-FROM node:${NODE_VERSION} as frontend-builder
+FROM node:${NODE_VERSION} AS frontend-builder
 
 WORKDIR /app
 RUN apk add --no-cache bash
 COPY ./package.json ./src ./public *config.js index.html /app/
-  
+
 RUN npm install
 RUN npm run build
 
 #######################################################################################
 ## Stage: dev image (with hot swap)
-FROM node:${NODE_VERSION} as dev-server
+FROM node:${NODE_VERSION} AS dev-server
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ CMD ["npm", "run", "dev", "--", "--host='0.0.0.0'", "--port='80'"]
 
 #######################################################################################
 ## Stage: building nginx image serving the front-end
-FROM nginx:${NGINX_VERSION}-alpine as prod-server
+FROM nginx:${NGINX_VERSION}-alpine AS prod-server
 
 ARG NGINX_VERSION
 
