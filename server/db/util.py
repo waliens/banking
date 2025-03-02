@@ -205,6 +205,7 @@ def get_transaction_query(
 
   query = Transaction.query.filter(and_(*filters))
 
+  order_bys = []
   if sort_by is not None:
     sort_expr = {
       'when': Transaction.when,
@@ -214,6 +215,10 @@ def get_transaction_query(
       sort_expr = sort_expr.desc()
     else:
       sort_expr = sort_expr.asc()
-    query = query.order_by(sort_expr)
+    order_bys.append(sort_expr)
+
+  # to provide a consistent order across calls
+  order_bys.append(Transaction.id.desc() if order == "desc" else Transaction.id.asc())
+  query = query.order_by(*order_bys)
 
   return query

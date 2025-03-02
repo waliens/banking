@@ -100,7 +100,9 @@ export default defineComponent({
       }
     },
     async loadMoreTransactions() {
+      this.loading = true;
       let moreTransactions = await this.fetchTransactions();
+      this.loading = false;
       this.lastFetchedCount = moreTransactions.length;
       this.transactions = [...this.transactions, ...moreTransactions];
     },

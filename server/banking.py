@@ -206,12 +206,9 @@ def account_transactions(id_account):
   from sqlalchemy import or_
   start = request.args.get("start", type=int, default=0)
   count = request.args.get("count", type=int, default=50)
-  transactions = Transaction.query \
-    .filter(
-      or_(Transaction.id_dest == id_account, Transaction.id_source == id_account),
-      Transaction.id_is_duplicate_of == None
-    ) \
-    .order_by(Transaction.when.desc())[start:(start+count)]
+  transactions = get_transaction_query(
+    account=id_account,
+  )[start:(start+count)]
   return jsonify([t.as_dict() for t in transactions])
 
 

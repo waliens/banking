@@ -119,7 +119,7 @@
                   />
                 </b-tooltip>
               </div>
-              <!-- duplicate TODO -->
+              <!-- duplicate -->
               <div class="button-in-bar">
                 <b-tooltip :label="$t('transaction.duplicate.mark.title')" type="is-info">
                   <b-button
@@ -312,7 +312,7 @@ export default defineComponent({
       if (!this.groupSelected || !selected || !this.categoryMap[selected]) {
         return "";
       }
-      // group contribution ratio for source and target 
+      // group contribution ratio for source and target
       let sourceRatio = 0.0, destRatio = 0.0;
       let accountGroup = this.currentGroup;
       accountGroup.account_groups.forEach(ag => {

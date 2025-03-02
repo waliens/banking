@@ -1,6 +1,7 @@
 import Model from './Model';
 import { strcurrency, formatAccountNumber } from '@/utils/helpers';
 import { hasOwnProperty } from '../helpers';
+import Transaction from './Transaction';
 
 export default class Account extends Model {
   /** @inheritdoc */
@@ -24,7 +25,7 @@ export default class Account extends Model {
 
   async transactions(params) {
     let result = await Account.backend().get(this.uri + "/transactions", {params});
-    return result.data;
+    return result.data.map(o => new Transaction(o));
   }
 
   async updateChange(data) {
