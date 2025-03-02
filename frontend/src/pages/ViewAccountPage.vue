@@ -84,6 +84,14 @@ export default defineComponent({
     },
     accountId() {
       return this.$route.params.accountid;
+    },
+    queryFilters() {
+      return {
+        start: this.start,
+        count: this.count,
+        sort_by: 'when',
+        order: 'desc'
+      };
     }
   },
   methods: {
@@ -92,7 +100,7 @@ export default defineComponent({
     },
     async fetchTransactions() {
       if (this.account) {
-        let result = await this.account.transactions({start: this.start, count: this.count});
+        let result = await this.account.transactions(this.queryFilters);
         this.start += this.count;
         return result;
       } else {

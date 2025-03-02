@@ -206,9 +206,22 @@ def account_transactions(id_account):
   from sqlalchemy import or_
   start = request.args.get("start", type=int, default=0)
   count = request.args.get("count", type=int, default=50)
+  order = request.args.get("order", type=str, default="desc")
+  sort_by = request.args.get("sort_by", type=str, default=None)
+  search_query = request.args.get("search_query", type=str, default=None)
+
+  if sort_by is not None and sort_by not in {'when', 'amount'}:
+    return error_response("cannot fetch transactions without categories but with a category id")
+  if search_query is not None and len(search_query) < 3:
+    return error_response("cannot search for search query of length < 3")
+
   transactions = get_transaction_query(
     account=id_account,
+    search_query=search_query,
+    sort_by=sort_by,
+    order=order
   )[start:(start+count)]
+
   return jsonify([t.as_dict() for t in transactions])
 
 
