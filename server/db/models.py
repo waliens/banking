@@ -3,8 +3,8 @@ import uuid
 
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy import Column, JSON, Enum, Integer, Date, Float, String, ForeignKey, Numeric, UniqueConstraint
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, noload
+
+from sqlalchemy.orm import relationship, noload, declarative_base
 from sqlalchemy.sql.expression import and_, select, func, update, or_
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -197,6 +197,7 @@ class Transaction(Base):
     id_category = Column(Integer, ForeignKey('category.id', ondelete='SET NULL'), nullable=True)
     data_source = Column(String)
     id_is_duplicate_of = Column(Integer, ForeignKey('transaction.id'), nullable=True, default=None, server_default=None)
+    description = Column(String, default="", server_default="")
     source = relationship("Account", foreign_keys=[id_source], lazy="joined", back_populates="as_source")
     dest = relationship("Account", foreign_keys=[id_dest], lazy="joined", back_populates="as_dest")
     currency = relationship("Currency", lazy="joined")
@@ -223,7 +224,7 @@ class Transaction(Base):
         fields = [
             "id", "custom_id", "id_source", "id_dest", "when",
             "metadata_", "amount", "id_currency", "id_category",
-            "data_source", "id_is_duplicate_of"
+            "data_source", "id_is_duplicate_of", "description"
         ]
         mappings = {
             "when": lambda v: v.isoformat(),
@@ -295,7 +296,6 @@ class MLModelFile(Base):
 
     id = Column(Integer, primary_key=True)
     filename = Column(String)
-    target = Column(String)
     metadata_ = Column("metadata", JSON)
     state = Column(Enum(MLModelState))
 
@@ -304,28 +304,22 @@ class MLModelFile(Base):
         return "{}.pkl".format(uuid.uuid4())
 
     @classmethod
-    def get_models_by_state(cls, state: MLModelState, target=None):
+    def get_models_by_state(cls, state: MLModelState):
         cond = cls.state == state
-        if target is not None:
-            cond = and_(cond, cls.target == target)
         return cls.query.where(cond).all()
 
     @classmethod
-    def has_models_in_state(cls, state: MLModelState, target=None):
+    def has_models_in_state(cls, state: MLModelState):
         cond = cls.state == state
-        if target is not None:
-            cond = and_(cond, cls.target == target)
         return cls.query.where(cond).count() > 0
 
     @classmethod
-    def invalidate_models_stmt(cls, target=None):
+    def invalidate_models_stmt(cls):
         stmt = update(cls)
         filters = [cls.state != MLModelState.DELETED]
-        if target is not None:
-            filters.append(cls.target == target)
         stmt = stmt.where(and_(*filters))
         stmt = stmt.values(state=MLModelState.INVALID)
         return stmt
 
     def as_dict(self, **kwargs):
-        return AsDictSerializer("id", "filename", "target", "metadata_", state=lambda v: v.name).serialize(self)
+        return AsDictSerializer("id", "filename", "metadata_", state=lambda v: v.name).serialize(self)

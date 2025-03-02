@@ -2,6 +2,7 @@ import csv
 import json
 import os
 import re
+import datetime as dt
 from datetime import datetime
 from decimal import Decimal
 from typing import Dict, Iterable, Set
@@ -22,7 +23,7 @@ def sanitize_number(e):
     cleaned = re.sub("\s+", "", e.strip())
     return None if len(cleaned) == 0 else cleaned
 
- 
+
 def parse_csv_file(filepath, encoding="latin1", header_length=13, skip_header=True):
     with open(filepath, "r", encoding=encoding) as file:
         reader = csv.reader(file, delimiter=";")
@@ -32,7 +33,7 @@ def parse_csv_file(filepath, encoding="latin1", header_length=13, skip_header=Tr
             yield row
 
 
-def parse_date(s):
+def parse_date(s) -> dt.datetime:
     s_sanitized = sanitize(s).replace("-", "/")
     try:
         return datetime.strptime(s_sanitized, "%d/%m/%Y")
@@ -74,7 +75,7 @@ class BelfiusParserOrchestrator(BankParserOrchestrator):
 
     def read_personal_accounts(self, path: str) -> Dict[str, Iterable[Account]]:
         return {}
-    
+
     def read_accounts(self, path: str) -> Set:
         accounts = set()
         for filepath in self.get_transaction_files(path):
@@ -121,31 +122,35 @@ class BelfiusParserOrchestrator(BankParserOrchestrator):
             if amount > 0:
                 src_account, dest_account = dest_account, src_account
 
+            transaction_field = sanitize(row[8])
+            communication = sanitize(row[14])
+
             t = Transaction(
                 amount=amount.copy_abs(),
                 src=src_account, dest=dest_account,
                 currency=Currency.validate(row[11]),
                 when=parse_date(row[1]).date(),
+                description=communication or transaction_field or "",
                 id_fn=identifier_fn,
                 valued_at=parse_date(row[9]).date(),
                 statement_nb=sanitize(row[2]),
                 transaction_nb=sanitize(row[3]),
                 road_number=sanitize(row[6]),
                 postal_code_city=sanitize(row[7]),
-                transaction=sanitize(row[8]),
+                transaction=transaction_field,
                 bic=sanitize(row[12]),
                 country_code=sanitize(row[13]),
-                communication=sanitize(row[14])
+                communication=communication
             )
 
             transactions.append(t)
 
         return number, transactions
-    
+
     def check_transaction_files(self, path: str):
         for filepath in self.get_transaction_files(path):
             rows = parse_csv_file(filepath, header_length=12) # 12 because want to get headers
-            for row in rows: # only read header row 
+            for row in rows: # only read header row
                 if row[0] != "Compte": # check first header
                     return False
                 break

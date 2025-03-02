@@ -201,8 +201,7 @@ def get_transaction_query(
   if amount_from is not None:
     filters.append(Transaction.amount >= amount_from)
   if search_query is not None:
-    filters.append(_search_metadata_query("communication", search_query))
-    filters.append(_search_metadata_query("transaction", search_query))
+    filters.append(Transaction.description.ilike(f"%{search_query}%"))
 
   query = Transaction.query.filter(and_(*filters))
 

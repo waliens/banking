@@ -1,5 +1,6 @@
 <template>
   <div v-if="account">
+    <b-loading v-model="isLoading"></b-loading>
     <section class="level">
       <div class="level-right"><h3 class="level-item title">{{$t('account.details')}}</h3></div>
       <div class="level-left"> <b-button v-on:click="goToEditEvent" class="level-item is-small" icon-right="pen">{{$t('edit')}}</b-button></div>
@@ -41,6 +42,8 @@
         :transactions="transactions"
         :reference-account="account"
         :title="$t('transaction.transactions')"
+        :load-more-enabled="lastFetchedCount == count"
+        :show-load-more="true"
         @load-more-transactions="loadMoreTransactions"
       ></transaction-table>
     </section>
@@ -58,16 +61,21 @@ export default defineComponent({
   components: {CurrencyDisplay, TransactionTable, AccountNumberDisplay},
   data() {
     return {
+      isLoading: false,
       account: null,
       transactions: [],
       start: 0,
-      count: 50
+      count: 50,
+      lastFetchedCount: 0
     };
   },
   async created() {
     if (this.hasAccountId) {
+      this.isLoading = true;
       this.account = await this.fetchAccount();
       this.transactions = await this.fetchTransactions();
+      this.lastFetchedCount = this.transactions.length;
+      this.isLoading = false;
     }
   },
   computed: {
@@ -93,6 +101,7 @@ export default defineComponent({
     },
     async loadMoreTransactions() {
       let moreTransactions = await this.fetchTransactions();
+      this.lastFetchedCount = moreTransactions.length;
       this.transactions = [...this.transactions, ...moreTransactions];
     },
     formatAlias(alias) {

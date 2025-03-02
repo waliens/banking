@@ -7,7 +7,9 @@
       </template>
 
       <template slot="description" slot-scope="props">
-        <string-or-null-display :truncate="75" :value="getTransactionDescription(props.row)"></string-or-null-display>
+        <b-tooltip :label="getTransactionDescription(props.row)" type="is-primary" multilined>
+          <string-or-null-display :truncate="125" :value="getTransactionDescription(props.row)"></string-or-null-display>
+        </b-tooltip>
       </template>
 
       <!-- when there is a reference account -->
@@ -21,11 +23,11 @@
 
       <!-- when there is no reference account -->
       <template slot="source.number" slot-scope="props" v-if="!referenceAccount">
-        <account-number-display :number="props.row.source.number"></account-number-display>
+        <account-number-display :number="props.row.source ? props.row.source.number : null"></account-number-display>
       </template>
 
       <template slot="source.name" slot-scope="props" v-if="!referenceAccount">
-        <string-or-null-display :value="props.row.source.name"></string-or-null-display>
+        <string-or-null-display :value="props.row.source ? props.row.source.name : null"></string-or-null-display>
       </template>
 
       <template slot="dest.number" slot-scope="props" v-if="!referenceAccount">
@@ -41,7 +43,7 @@
       </template>
 
     </table-with-query-filter>
-    <b-button @click="loadMoreTransactions" expanded type="is-primary">{{ $t('load_more') }}</b-button>
+    <b-button v-if="showLoadMore" :disabled="!loadMoreEnabled" @click="loadMoreTransactions" expanded type="is-primary">{{ $t('load_more') }}</b-button>
   </div>
 </template>
 
@@ -57,10 +59,16 @@ import { strcurrency } from '@/utils/helpers';
 
 export default defineComponent({
   components: { TableWithQueryFilter, CurrencyDisplay, StringOrNullDisplay, CategoryTag, AccountNumberDisplay },
-  props: { transactions: Array, referenceAccount: Object, title: String },
+  props: {
+    transactions: Array,
+    referenceAccount: Object,
+    title: String,
+    showLoadMore: { type: Boolean, default: false },
+    loadMoreEnabled: { type: Boolean, default: false }
+  },
   data() {
     return {
-      queryFilter
+      queryFilter,
     }
   },
   computed: {
@@ -77,7 +85,7 @@ export default defineComponent({
         columns.push({field: 'dest.name', label: this.$t('account.dest.name')});
       }
       columns.push({field: 'amount', label: this.$t('amount'), numeric: true});
-      columns.push({field: 'description', label: this.$t('description'), width: 400});
+      columns.push({field: 'description', label: this.$t('description'), width: 600});
       columns.push({field: 'category', label: this.$t('category') });
       return columns;
     }
@@ -87,7 +95,7 @@ export default defineComponent({
       this.$router.push({'name': 'view-account', params: {'accountid': id}});
     },
     getSignedAmount(t) {
-      if (!!this.referenceAccount && t.source.id == this.referenceAccount.id) {
+      if (!!this.referenceAccount && t.source && t.source.id == this.referenceAccount.id) {
         return strcurrency(t.amount).multiply(-1);
       } else {
         return t.amount;
@@ -120,13 +128,7 @@ export default defineComponent({
       return counterpart.number;
     },
     getTransactionDescription(t) {
-      if (t && t.metadata_ && Object.prototype.hasOwnProperty.call(t.metadata_, 'transaction')) {
-        let desc = new String(t.metadata_['transaction']);
-        if (desc.length > 0) {
-          return desc;
-        }
-      }
-      return null;
+      return t && t.description ? t.description : null;
     },
     loadMoreTransactions() {
       this.$emit('load-more-transactions');

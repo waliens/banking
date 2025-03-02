@@ -22,8 +22,8 @@ export default class Account extends Model {
     return new Account(result.data);
   }
 
-  async transactions() {
-    let result = await Account.backend().get(this.uri + "/transactions");
+  async transactions(params) {
+    let result = await Account.backend().get(this.uri + "/transactions", {params});
     return result.data;
   }
 

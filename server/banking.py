@@ -76,8 +76,8 @@ logging.basicConfig()
 
 #################### CELERY TASKS #######################
 @celery.task
-def trigger_model_train(target):
-  train_model(trigger_model_train.session, data_source=target)
+def trigger_model_train():
+  train_model(trigger_model_train.session)
 
 @celery.task
 def delete_invalid_models():
@@ -387,7 +387,7 @@ def ml_infer_category(id_transaction):
     category, proba = predict_category(transaction)
     return jsonify({"category": category.as_dict(), "proba": proba})
   except NoValidModelException:
-    trigger_model_train.delay(transaction.data_source)
+    trigger_model_train.delay()
     return error_response("no valid model ready (retry later)", code=400)
   except TooManyAvailableModelsException("too many available model for prediction"):
     return error_response("too many models available for prediction", code=500)
@@ -422,6 +422,7 @@ def create_manual_transaction():
   id_currency = request.json.get("id_currency", None)
   id_category = request.json.get("id_category", None)
   id_group = request.json.get("id_group", None)
+  description = request.json.get("description", "")
 
   if date_when is None:
     return error_response("'when' is empty, should be set to a date")
@@ -446,7 +447,8 @@ def create_manual_transaction():
       id_currency=id_currency,
       id_category=id_category,
       data_source="manual",
-      id_is_duplicate_of=None
+      id_is_duplicate_of=None,
+      description=description
     )
     session.add(transaction)
     session.flush()
@@ -488,6 +490,8 @@ def edit_manual_transaction(id_transaction):
       transaction.id_currency = id_currency
     if "id_category" in request.json:
       transaction.id_category = request.json.get("id_category")
+    if "description" in request.json:
+      transaction.description = request.json.get("description", "")
     new_source, new_dest = transaction.id_source, transaction.id_dest
     if "id_dest" in request.json:
       new_dest = request.json.get("id_dest")
@@ -873,17 +877,26 @@ def accounts():
   return jsonify([a.as_dict(show_balance=False) for a in accounts])
 
 
-@api.route("/model/<target>/refresh", methods=["POST"])
+@api.route("/model/refresh", methods=["POST"])
 @jwt_required()
-def refresh_model(target):
-  if target not in {'belfius'}:
-    return error_response({'msg': 'invalid target'}, code=403)
+def refresh_model():
   session = Session()
-  session.execute(MLModelFile.invalidate_models_stmt(target=target))
+  session.execute(MLModelFile.invalidate_models_stmt())
   session.commit()
   delete_invalid_models.delay()
-  trigger_model_train.delay(target)
+  trigger_model_train.delay()
   return jsonify({'msg': 'retrain triggered'})
+
+
+# ENABLE FOR MANUAL TESTING
+# @api.route("/model/train", methods=["GET"])
+# def train_model_endpoint():
+#   session = Session()
+#   try:
+#     train_model(session)
+#     return jsonify({'msg': 'model training triggered'})
+#   except Exception as e:
+#     return error_response(str(e), code=500)
 
 
 @api.route("/models", methods=["GET"])
