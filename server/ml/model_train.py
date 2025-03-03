@@ -1,3 +1,4 @@
+import math
 import multiprocessing
 import os
 import logging
@@ -25,10 +26,22 @@ class NotEnoughDataToTrain(Exception):
   pass
 
 
-def get_max_samples_leaf(n_samples):
-  value_set = {int(v * n_samples) for v in [0.00005, 0.0001, 0.0025, 0.005, 0.01]}
-  value_set.add(1)
-  return sorted({v for v in value_set if v > 0})
+LOGGER = logging.getLogger("model_train")
+
+
+def get_min_samples_leaf(n_samples):
+  # This prevents the model to grow too big when
+  # the dataset grows reducing memory footpring
+  # and loading time
+  min_leaf_size = max(1, int(math.log2(n_samples)))
+
+  # Generate values directly from min_leaf_size
+  return [
+    min_leaf_size,
+    2 * min_leaf_size,
+    5 * min_leaf_size,
+    10 * min_leaf_size
+  ]
 
 
 def train_model(session, required_sample_size: int=50, random_state: int=42, class_level="fine"):
@@ -68,12 +81,12 @@ def train_model(session, required_sample_size: int=50, random_state: int=42, cla
     estimator = ExtraTreesClassifier(n_estimators=500, random_state=random_state, n_jobs=n_jobs)
 
     n_features = features.shape[1]
-    param_grid = { 'min_samples_leaf': get_max_samples_leaf(n_samples), 'max_features': [int(np.sqrt(n_features)), n_features// 2, n_features] }
+    param_grid = { 'min_samples_leaf': get_min_samples_leaf(n_samples), 'max_features': [int(np.sqrt(n_features)), n_features// 2, n_features] }
     kfold = KFold(n_splits=5, shuffle=True, random_state=random_state)
     gsearch = GridSearchCV(estimator, param_grid, scoring=make_scorer(accuracy_score), refit=True, cv=kfold, n_jobs=1)
     gsearch.fit(x, y)
 
-    logging.getLogger(__name__).info(f"finish tuning model '{model_file.filename}' (cv_score={gsearch.best_score_}, best_params={gsearch.best_params_})")
+    LOGGER.info(f"finish tuning model '{model_file.filename}' (cv_score={gsearch.best_score_}, best_params={gsearch.best_params_})")
 
     pipeline = Pipeline([
       ('features', transformer),
@@ -83,7 +96,7 @@ def train_model(session, required_sample_size: int=50, random_state: int=42, cla
     model_path = os.getenv('MODEL_PATH')
     model_filepath = os.path.join(model_path, model_file.filename)
     os.makedirs(model_path, exist_ok=True)
-    logging.getLogger(__name__).info(f"dump trained model model into '{model_path}'")
+    LOGGER.info(f"dump trained model model into '{model_path}'")
 
     # check if TRAINING state hasn't change
     session.refresh(model_file)
