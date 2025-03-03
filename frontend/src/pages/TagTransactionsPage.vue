@@ -1,5 +1,6 @@
 <template>
   <div>
+    <b-loading :is-full-page="isFullPage" v-model="isLoading" />
     <section v-if="!groupSelected">
       <b-message
         :has-icon="true"
@@ -59,7 +60,6 @@
           @sort="onSort"
           :per-page="transactionsPerPage"
           :current-page="currentPage"
-          :loading="isLoading"
           detailed
           detail-key="id"
           detail-transition="fade"
