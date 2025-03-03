@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Default values
-PROD_IP=${PROD_IP:$1}
+PROD_IP=${PROD_IP:-$1}
 CONTAINER_NAME=${CONTAINER_NAME:-banking-database-1}
 DB_NAME=${DB_NAME:-banking}
 DB_USER=${DB_USER:-admin}
