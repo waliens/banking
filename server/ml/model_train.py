@@ -77,8 +77,7 @@ def train_model(session, required_sample_size: int=50, random_state: int=42, cla
     y = encoder.transform(categories)
 
     # create model
-    n_jobs = min(multiprocessing.cpu_count() // 2, 4)
-    estimator = ExtraTreesClassifier(n_estimators=500, random_state=random_state, n_jobs=n_jobs)
+    estimator = ExtraTreesClassifier(n_estimators=500, random_state=random_state, n_jobs=1)
 
     n_features = features.shape[1]
     param_grid = { 'min_samples_leaf': get_min_samples_leaf(n_samples), 'max_features': [int(np.sqrt(n_features)), n_features// 2, n_features] }
