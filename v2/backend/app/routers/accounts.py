@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
@@ -7,6 +7,7 @@ from app.models import Account, AccountAlias, MLModel, Transaction, User
 from app.schemas.account import (
     AccountAliasCreate,
     AccountAliasResponse,
+    AccountCountResponse,
     AccountMerge,
     AccountResponse,
     AccountUpdate,
@@ -16,8 +17,25 @@ router = APIRouter()
 
 
 @router.get("", response_model=list[AccountResponse])
-def list_accounts(db: Session = Depends(get_db), _user: User = Depends(get_current_user)) -> list[Account]:
-    return db.query(Account).all()
+def list_accounts(
+    start: int = 0,
+    count: int | None = None,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> list[Account]:
+    q = select(Account).order_by(Account.name, Account.id).offset(start)
+    if count is not None:
+        q = q.limit(count)
+    return list(db.execute(q).scalars().unique().all())
+
+
+@router.get("/count", response_model=AccountCountResponse)
+def count_accounts(
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> AccountCountResponse:
+    total = db.execute(select(func.count()).select_from(Account)).scalar_one()
+    return AccountCountResponse(count=total)
 
 
 @router.put("/merge", response_model=AccountResponse)

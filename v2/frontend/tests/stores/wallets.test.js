@@ -85,4 +85,63 @@ describe('useWalletStore', () => {
       expect(store.wallets[0].id).toBe(1)
     })
   })
+
+  describe('fetchBalance', () => {
+    it('fetches balance and stores result', async () => {
+      const balanceData = { accounts: [{ id: 1, name: 'Checking', balance: '1000.00', id_currency: 1, currency_symbol: '€' }] }
+      api.get.mockResolvedValueOnce({ data: balanceData })
+
+      const result = await store.fetchBalance(5)
+
+      expect(api.get).toHaveBeenCalledWith('/wallets/5/stats/balance')
+      expect(store.balance).toEqual(balanceData)
+      expect(result).toEqual(balanceData)
+    })
+  })
+
+  describe('fetchIncomeExpense', () => {
+    it('fetches income/expense with year param', async () => {
+      const ieData = { items: [{ year: 2024, month: 3, income: '200', expense: '80', id_currency: 1 }] }
+      api.get.mockResolvedValueOnce({ data: ieData })
+
+      const result = await store.fetchIncomeExpense(5, { year: 2024 })
+
+      expect(api.get).toHaveBeenCalledWith('/wallets/5/stats/income-expense', { params: { year: 2024 } })
+      expect(store.incomeExpense).toEqual(ieData)
+      expect(result).toEqual(ieData)
+    })
+
+    it('fetches without year param', async () => {
+      const ieData = { items: [] }
+      api.get.mockResolvedValueOnce({ data: ieData })
+
+      await store.fetchIncomeExpense(5)
+
+      expect(api.get).toHaveBeenCalledWith('/wallets/5/stats/income-expense', { params: {} })
+    })
+  })
+
+  describe('fetchPerCategory', () => {
+    it('fetches per-category with all params', async () => {
+      const catData = { items: [{ id_category: 1, category_name: 'Food', amount: '75', id_currency: 1 }] }
+      api.get.mockResolvedValueOnce({ data: catData })
+
+      const result = await store.fetchPerCategory(5, { date_from: '2024-01-01', date_to: '2024-12-31', income_only: true })
+
+      expect(api.get).toHaveBeenCalledWith('/wallets/5/stats/per-category', {
+        params: { date_from: '2024-01-01', date_to: '2024-12-31', income_only: true },
+      })
+      expect(store.perCategory).toEqual(catData)
+      expect(result).toEqual(catData)
+    })
+
+    it('fetches with no params', async () => {
+      const catData = { items: [] }
+      api.get.mockResolvedValueOnce({ data: catData })
+
+      await store.fetchPerCategory(5)
+
+      expect(api.get).toHaveBeenCalledWith('/wallets/5/stats/per-category', { params: {} })
+    })
+  })
 })

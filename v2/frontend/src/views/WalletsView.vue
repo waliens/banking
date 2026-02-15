@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '../stores/wallets'
 import { useAccountStore } from '../stores/accounts'
@@ -9,6 +10,7 @@ import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import MultiSelect from 'primevue/multiselect'
 
+const router = useRouter()
 const { t } = useI18n()
 const toast = useToast()
 const walletStore = useWalletStore()
@@ -70,12 +72,12 @@ onMounted(async () => {
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div v-for="wallet in walletStore.wallets" :key="wallet.id" class="bg-surface-0 rounded-xl shadow p-4">
+      <div v-for="wallet in walletStore.wallets" :key="wallet.id" class="bg-surface-0 rounded-xl shadow p-4 cursor-pointer hover:shadow-md transition-shadow" @click="router.push(`/wallets/${wallet.id}`)">
         <div class="flex items-center justify-between mb-2">
           <h2 class="text-lg font-semibold">{{ wallet.name }}</h2>
           <div class="flex gap-1">
-            <Button icon="pi pi-pencil" text rounded size="small" @click="openEdit(wallet)" />
-            <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="handleDelete(wallet)" />
+            <Button icon="pi pi-pencil" text rounded size="small" @click.stop="openEdit(wallet)" />
+            <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click.stop="handleDelete(wallet)" />
           </div>
         </div>
         <p v-if="wallet.description" class="text-sm text-surface-500 mb-2">{{ wallet.description }}</p>

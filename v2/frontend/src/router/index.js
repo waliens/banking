@@ -39,6 +39,11 @@ const routes = [
     component: () => import('../views/WalletsView.vue'),
   },
   {
+    path: '/wallets/:id',
+    name: 'wallet-detail',
+    component: () => import('../views/WalletDetailView.vue'),
+  },
+  {
     path: '/import',
     name: 'import',
     component: () => import('../views/ImportView.vue'),

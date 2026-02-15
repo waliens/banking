@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAccountStore } from '../stores/accounts'
 import DataTable from 'primevue/datatable'
@@ -9,7 +9,22 @@ import Tag from 'primevue/tag'
 const { t } = useI18n()
 const accountStore = useAccountStore()
 
-onMounted(() => accountStore.fetchAccounts())
+const rows = ref(20)
+const first = ref(0)
+
+async function loadPage() {
+  await accountStore.fetchAccounts({ start: first.value, count: rows.value })
+}
+
+function onPage(event) {
+  first.value = event.first
+  rows.value = event.rows
+  loadPage()
+}
+
+onMounted(async () => {
+  await Promise.all([accountStore.fetchCount(), loadPage()])
+})
 </script>
 
 <template>
@@ -20,6 +35,13 @@ onMounted(() => accountStore.fetchAccounts())
       <DataTable
         :value="accountStore.accounts"
         :loading="accountStore.loading"
+        lazy
+        paginator
+        :rows="rows"
+        :totalRecords="accountStore.totalCount"
+        :first="first"
+        :rowsPerPageOptions="[10, 20, 50]"
+        @page="onPage"
         stripedRows
         responsiveLayout="scroll"
         class="text-sm"

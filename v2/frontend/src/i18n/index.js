@@ -61,6 +61,17 @@ const messages = {
       color: 'Color',
       parent: 'Parent',
     },
+    wallet: {
+      balance: 'Balance',
+      income: 'Income',
+      expense: 'Expense',
+      incomeExpense: 'Income / Expense',
+      perCategory: 'Per Category',
+      noData: 'No data available',
+      year: 'Year',
+      dateRange: 'Date range',
+      detail: 'Wallet Details',
+    },
   },
   fr: {
     nav: {
@@ -121,6 +132,17 @@ const messages = {
       name: 'Nom',
       color: 'Couleur',
       parent: 'Parent',
+    },
+    wallet: {
+      balance: 'Solde',
+      income: 'Revenus',
+      expense: 'Dépenses',
+      incomeExpense: 'Revenus / Dépenses',
+      perCategory: 'Par catégorie',
+      noData: 'Aucune donnée disponible',
+      year: 'Année',
+      dateRange: 'Période',
+      detail: 'Détails du portefeuille',
     },
   },
 }

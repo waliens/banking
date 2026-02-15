@@ -54,7 +54,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routers import auth, accounts, categories, transactions, currencies, wallets, imports  # noqa: E402
+from app.routers import (
+    auth,
+    accounts,
+    categories,
+    transactions,
+    currencies,
+    wallets,
+    wallet_stats,
+    imports,
+)  # noqa: E402
 
 app.include_router(auth.router, prefix="/api/v2/auth", tags=["auth"])
 app.include_router(accounts.router, prefix="/api/v2/accounts", tags=["accounts"])
@@ -62,6 +71,7 @@ app.include_router(categories.router, prefix="/api/v2/categories", tags=["catego
 app.include_router(transactions.router, prefix="/api/v2/transactions", tags=["transactions"])
 app.include_router(currencies.router, prefix="/api/v2/currencies", tags=["currencies"])
 app.include_router(wallets.router, prefix="/api/v2/wallets", tags=["wallets"])
+app.include_router(wallet_stats.router, prefix="/api/v2/wallets", tags=["wallet-stats"])
 app.include_router(imports.router, prefix="/api/v2/imports", tags=["imports"])
 
 

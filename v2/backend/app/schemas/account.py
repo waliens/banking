@@ -35,6 +35,10 @@ class AccountResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class AccountCountResponse(BaseModel):
+    count: int
+
+
 class AccountUpdate(BaseModel):
     initial_balance: Decimal | None = None
     institution: str | None = None

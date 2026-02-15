@@ -34,7 +34,15 @@ describe('useAccountStore', () => {
       await promise
       expect(store.loading).toBe(false)
       expect(store.accounts).toEqual(accounts)
-      expect(api.get).toHaveBeenCalledWith('/accounts')
+      expect(api.get).toHaveBeenCalledWith('/accounts', { params: {} })
+    })
+
+    it('passes pagination params', async () => {
+      api.get.mockResolvedValueOnce({ data: [{ id: 1, name: 'A' }] })
+
+      await store.fetchAccounts({ start: 10, count: 20 })
+
+      expect(api.get).toHaveBeenCalledWith('/accounts', { params: { start: 10, count: 20 } })
     })
 
     it('resets loading on error', async () => {
@@ -42,6 +50,18 @@ describe('useAccountStore', () => {
 
       await expect(store.fetchAccounts()).rejects.toThrow()
       expect(store.loading).toBe(false)
+    })
+  })
+
+  describe('fetchCount', () => {
+    it('fetches total count', async () => {
+      api.get.mockResolvedValueOnce({ data: { count: 42 } })
+
+      const result = await store.fetchCount()
+
+      expect(api.get).toHaveBeenCalledWith('/accounts/count')
+      expect(store.totalCount).toBe(42)
+      expect(result).toBe(42)
     })
   })
 

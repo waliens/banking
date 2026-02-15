@@ -5,6 +5,9 @@ import api from '../services/api'
 export const useWalletStore = defineStore('wallets', () => {
   const wallets = ref([])
   const loading = ref(false)
+  const balance = ref(null)
+  const incomeExpense = ref(null)
+  const perCategory = ref(null)
 
   async function fetchWallets() {
     loading.value = true
@@ -34,5 +37,42 @@ export const useWalletStore = defineStore('wallets', () => {
     wallets.value = wallets.value.filter((w) => w.id !== id)
   }
 
-  return { wallets, loading, fetchWallets, createWallet, updateWallet, deleteWallet }
+  async function fetchBalance(walletId) {
+    const { data } = await api.get(`/wallets/${walletId}/stats/balance`)
+    balance.value = data
+    return data
+  }
+
+  async function fetchIncomeExpense(walletId, { year } = {}) {
+    const params = {}
+    if (year != null) params.year = year
+    const { data } = await api.get(`/wallets/${walletId}/stats/income-expense`, { params })
+    incomeExpense.value = data
+    return data
+  }
+
+  async function fetchPerCategory(walletId, { date_from, date_to, income_only } = {}) {
+    const params = {}
+    if (date_from) params.date_from = date_from
+    if (date_to) params.date_to = date_to
+    if (income_only != null) params.income_only = income_only
+    const { data } = await api.get(`/wallets/${walletId}/stats/per-category`, { params })
+    perCategory.value = data
+    return data
+  }
+
+  return {
+    wallets,
+    loading,
+    balance,
+    incomeExpense,
+    perCategory,
+    fetchWallets,
+    createWallet,
+    updateWallet,
+    deleteWallet,
+    fetchBalance,
+    fetchIncomeExpense,
+    fetchPerCategory,
+  }
 })
