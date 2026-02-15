@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     import app.models as _models  # noqa: F401 — ensure all models are registered
     from app.database import SessionLocal
+    from app.models.currency import Currency
     from app.models.user import User
 
     logger.info("Creating database tables if they don't exist...")
@@ -22,6 +23,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     db = SessionLocal()
     try:
+        if db.query(Currency).count() == 0:
+            logger.info("No currencies found — seeding defaults")
+            db.add_all([
+                Currency(symbol="€", short_name="EUR", long_name="Euro"),
+                Currency(symbol="$", short_name="USD", long_name="US Dollar"),
+                Currency(symbol="£", short_name="GBP", long_name="British Pound"),
+            ])
+            db.commit()
+
         if db.query(User).count() == 0:
             logger.info("No users found — creating default admin account")
             db.add(User(username="admin", password_hash=User.hash_password("password")))
