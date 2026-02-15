@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -5,13 +6,30 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.database import Base, engine
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    # startup
+    import app.models as _models  # noqa: F401 — ensure all models are registered
+    from app.database import SessionLocal
+    from app.models.user import User
+
+    logger.info("Creating database tables if they don't exist...")
+    Base.metadata.create_all(bind=engine)
+
+    db = SessionLocal()
+    try:
+        if db.query(User).count() == 0:
+            logger.info("No users found — creating default admin account")
+            db.add(User(username="admin", password_hash=User.hash_password("password")))
+            db.commit()
+    finally:
+        db.close()
+
     yield
-    # shutdown
 
 
 app = FastAPI(title="Banking V2 API", lifespan=lifespan)
