@@ -61,3 +61,16 @@ class TransactionTagBatch(BaseModel):
 
 class TransactionCountResponse(BaseModel):
     count: int
+
+
+class ReviewBatchRequest(BaseModel):
+    transaction_ids: list[int]
+
+
+class ReviewBatchResponse(BaseModel):
+    msg: str
+    count: int
+
+
+class ReviewInboxCountResponse(BaseModel):
+    count: int

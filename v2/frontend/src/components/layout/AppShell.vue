@@ -1,22 +1,29 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
+import { useTransactionStore } from '../../stores/transactions'
 
 const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
+const transactionStore = useTransactionStore()
 const sidebarCollapsed = ref(false)
 
 const navItems = [
   { label: 'nav.dashboard', icon: 'pi pi-home', route: '/' },
+  { label: 'nav.review', icon: 'pi pi-inbox', route: '/review', badge: true },
   { label: 'nav.transactions', icon: 'pi pi-list', route: '/transactions' },
   { label: 'nav.accounts', icon: 'pi pi-wallet', route: '/accounts' },
   { label: 'nav.categories', icon: 'pi pi-tags', route: '/categories' },
   { label: 'nav.wallets', icon: 'pi pi-briefcase', route: '/wallets' },
   { label: 'nav.import', icon: 'pi pi-upload', route: '/import' },
 ]
+
+onMounted(() => {
+  transactionStore.fetchReviewCount()
+})
 
 async function logout() {
   await auth.logout()
@@ -47,7 +54,13 @@ async function logout() {
           active-class="bg-surface-700"
         >
           <i :class="item.icon" />
-          <span v-if="!sidebarCollapsed">{{ t(item.label) }}</span>
+          <span v-if="!sidebarCollapsed" class="flex-1">{{ t(item.label) }}</span>
+          <span
+            v-if="item.badge && !sidebarCollapsed && transactionStore.reviewCount > 0"
+            class="ml-auto bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center"
+          >
+            {{ transactionStore.reviewCount }}
+          </span>
         </router-link>
       </nav>
 
@@ -75,11 +88,17 @@ async function logout() {
         v-for="item in navItems.slice(0, 5)"
         :key="item.route"
         :to="item.route"
-        class="flex flex-col items-center gap-0.5 px-2 py-1 text-xs text-surface-500"
+        class="relative flex flex-col items-center gap-0.5 px-2 py-1 text-xs text-surface-500"
         active-class="!text-primary-500"
       >
         <i :class="item.icon" class="text-lg" />
         <span>{{ t(item.label) }}</span>
+        <span
+          v-if="item.badge && transactionStore.reviewCount > 0"
+          class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full px-1 min-w-[16px] text-center"
+        >
+          {{ transactionStore.reviewCount }}
+        </span>
       </router-link>
     </nav>
   </div>

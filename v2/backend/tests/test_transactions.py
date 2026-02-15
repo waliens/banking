@@ -295,6 +295,85 @@ class TestBatchTag:
         assert r.status_code == 200
 
 
+class TestReview:
+    def test_review_single(self, client, auth_headers, sample_transaction):
+        assert sample_transaction.is_reviewed is False
+        r = client.put(f"/api/v2/transactions/{sample_transaction.id}/review", headers=auth_headers)
+        assert r.status_code == 200
+        assert r.json()["is_reviewed"] is True
+
+    def test_review_not_found(self, client, auth_headers, currency_eur):
+        r = client.put("/api/v2/transactions/99999/review", headers=auth_headers)
+        assert r.status_code == 404
+
+    def test_review_batch(self, client, auth_headers, db, sample_transaction, currency_eur, account_checking):
+        t2 = Transaction(
+            external_id="tx-review-2",
+            id_source=account_checking.id,
+            date=datetime.date(2024, 1, 1),
+            amount=Decimal("20.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        db.add(t2)
+        db.flush()
+
+        r = client.put(
+            "/api/v2/transactions/review-batch",
+            json={"transaction_ids": [sample_transaction.id, t2.id]},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["msg"] == "success"
+        assert data["count"] == 2
+
+    def test_review_inbox_count(self, client, auth_headers, db, sample_transaction, currency_eur, account_checking):
+        # sample_transaction: is_reviewed=False, id_category=None, id_duplicate_of=None -> in inbox
+        r = client.get("/api/v2/transactions/review-inbox/count", headers=auth_headers)
+        assert r.status_code == 200
+        assert r.json()["count"] == 1
+
+    def test_review_inbox_count_excludes_reviewed_and_duplicates(
+        self, client, auth_headers, db, sample_transaction, currency_eur, account_checking, category_food
+    ):
+        # reviewed transaction — should NOT be in inbox
+        t_reviewed = Transaction(
+            external_id="tx-reviewed",
+            id_source=account_checking.id,
+            date=datetime.date(2024, 1, 1),
+            amount=Decimal("10.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+            is_reviewed=True,
+        )
+        # duplicate transaction — should NOT be in inbox
+        t_dup = Transaction(
+            external_id="tx-dup-inbox",
+            id_source=account_checking.id,
+            date=datetime.date(2024, 1, 2),
+            amount=Decimal("15.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+            id_duplicate_of=sample_transaction.id,
+        )
+        # categorized transaction — should NOT be in inbox
+        t_categorized = Transaction(
+            external_id="tx-cat",
+            id_source=account_checking.id,
+            date=datetime.date(2024, 1, 3),
+            amount=Decimal("25.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+            id_category=category_food.id,
+        )
+        db.add_all([t_reviewed, t_dup, t_categorized])
+        db.flush()
+
+        r = client.get("/api/v2/transactions/review-inbox/count", headers=auth_headers)
+        assert r.json()["count"] == 1  # only sample_transaction
+
+
 class TestDuplicates:
     def test_get_duplicate_candidates(
         self, client, auth_headers, db, sample_transaction, currency_eur, account_checking, account_savings

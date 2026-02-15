@@ -96,8 +96,13 @@ def import_parsed_transactions(
     currencies = {c.short_name: c for c in db.query(Currency).all()}
     existing_ids = {row[0] for row in db.execute(select(Transaction.external_id)).all()}
 
-    # filter already imported
-    new_parsed = [p for p in parsed if p.external_id not in existing_ids]
+    # filter already imported and deduplicate within batch
+    seen: set[str] = set()
+    new_parsed: list[ParsedTransaction] = []
+    for p in parsed:
+        if p.external_id not in existing_ids and p.external_id not in seen:
+            seen.add(p.external_id)
+            new_parsed.append(p)
     if not new_parsed:
         return []
 

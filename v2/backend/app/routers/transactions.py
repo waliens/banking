@@ -11,6 +11,9 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from app.dependencies import get_current_user, get_db
 from app.models import Transaction, User, WalletAccount
 from app.schemas.transaction import (
+    ReviewBatchRequest,
+    ReviewBatchResponse,
+    ReviewInboxCountResponse,
     TransactionCountResponse,
     TransactionCreate,
     TransactionResponse,
@@ -207,6 +210,45 @@ def tag_batch(
         )
     db.commit()
     return {"msg": "success"}
+
+
+@router.put("/review-batch", response_model=ReviewBatchResponse)
+def review_batch(
+    body: ReviewBatchRequest, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> ReviewBatchResponse:
+    db.execute(update(Transaction).where(Transaction.id.in_(body.transaction_ids)).values(is_reviewed=True))
+    db.commit()
+    return ReviewBatchResponse(msg="success", count=len(body.transaction_ids))
+
+
+@router.get("/review-inbox/count", response_model=ReviewInboxCountResponse)
+def review_inbox_count(
+    db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> ReviewInboxCountResponse:
+    q = select(func.count()).select_from(
+        select(Transaction)
+        .where(
+            Transaction.is_reviewed == False,  # noqa: E712
+            Transaction.id_category.is_(None),
+            Transaction.id_duplicate_of.is_(None),
+        )
+        .subquery()
+    )
+    count = db.execute(q).scalar_one()
+    return ReviewInboxCountResponse(count=count)
+
+
+@router.put("/{transaction_id}/review", response_model=TransactionResponse)
+def review_transaction(
+    transaction_id: int, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> Transaction:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+    t.is_reviewed = True
+    db.commit()
+    db.refresh(t)
+    return t
 
 
 @router.get("/{transaction_id}", response_model=TransactionResponse)

@@ -87,4 +87,63 @@ describe('useTransactionStore', () => {
       expect(api.put).toHaveBeenCalledWith('/transactions/tag', { categories })
     })
   })
+
+  describe('reviewTransaction', () => {
+    it('calls PUT and updates transaction in store', async () => {
+      store.transactions = [{ id: 7, is_reviewed: false }]
+      const updated = { id: 7, is_reviewed: true }
+      api.put.mockResolvedValueOnce({ data: updated })
+
+      const result = await store.reviewTransaction(7)
+
+      expect(api.put).toHaveBeenCalledWith('/transactions/7/review')
+      expect(result).toEqual(updated)
+      expect(store.transactions[0].is_reviewed).toBe(true)
+    })
+  })
+
+  describe('reviewBatch', () => {
+    it('sends batch review request with transaction IDs', async () => {
+      api.put.mockResolvedValueOnce({ data: { msg: 'success', count: 3 } })
+
+      const result = await store.reviewBatch([1, 2, 3])
+
+      expect(api.put).toHaveBeenCalledWith('/transactions/review-batch', { transaction_ids: [1, 2, 3] })
+      expect(result).toEqual({ msg: 'success', count: 3 })
+    })
+  })
+
+  describe('fetchReviewCount', () => {
+    it('fetches and sets reviewCount', async () => {
+      api.get.mockResolvedValueOnce({ data: { count: 42 } })
+
+      const count = await store.fetchReviewCount()
+
+      expect(api.get).toHaveBeenCalledWith('/transactions/review-inbox/count')
+      expect(store.reviewCount).toBe(42)
+      expect(count).toBe(42)
+    })
+  })
+
+  describe('markDuplicate', () => {
+    it('calls PUT with correct path', async () => {
+      api.put.mockResolvedValueOnce({ data: { msg: 'success' } })
+
+      await store.markDuplicate(5, 3)
+
+      expect(api.put).toHaveBeenCalledWith('/transactions/5/duplicate_of/3')
+    })
+  })
+
+  describe('fetchDuplicateCandidates', () => {
+    it('fetches candidates with days param', async () => {
+      const candidates = [{ id: 10, amount: '50.00' }]
+      api.get.mockResolvedValueOnce({ data: candidates })
+
+      const result = await store.fetchDuplicateCandidates(5, 7)
+
+      expect(api.get).toHaveBeenCalledWith('/transactions/5/duplicate_candidates', { params: { days: 7 } })
+      expect(result).toEqual(candidates)
+    })
+  })
 })

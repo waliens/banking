@@ -25,11 +25,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         if db.query(Currency).count() == 0:
             logger.info("No currencies found — seeding defaults")
-            db.add_all([
-                Currency(symbol="€", short_name="EUR", long_name="Euro"),
-                Currency(symbol="$", short_name="USD", long_name="US Dollar"),
-                Currency(symbol="£", short_name="GBP", long_name="British Pound"),
-            ])
+            db.add_all(
+                [
+                    Currency(symbol="€", short_name="EUR", long_name="Euro"),
+                    Currency(symbol="$", short_name="USD", long_name="US Dollar"),
+                    Currency(symbol="£", short_name="GBP", long_name="British Pound"),
+                ]
+            )
             db.commit()
 
         if db.query(User).count() == 0:
