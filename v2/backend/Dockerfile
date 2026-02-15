@@ -3,13 +3,20 @@ FROM python:3.12-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev gcc \
+    libpq-dev gcc curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml .
-RUN pip install --no-cache-dir .
+RUN curl -sSL https://install.python-poetry.org | python3 - \
+    && ln -s /root/.local/bin/poetry /usr/local/bin/poetry
+
+ENV POETRY_VIRTUALENVS_CREATE=false
+
+COPY pyproject.toml poetry.lock ./
+RUN poetry install --no-root
 
 COPY . .
+
+RUN poetry install --only-root
 
 EXPOSE 8000
 
