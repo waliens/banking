@@ -1,0 +1,111 @@
+import { createI18n } from 'vue-i18n'
+
+const messages = {
+  en: {
+    nav: {
+      dashboard: 'Dashboard',
+      transactions: 'Transactions',
+      accounts: 'Accounts',
+      categories: 'Categories',
+      wallets: 'Wallets',
+      import: 'Import',
+      settings: 'Settings',
+      logout: 'Logout',
+    },
+    auth: {
+      login: 'Login',
+      username: 'Username',
+      password: 'Password',
+      loginError: 'Wrong username or password',
+    },
+    common: {
+      save: 'Save',
+      cancel: 'Cancel',
+      delete: 'Delete',
+      edit: 'Edit',
+      create: 'Create',
+      search: 'Search',
+      loading: 'Loading...',
+      noResults: 'No results',
+      confirm: 'Confirm',
+    },
+    transactions: {
+      title: 'Transactions',
+      amount: 'Amount',
+      date: 'Date',
+      description: 'Description',
+      category: 'Category',
+      source: 'From',
+      dest: 'To',
+      uncategorized: 'Uncategorized',
+    },
+    accounts: {
+      title: 'Accounts',
+      balance: 'Balance',
+      initialBalance: 'Initial Balance',
+    },
+    categories: {
+      title: 'Categories',
+      name: 'Name',
+      color: 'Color',
+      parent: 'Parent',
+    },
+  },
+  fr: {
+    nav: {
+      dashboard: 'Tableau de bord',
+      transactions: 'Transactions',
+      accounts: 'Comptes',
+      categories: 'Catégories',
+      wallets: 'Portefeuilles',
+      import: 'Importer',
+      settings: 'Paramètres',
+      logout: 'Déconnexion',
+    },
+    auth: {
+      login: 'Connexion',
+      username: "Nom d'utilisateur",
+      password: 'Mot de passe',
+      loginError: 'Mauvais identifiant ou mot de passe',
+    },
+    common: {
+      save: 'Enregistrer',
+      cancel: 'Annuler',
+      delete: 'Supprimer',
+      edit: 'Modifier',
+      create: 'Créer',
+      search: 'Rechercher',
+      loading: 'Chargement...',
+      noResults: 'Aucun résultat',
+      confirm: 'Confirmer',
+    },
+    transactions: {
+      title: 'Transactions',
+      amount: 'Montant',
+      date: 'Date',
+      description: 'Description',
+      category: 'Catégorie',
+      source: 'De',
+      dest: 'Vers',
+      uncategorized: 'Non catégorisé',
+    },
+    accounts: {
+      title: 'Comptes',
+      balance: 'Solde',
+      initialBalance: 'Solde initial',
+    },
+    categories: {
+      title: 'Catégories',
+      name: 'Nom',
+      color: 'Couleur',
+      parent: 'Parent',
+    },
+  },
+}
+
+export default createI18n({
+  legacy: false,
+  locale: 'en',
+  fallbackLocale: 'en',
+  messages,
+})
