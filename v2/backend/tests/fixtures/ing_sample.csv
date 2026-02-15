@@ -1,0 +1,4 @@
+Numéro de compte;Nom du compte;Compte partie adverse;Numéro de mouvement;Date comptable;Date valeur;Montant;Devise;Libellés;Détails du mouvement;Message
+BE11223344556677;Mon Compte;BE99887766554433;001;01/06/2024;01/06/2024;-25,50;EUR;Paiement;Achat supermarche;
+BE11223344556677;Mon Compte;BE99887766554433;002;15/06/2024;16/06/2024;1.250,00;EUR;Virement;Salaire juin;Salaire
+BE11223344556677;Mon Compte;;003;20/06/2024;20/06/2024;0,00;EUR;Information;Info message;

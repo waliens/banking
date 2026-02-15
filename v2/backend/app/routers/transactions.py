@@ -1,0 +1,368 @@
+import datetime
+import uuid
+from decimal import Decimal
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import Select, func, or_, select, update
+from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import InstrumentedAttribute
+
+from app.dependencies import get_current_user, get_db
+from app.models import Transaction, User, WalletAccount
+from app.schemas.transaction import (
+    TransactionCountResponse,
+    TransactionCreate,
+    TransactionResponse,
+    TransactionTagBatch,
+    TransactionUpdate,
+)
+
+router = APIRouter()
+
+
+def _build_transaction_query(
+    db: Session,
+    *,
+    account: int | None = None,
+    account_from: int | None = None,
+    account_to: int | None = None,
+    wallet: int | None = None,
+    wallet_external_only: bool = False,
+    labeled: bool | None = None,
+    date_from: datetime.date | None = None,
+    date_to: datetime.date | None = None,
+    amount_from: Decimal | None = None,
+    amount_to: Decimal | None = None,
+    duplicate_only: bool = False,
+    is_reviewed: bool | None = None,
+    search_query: str | None = None,
+    sort_by: str | None = None,
+    order: str = "desc",
+) -> Select[tuple[Transaction]]:
+    q = select(Transaction)
+
+    if account is not None:
+        q = q.where(or_(Transaction.id_source == account, Transaction.id_dest == account))
+    if account_from is not None:
+        q = q.where(Transaction.id_source == account_from)
+    if account_to is not None:
+        q = q.where(Transaction.id_dest == account_to)
+
+    if wallet is not None:
+        wallet_account_ids = select(WalletAccount.id_account).where(WalletAccount.id_wallet == wallet)
+        if wallet_external_only:
+            # at least one side outside the wallet
+            q = q.where(
+                or_(
+                    Transaction.id_source.in_(wallet_account_ids),
+                    Transaction.id_dest.in_(wallet_account_ids),
+                )
+            ).where(
+                or_(
+                    Transaction.id_source.not_in(wallet_account_ids),
+                    Transaction.id_dest.not_in(wallet_account_ids),
+                    Transaction.id_source.is_(None),
+                    Transaction.id_dest.is_(None),
+                )
+            )
+        else:
+            q = q.where(
+                or_(
+                    Transaction.id_source.in_(wallet_account_ids),
+                    Transaction.id_dest.in_(wallet_account_ids),
+                )
+            )
+
+    if labeled is True:
+        q = q.where(Transaction.id_category.is_not(None))
+    elif labeled is False:
+        q = q.where(Transaction.id_category.is_(None))
+
+    if is_reviewed is not None:
+        q = q.where(Transaction.is_reviewed == is_reviewed)
+
+    if date_from is not None:
+        q = q.where(Transaction.date >= date_from)
+    if date_to is not None:
+        q = q.where(Transaction.date <= date_to)
+
+    if amount_from is not None:
+        q = q.where(Transaction.amount >= amount_from)
+    if amount_to is not None:
+        q = q.where(Transaction.amount <= amount_to)
+
+    if duplicate_only:
+        q = q.where(Transaction.id_duplicate_of.is_not(None))
+    else:
+        q = q.where(Transaction.id_duplicate_of.is_(None))
+
+    if search_query and len(search_query) >= 3:
+        q = q.where(Transaction.description.ilike(f"%{search_query}%"))
+
+    # sorting
+    sort_col: InstrumentedAttribute[Any] = Transaction.date
+    if sort_by == "amount":
+        sort_col = Transaction.amount
+
+    if order == "asc":
+        q = q.order_by(sort_col.asc(), Transaction.id.asc())
+    else:
+        q = q.order_by(sort_col.desc(), Transaction.id.desc())
+
+    return q
+
+
+@router.get("", response_model=list[TransactionResponse])
+def list_transactions(
+    start: int = 0,
+    count: int = 50,
+    order: str = "desc",
+    sort_by: str | None = None,
+    account: int | None = None,
+    account_from: int | None = None,
+    account_to: int | None = None,
+    wallet: int | None = None,
+    wallet_external_only: bool = False,
+    labeled: bool | None = None,
+    is_reviewed: bool | None = None,
+    date_from: datetime.date | None = None,
+    date_to: datetime.date | None = None,
+    amount_from: Decimal | None = None,
+    amount_to: Decimal | None = None,
+    duplicate_only: bool = False,
+    search_query: str | None = None,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> list[Transaction]:
+    q = _build_transaction_query(
+        db,
+        account=account,
+        account_from=account_from,
+        account_to=account_to,
+        wallet=wallet,
+        wallet_external_only=wallet_external_only,
+        labeled=labeled,
+        is_reviewed=is_reviewed,
+        date_from=date_from,
+        date_to=date_to,
+        amount_from=amount_from,
+        amount_to=amount_to,
+        duplicate_only=duplicate_only,
+        search_query=search_query,
+        sort_by=sort_by,
+        order=order,
+    )
+    results = db.execute(q.offset(start).limit(count)).scalars().unique().all()
+    return list(results)
+
+
+@router.get("/count", response_model=TransactionCountResponse)
+def count_transactions(
+    account: int | None = None,
+    account_from: int | None = None,
+    account_to: int | None = None,
+    wallet: int | None = None,
+    wallet_external_only: bool = False,
+    labeled: bool | None = None,
+    is_reviewed: bool | None = None,
+    date_from: datetime.date | None = None,
+    date_to: datetime.date | None = None,
+    amount_from: Decimal | None = None,
+    amount_to: Decimal | None = None,
+    duplicate_only: bool = False,
+    search_query: str | None = None,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> TransactionCountResponse:
+    q = _build_transaction_query(
+        db,
+        account=account,
+        account_from=account_from,
+        account_to=account_to,
+        wallet=wallet,
+        wallet_external_only=wallet_external_only,
+        labeled=labeled,
+        is_reviewed=is_reviewed,
+        date_from=date_from,
+        date_to=date_to,
+        amount_from=amount_from,
+        amount_to=amount_to,
+        duplicate_only=duplicate_only,
+        search_query=search_query,
+    )
+    count_q = select(func.count()).select_from(q.subquery())
+    return TransactionCountResponse(count=db.execute(count_q).scalar_one())
+
+
+@router.put("/tag", status_code=status.HTTP_200_OK)
+def tag_batch(
+    body: TransactionTagBatch, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> dict[str, str]:
+    for item in body.categories:
+        db.execute(
+            update(Transaction)
+            .where(Transaction.id == item["id_transaction"])
+            .values(id_category=item["id_category"], is_reviewed=True)
+        )
+    db.commit()
+    return {"msg": "success"}
+
+
+@router.get("/{transaction_id}", response_model=TransactionResponse)
+def get_transaction(
+    transaction_id: int, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> Transaction:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+    return t
+
+
+@router.post("", response_model=TransactionResponse, status_code=status.HTTP_201_CREATED)
+def create_transaction(
+    body: TransactionCreate, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> Transaction:
+    amount = body.amount
+    id_source, id_dest = body.id_source, body.id_dest
+    if amount < 0:
+        id_source, id_dest = id_dest, id_source
+        amount = abs(amount)
+
+    t = Transaction(
+        external_id=str(uuid.uuid4()),
+        id_source=id_source,
+        id_dest=id_dest,
+        date=body.date,
+        raw_metadata=body.raw_metadata or {},
+        amount=amount,
+        id_currency=body.id_currency,
+        id_category=body.id_category,
+        data_source="manual",
+        description=body.description,
+        notes=body.notes,
+        is_reviewed=body.id_category is not None,
+    )
+    db.add(t)
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.put("/{transaction_id}", response_model=TransactionResponse)
+def update_transaction(
+    transaction_id: int, body: TransactionUpdate, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> Transaction:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+    if t.data_source != "manual":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot edit a non-manual transaction")
+
+    update_data = body.model_dump(exclude_unset=True)
+
+    # handle amount sign flip
+    if "amount" in update_data and update_data["amount"] is not None:
+        amount = update_data["amount"]
+        if amount < 0:
+            update_data["amount"] = abs(amount)
+            update_data.setdefault("id_source", t.id_dest)
+            update_data.setdefault("id_dest", t.id_source)
+
+    for key, value in update_data.items():
+        setattr(t, key, value)
+
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_transaction(
+    transaction_id: int, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> None:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+    if t.data_source != "manual":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete a non-manual transaction")
+
+    db.delete(t)
+    db.commit()
+
+
+@router.put("/{transaction_id}/category/{category_id}", response_model=TransactionResponse)
+def set_category(
+    transaction_id: int, category_id: int, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> Transaction:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+
+    t.id_category = category_id
+    t.is_reviewed = True
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.get("/{transaction_id}/duplicate_candidates", response_model=list[TransactionResponse])
+def get_duplicate_candidates(
+    transaction_id: int,
+    days: int = 7,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> list[Transaction]:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+
+    after_date = t.date - datetime.timedelta(days=days)
+    before_date = t.date + datetime.timedelta(days=days)
+
+    filters = [
+        Transaction.amount == t.amount,
+        Transaction.date > after_date,
+        Transaction.date < before_date,
+        Transaction.id != t.id,
+        Transaction.id_duplicate_of.is_(None),
+    ]
+    if t.id_source is not None:
+        filters.append(or_(Transaction.id_source.is_(None), Transaction.id_source == t.id_source))
+    if t.id_dest is not None:
+        filters.append(or_(Transaction.id_dest.is_(None), Transaction.id_dest == t.id_dest))
+
+    candidates = db.execute(select(Transaction).where(*filters)).scalars().unique().all()
+    return list(candidates)
+
+
+@router.put("/{id_duplicate}/duplicate_of/{id_parent}")
+def set_duplicate(
+    id_duplicate: int, id_parent: int, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> dict[str, str]:
+    parent = db.get(Transaction, id_parent)
+    if parent is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Parent transaction not found")
+    if parent.id_duplicate_of is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Parent is already a duplicate")
+
+    duplicate = db.get(Transaction, id_duplicate)
+    if duplicate is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Duplicate transaction not found")
+
+    duplicate.id_duplicate_of = id_parent
+    db.commit()
+    return {"msg": "success"}
+
+
+@router.delete("/{transaction_id}/duplicate_of")
+def unset_duplicate(
+    transaction_id: int, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> dict[str, str]:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+
+    t.id_duplicate_of = None
+    db.commit()
+    return {"msg": "success"}
