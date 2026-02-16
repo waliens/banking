@@ -94,14 +94,19 @@ onMounted(async () => {
           ({{ transactionStore.reviewCount }})
         </span>
       </h1>
-      <Button
-        :label="t('review.markAllReviewed')"
-        severity="secondary"
-        size="small"
-        icon="pi pi-check-circle"
-        :disabled="transactionStore.transactions.length === 0"
-        @click="markAllReviewed"
-      />
+      <div class="flex items-center gap-2">
+        <router-link to="/tagger" class="md:hidden">
+          <Button :label="t('tagger.title')" icon="pi pi-arrows-h" severity="secondary" size="small" />
+        </router-link>
+        <Button
+          :label="t('review.markAllReviewed')"
+          severity="secondary"
+          size="small"
+          icon="pi pi-check-circle"
+          :disabled="transactionStore.transactions.length === 0"
+          @click="markAllReviewed"
+        />
+      </div>
     </div>
 
     <div v-if="!transactionStore.loading && transactionStore.transactions.length === 0" class="text-center py-12 text-surface-400">

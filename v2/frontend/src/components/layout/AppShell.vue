@@ -1,15 +1,17 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useTransactionStore } from '../../stores/transactions'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const transactionStore = useTransactionStore()
 const sidebarCollapsed = ref(false)
+const isFullscreen = computed(() => route.path === '/tagger')
 
 const navItems = [
   { label: 'nav.dashboard', icon: 'pi pi-home', route: '/' },
@@ -18,6 +20,14 @@ const navItems = [
   { label: 'nav.wallets', icon: 'pi pi-briefcase', route: '/wallets' },
   { label: 'nav.import', icon: 'pi pi-upload', route: '/import' },
   { label: 'nav.settings', icon: 'pi pi-cog', route: '/settings' },
+]
+
+const mobileNavItems = [
+  { label: 'nav.dashboard', icon: 'pi pi-home', route: '/' },
+  { label: 'nav.tagger', icon: 'pi pi-arrows-h', route: '/tagger', badge: true },
+  { label: 'nav.transactions', icon: 'pi pi-list', route: '/transactions' },
+  { label: 'nav.wallets', icon: 'pi pi-briefcase', route: '/wallets' },
+  { label: 'nav.import', icon: 'pi pi-upload', route: '/import' },
 ]
 
 onMounted(() => {
@@ -75,8 +85,11 @@ async function logout() {
     </aside>
 
     <!-- Main content -->
-    <main class="flex-1 overflow-auto bg-surface-50 pb-16 md:pb-0">
-      <div class="p-4 md:p-6 max-w-7xl mx-auto">
+    <main
+      class="flex-1 bg-surface-50"
+      :class="isFullscreen ? 'overflow-hidden pb-16 md:pb-0' : 'overflow-auto pb-16 md:pb-0'"
+    >
+      <div :class="isFullscreen ? 'h-full' : 'p-4 md:p-6 max-w-7xl mx-auto'">
         <slot />
       </div>
     </main>
@@ -84,7 +97,7 @@ async function logout() {
     <!-- Bottom nav (mobile) -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface-0 border-t border-surface-200 flex justify-around py-2 z-50">
       <router-link
-        v-for="item in navItems.slice(0, 5)"
+        v-for="item in mobileNavItems"
         :key="item.route"
         :to="item.route"
         class="relative flex flex-col items-center gap-0.5 px-2 py-1 text-xs text-surface-500"

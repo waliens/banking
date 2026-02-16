@@ -48,6 +48,11 @@ const routes = [
     name: 'import',
     component: () => import('../views/ImportView.vue'),
   },
+  {
+    path: '/tagger',
+    name: 'tagger',
+    component: () => import('../views/SwipeTaggerView.vue'),
+  },
 ]
 
 const router = createRouter({

@@ -8,6 +8,7 @@ server/.env
 /backups/
 server/.vscode
 v2/frontend/node_modules/
+v2/frontend/dist/
 v2/frontend/.vscode/
 v2/backend/.venv/
 v2/backend/.pytest_cache/
