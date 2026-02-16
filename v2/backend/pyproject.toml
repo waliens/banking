@@ -48,8 +48,12 @@ disallow_untyped_defs = false
 disallow_untyped_decorators = false
 
 [[tool.mypy.overrides]]
-module = ["jose.*", "pdfminer.*", "bs4.*"]
+module = ["jose.*", "pdfminer.*", "bs4.*", "sklearn.*", "joblib.*", "apscheduler.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "app.ml.*"
+disallow_subclassing_any = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -41,7 +41,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     finally:
         db.close()
 
+    from app.tasks.scheduler import init_scheduler
+
+    init_scheduler()
+
     yield
+
+    from app.tasks.scheduler import shutdown_scheduler
+
+    shutdown_scheduler()
 
 
 app = FastAPI(title="Banking V2 API", lifespan=lifespan)
@@ -63,6 +71,8 @@ from app.routers import (
     wallets,
     wallet_stats,
     imports,
+    ml,
+    tag_rules,
 )  # noqa: E402
 
 app.include_router(auth.router, prefix="/api/v2/auth", tags=["auth"])
@@ -73,6 +83,8 @@ app.include_router(currencies.router, prefix="/api/v2/currencies", tags=["curren
 app.include_router(wallets.router, prefix="/api/v2/wallets", tags=["wallets"])
 app.include_router(wallet_stats.router, prefix="/api/v2/wallets", tags=["wallet-stats"])
 app.include_router(imports.router, prefix="/api/v2/imports", tags=["imports"])
+app.include_router(ml.router, prefix="/api/v2/ml", tags=["ml"])
+app.include_router(tag_rules.router, prefix="/api/v2/tag-rules", tags=["tag-rules"])
 
 
 @app.get("/api/v2/health")

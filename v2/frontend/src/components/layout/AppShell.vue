@@ -15,10 +15,9 @@ const navItems = [
   { label: 'nav.dashboard', icon: 'pi pi-home', route: '/' },
   { label: 'nav.review', icon: 'pi pi-inbox', route: '/review', badge: true },
   { label: 'nav.transactions', icon: 'pi pi-list', route: '/transactions' },
-  { label: 'nav.accounts', icon: 'pi pi-wallet', route: '/accounts' },
-  { label: 'nav.categories', icon: 'pi pi-tags', route: '/categories' },
   { label: 'nav.wallets', icon: 'pi pi-briefcase', route: '/wallets' },
   { label: 'nav.import', icon: 'pi pi-upload', route: '/import' },
+  { label: 'nav.settings', icon: 'pi pi-cog', route: '/settings' },
 ]
 
 onMounted(() => {

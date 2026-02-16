@@ -148,5 +148,13 @@ def import_parsed_transactions(
 
     db.commit()
 
+    # Auto-apply tag rules to newly imported transactions
+    from app.services.tag_rule_service import apply_rules
+
+    non_duplicate = [t for t in transactions if t.id_duplicate_of is None]
+    rules_applied = apply_rules(db, non_duplicate)
+    if rules_applied:
+        logger.info("Auto-applied tag rules to %d transaction(s)", rules_applied)
+
     logger.info("Imported %d new transaction(s) (%d duplicates)", len(transactions), len(duplicate_map))
     return transactions

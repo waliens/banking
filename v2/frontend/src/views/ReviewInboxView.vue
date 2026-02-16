@@ -3,15 +3,18 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTransactionStore } from '../stores/transactions'
 import { useCategoryStore } from '../stores/categories'
+import { useMLStore } from '../stores/ml'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import DuplicateCandidates from '../components/transactions/DuplicateCandidates.vue'
+import MLSuggestion from '../components/MLSuggestion.vue'
 
 const { t } = useI18n()
 const transactionStore = useTransactionStore()
 const categoryStore = useCategoryStore()
+const mlStore = useMLStore()
 
 const page = ref(0)
 const pageSize = ref(50)
@@ -30,6 +33,20 @@ async function loadData() {
     count: pageSize.value,
     order: 'desc',
   })
+  // Fetch ML predictions for visible transactions
+  const ids = transactionStore.transactions.map((t) => t.id)
+  if (ids.length > 0) {
+    try {
+      await mlStore.predictTransactions(ids)
+    } catch {
+      // ML predictions are optional — silently ignore errors
+    }
+  }
+}
+
+async function acceptSuggestion(transactionId, categoryId) {
+  await transactionStore.setCategory(transactionId, categoryId)
+  await refreshAfterAction()
 }
 
 function onPage(event) {
@@ -128,6 +145,18 @@ onMounted(async () => {
             <span :class="data.id_source ? 'text-red-500' : 'text-green-600'" class="font-medium">
               {{ data.id_source ? '-' : '+' }}{{ data.amount }}
             </span>
+          </template>
+        </Column>
+
+        <Column :header="t('ml.suggestion')" style="width: 140px">
+          <template #body="{ data }">
+            <MLSuggestion
+              v-if="mlStore.predictions[data.id]"
+              :categoryName="mlStore.predictions[data.id].category_name"
+              :categoryColor="mlStore.predictions[data.id].category_color"
+              :probability="mlStore.predictions[data.id].probability"
+              @accept="acceptSuggestion(data.id, mlStore.predictions[data.id].category_id)"
+            />
           </template>
         </Column>
 

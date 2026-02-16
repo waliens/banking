@@ -7,6 +7,7 @@ vi.mock('../../src/services/api', () => ({
   default: {
     post: vi.fn(),
     get: vi.fn(),
+    put: vi.fn(),
   },
 }))
 
@@ -83,6 +84,24 @@ describe('useAuthStore', () => {
       expect(store.user).toBeNull()
       expect(store.token).toBeNull()
       expect(localStorage.getItem('access_token')).toBeNull()
+    })
+  })
+
+  describe('changePassword', () => {
+    it('calls PUT /auth/users/:id with new password', async () => {
+      store.user = { id: 42, username: 'alice' }
+      api.put.mockResolvedValueOnce({})
+
+      await store.changePassword('newpass123')
+
+      expect(api.put).toHaveBeenCalledWith('/auth/users/42', { password: 'newpass123' })
+    })
+
+    it('propagates error on failure', async () => {
+      store.user = { id: 1, username: 'bob' }
+      api.put.mockRejectedValueOnce(new Error('403'))
+
+      await expect(store.changePassword('bad')).rejects.toThrow('403')
     })
   })
 

@@ -10,6 +10,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from app.dependencies import get_current_user, get_db
 from app.models import Transaction, User, WalletAccount
+from app.schemas.ml import PredictionItem
 from app.schemas.transaction import (
     ReviewBatchRequest,
     ReviewBatchResponse,
@@ -408,3 +409,34 @@ def unset_duplicate(
     t.id_duplicate_of = None
     db.commit()
     return {"msg": "success"}
+
+
+@router.get("/{transaction_id}/predict", response_model=PredictionItem)
+def predict_single(
+    transaction_id: int, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> PredictionItem:
+    from app.ml.predictor import InferenceError, NoValidModelError, predict_category
+    from app.models import Category
+
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+
+    try:
+        cat_id, prob = predict_category(db, t)
+    except NoValidModelError:
+        return PredictionItem(
+            transaction_id=t.id, category_id=None, category_name=None, category_color=None, probability=0.0
+        )
+    except InferenceError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    cat = db.get(Category, cat_id) if cat_id is not None else None
+    # If predicted category no longer exists (stale model), return null
+    return PredictionItem(
+        transaction_id=t.id,
+        category_id=cat.id if cat else None,
+        category_name=cat.name if cat else None,
+        category_color=cat.color if cat else None,
+        probability=round(prob, 4) if cat else 0.0,
+    )

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useCategoryStore } from '../stores/categories'
+import { useCategoryStore } from '../../stores/categories'
 import { useToast } from 'primevue/usetoast'
 import Tree from 'primevue/tree'
 import Button from 'primevue/button'
@@ -75,8 +75,7 @@ onMounted(() => categoryStore.fetchCategories())
 
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
-      <h1 class="text-2xl font-bold">{{ t('categories.title') }}</h1>
+    <div class="flex justify-end mb-4">
       <Button :label="t('common.create')" icon="pi pi-plus" @click="openCreate()" size="small" />
     </div>
 

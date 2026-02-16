@@ -26,6 +26,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function changePassword(newPassword) {
+    await api.put(`/auth/users/${user.value.id}`, { password: newPassword })
+  }
+
   async function logout() {
     try {
       await api.post('/auth/logout')
@@ -36,5 +40,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { user, token, isAuthenticated, login, fetchUser, logout }
+  return { user, token, isAuthenticated, login, fetchUser, changePassword, logout }
 })
