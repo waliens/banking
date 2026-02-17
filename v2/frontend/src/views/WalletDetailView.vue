@@ -76,10 +76,17 @@ onMounted(async () => {
   <div>
     <div class="flex items-center gap-3 mb-6">
       <Button icon="pi pi-arrow-left" text rounded @click="router.push('/wallets')" />
-      <div>
+      <div class="flex-1">
         <h1 class="text-2xl font-bold">{{ wallet?.name || t('common.loading') }}</h1>
         <p v-if="wallet?.description" class="text-sm text-surface-500">{{ wallet.description }}</p>
       </div>
+      <Button
+        :label="t('flow.viewFlow')"
+        icon="pi pi-arrow-right-arrow-left"
+        severity="secondary"
+        outlined
+        @click="router.push(`/wallets/${walletId}/flow`)"
+      />
     </div>
 
     <!-- Balance cards -->

@@ -1,0 +1,71 @@
+<script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
+const props = defineProps({
+  group: { type: Object, required: true },
+})
+
+const totalPaid = computed(() => {
+  if (!props.group.transactions) return 0
+  return props.group.transactions
+    .filter((tx) => Number(tx.amount) < 0)
+    .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0)
+})
+
+const totalReimbursed = computed(() => {
+  if (!props.group.transactions) return 0
+  return props.group.transactions
+    .filter((tx) => Number(tx.amount) > 0)
+    .reduce((sum, tx) => sum + Number(tx.amount), 0)
+})
+
+const netExpense = computed(() => totalPaid.value - totalReimbursed.value)
+
+function formatAmount(val) {
+  return Number(val).toLocaleString('en', { minimumFractionDigits: 2 })
+}
+</script>
+
+<template>
+  <div class="space-y-4">
+    <!-- Header -->
+    <h3 class="text-lg font-semibold">
+      {{ group.name || `Transaction Group #${group.id}` }}
+    </h3>
+
+    <!-- Summary -->
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-red-50 rounded-lg p-3 text-center">
+        <div class="text-xs text-surface-500">{{ t('transactions.totalPaid') }}</div>
+        <div class="text-sm font-bold text-red-700">{{ formatAmount(totalPaid) }}</div>
+      </div>
+      <div class="bg-green-50 rounded-lg p-3 text-center">
+        <div class="text-xs text-surface-500">{{ t('transactions.totalReimbursed') }}</div>
+        <div class="text-sm font-bold text-green-700">{{ formatAmount(totalReimbursed) }}</div>
+      </div>
+      <div class="bg-surface-50 rounded-lg p-3 text-center">
+        <div class="text-xs text-surface-500">{{ t('flow.netAmount') }}</div>
+        <div class="text-sm font-bold">{{ formatAmount(netExpense) }}</div>
+      </div>
+    </div>
+
+    <!-- Member list -->
+    <div class="space-y-2">
+      <div
+        v-for="tx in group.transactions"
+        :key="tx.id"
+        class="flex items-center gap-3 p-2 bg-surface-0 rounded border border-surface-100 text-sm"
+      >
+        <span class="text-surface-400 text-xs w-20 shrink-0">{{ tx.date }}</span>
+        <span class="truncate flex-1">{{ tx.description }}</span>
+        <span class="font-medium whitespace-nowrap">{{ formatAmount(tx.amount) }}</span>
+        <span v-if="tx.effective_amount != null && String(tx.effective_amount) !== String(tx.amount)" class="text-surface-400 text-xs whitespace-nowrap">
+          ({{ formatAmount(tx.effective_amount) }})
+        </span>
+      </div>
+    </div>
+  </div>
+</template>

@@ -44,6 +44,11 @@ const routes = [
     component: () => import('../views/WalletDetailView.vue'),
   },
   {
+    path: '/wallets/:id/flow',
+    name: 'wallet-flow',
+    component: () => import('../views/TransactionFlowView.vue'),
+  },
+  {
     path: '/import',
     name: 'import',
     component: () => import('../views/ImportView.vue'),
