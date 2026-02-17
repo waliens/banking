@@ -11,7 +11,9 @@ import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
+import WalletsPanel from '../components/settings/WalletsPanel.vue'
 import AccountsPanel from '../components/settings/AccountsPanel.vue'
+import AccountMergePanel from '../components/settings/AccountMergePanel.vue'
 import CategoriesPanel from '../components/settings/CategoriesPanel.vue'
 import TagRulesPanel from '../components/settings/TagRulesPanel.vue'
 import MLModelsPanel from '../components/settings/MLModelsPanel.vue'
@@ -68,16 +70,21 @@ async function savePassword() {
       </template>
     </Card>
 
-    <Tabs value="accounts">
+    <Tabs value="wallets">
       <TabList>
+        <Tab value="wallets">{{ t('settings.wallets') }}</Tab>
         <Tab value="accounts">{{ t('settings.accounts') }}</Tab>
         <Tab value="categories">{{ t('settings.categories') }}</Tab>
         <Tab value="rules">{{ t('settings.rules') }}</Tab>
         <Tab value="ml">{{ t('settings.mlModels') }}</Tab>
       </TabList>
       <TabPanels>
+        <TabPanel value="wallets">
+          <WalletsPanel />
+        </TabPanel>
         <TabPanel value="accounts">
           <AccountsPanel />
+          <AccountMergePanel />
         </TabPanel>
         <TabPanel value="categories">
           <CategoriesPanel />

@@ -1,6 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
-export function useSwipeGesture(elementRef, { onSwipeLeft, onSwipeRight, onSwipeUp, threshold = 100 } = {}) {
+export function useSwipeGesture(elementRef, { onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, threshold = 100 } = {}) {
   const offsetX = ref(0)
   const offsetY = ref(0)
   const isSwiping = ref(false)
@@ -41,8 +41,15 @@ export function useSwipeGesture(elementRef, { onSwipeLeft, onSwipeRight, onSwipe
       swipeDirection.value = dx > 30 ? 'right' : dx < -30 ? 'left' : null
     } else {
       offsetX.value = 0
-      offsetY.value = Math.min(dy, 0) // only allow upward
-      swipeDirection.value = dy < -30 ? 'up' : null
+      if (onSwipeDown) {
+        // Allow both directions when onSwipeDown is provided
+        offsetY.value = dy
+        swipeDirection.value = dy < -30 ? 'up' : dy > 30 ? 'down' : null
+      } else {
+        // Only allow upward when no onSwipeDown handler
+        offsetY.value = Math.min(dy, 0)
+        swipeDirection.value = dy < -30 ? 'up' : null
+      }
     }
 
     if (e) e.preventDefault()
@@ -57,6 +64,8 @@ export function useSwipeGesture(elementRef, { onSwipeLeft, onSwipeRight, onSwipe
       onSwipeLeft()
     } else if (lockedAxis === 'vertical' && offsetY.value < -threshold && onSwipeUp) {
       onSwipeUp()
+    } else if (lockedAxis === 'vertical' && offsetY.value > threshold && onSwipeDown) {
+      onSwipeDown()
     }
 
     offsetX.value = 0

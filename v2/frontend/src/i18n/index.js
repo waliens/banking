@@ -3,6 +3,7 @@ import { createI18n } from 'vue-i18n'
 const messages = {
   en: {
     nav: {
+      wallet: 'Wallet',
       dashboard: 'Dashboard',
       transactions: 'Transactions',
       accounts: 'Accounts',
@@ -62,6 +63,12 @@ const messages = {
       markDuplicate: 'Mark as duplicate',
       dismiss: 'Dismiss',
       inbox: 'Review',
+      filters: 'Filters',
+      dateRange: 'Date range',
+      amountRange: 'Amount range',
+      batchTag: 'Apply to all',
+      showLabeled: 'Show labeled',
+      showReviewed: 'Show reviewed',
     },
     accounts: {
       title: 'Accounts',
@@ -114,6 +121,13 @@ const messages = {
       status: 'Status',
       score: 'CV Score',
       samples: 'Samples',
+      wallets: 'Wallets',
+      defaultWallet: 'Default wallet',
+      mergeAccounts: 'Merge Accounts',
+      mergeRepresentative: 'Keep (representative)',
+      mergeAlias: 'Remove (alias)',
+      mergeWarning: 'This action cannot be undone. All transactions from the alias account will be moved to the representative account.',
+      mergeButton: 'Merge',
     },
     tagger: {
       title: 'Swipe Tagger',
@@ -131,6 +145,8 @@ const messages = {
       hintLeft: 'Categorize',
       hintUp: 'Skip',
       hintRight: 'Accept',
+      hintDown: 'Detail',
+      detail: 'Detail',
     },
     wallet: {
       balance: 'Balance',
@@ -142,6 +158,10 @@ const messages = {
       year: 'Year',
       dateRange: 'Date range',
       detail: 'Wallet Details',
+      switchWallet: 'Switch wallet',
+      noWalletSelected: 'No wallet selected',
+      selectWallet: 'Select a wallet',
+      createFirst: 'Create your first wallet in Settings',
     },
     flow: {
       title: 'Transaction Flow',
@@ -161,6 +181,7 @@ const messages = {
   },
   fr: {
     nav: {
+      wallet: 'Portefeuille',
       dashboard: 'Tableau de bord',
       transactions: 'Transactions',
       accounts: 'Comptes',
@@ -220,6 +241,12 @@ const messages = {
       markDuplicate: 'Marquer comme doublon',
       dismiss: 'Ignorer',
       inbox: 'Revue',
+      filters: 'Filtres',
+      dateRange: 'Période',
+      amountRange: 'Fourchette de montant',
+      batchTag: 'Appliquer à tout',
+      showLabeled: 'Afficher les catégorisés',
+      showReviewed: 'Afficher les revus',
     },
     accounts: {
       title: 'Comptes',
@@ -272,6 +299,13 @@ const messages = {
       status: 'Statut',
       score: 'Score CV',
       samples: 'Échantillons',
+      wallets: 'Portefeuilles',
+      defaultWallet: 'Portefeuille par défaut',
+      mergeAccounts: 'Fusionner des comptes',
+      mergeRepresentative: 'Garder (représentant)',
+      mergeAlias: 'Supprimer (alias)',
+      mergeWarning: 'Cette action est irréversible. Toutes les transactions du compte alias seront transférées au compte représentant.',
+      mergeButton: 'Fusionner',
     },
     tagger: {
       title: 'Tagger par glissement',
@@ -289,6 +323,8 @@ const messages = {
       hintLeft: 'Catégoriser',
       hintUp: 'Passer',
       hintRight: 'Accepter',
+      hintDown: 'Détail',
+      detail: 'Détail',
     },
     wallet: {
       balance: 'Solde',
@@ -300,6 +336,10 @@ const messages = {
       year: 'Année',
       dateRange: 'Période',
       detail: 'Détails du portefeuille',
+      switchWallet: 'Changer de portefeuille',
+      noWalletSelected: 'Aucun portefeuille sélectionné',
+      selectWallet: 'Sélectionner un portefeuille',
+      createFirst: 'Créez votre premier portefeuille dans les Paramètres',
     },
     flow: {
       title: 'Flux de transactions',

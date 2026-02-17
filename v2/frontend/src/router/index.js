@@ -10,8 +10,8 @@ const routes = [
   },
   {
     path: '/',
-    name: 'dashboard',
-    component: () => import('../views/DashboardView.vue'),
+    name: 'wallet',
+    component: () => import('../views/WalletTabView.vue'),
   },
   {
     path: '/review',
@@ -21,31 +21,6 @@ const routes = [
   {
     path: '/transactions',
     name: 'transactions',
-    component: () => import('../views/TransactionsView.vue'),
-  },
-  {
-    path: '/accounts',
-    name: 'accounts',
-    component: () => import('../views/AccountsView.vue'),
-  },
-  {
-    path: '/settings',
-    name: 'settings',
-    component: () => import('../views/SettingsView.vue'),
-  },
-  {
-    path: '/wallets',
-    name: 'wallets',
-    component: () => import('../views/WalletsView.vue'),
-  },
-  {
-    path: '/wallets/:id',
-    name: 'wallet-detail',
-    component: () => import('../views/WalletDetailView.vue'),
-  },
-  {
-    path: '/wallets/:id/flow',
-    name: 'wallet-flow',
     component: () => import('../views/TransactionFlowView.vue'),
   },
   {
@@ -54,9 +29,18 @@ const routes = [
     component: () => import('../views/ImportView.vue'),
   },
   {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('../views/SettingsView.vue'),
+  },
+  {
     path: '/tagger',
     name: 'tagger',
     component: () => import('../views/SwipeTaggerView.vue'),
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
   },
 ]
 
@@ -64,6 +48,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+
+let activeWalletInitialized = false
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
@@ -75,6 +61,14 @@ router.beforeEach(async (to) => {
 
   if (!to.meta.public && !auth.isAuthenticated) {
     return { name: 'login' }
+  }
+
+  // Initialize active wallet once after session restore
+  if (auth.isAuthenticated && !activeWalletInitialized) {
+    activeWalletInitialized = true
+    const { useActiveWalletStore } = await import('../stores/activeWallet')
+    const activeWalletStore = useActiveWalletStore()
+    await activeWalletStore.initialize(auth.user)
   }
 })
 

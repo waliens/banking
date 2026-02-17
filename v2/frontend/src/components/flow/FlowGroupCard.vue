@@ -1,5 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import CurrencyDisplay from '../common/CurrencyDisplay.vue'
 
 const { t } = useI18n()
 
@@ -10,10 +11,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['select'])
-
-function formatAmount(val) {
-  return Number(val).toLocaleString('en', { minimumFractionDigits: 2 })
-}
 
 function netAmount() {
   if (!props.group.transactions) return 0
@@ -31,11 +28,8 @@ function netAmount() {
   >
     <div class="flex items-center justify-between gap-2">
       <span class="text-sm truncate flex-1 font-medium">{{ group.name || `Group #${group.id}` }}</span>
-      <span
-        class="text-sm font-semibold whitespace-nowrap"
-        :class="direction === 'income' ? 'text-green-700' : 'text-red-700'"
-      >
-        {{ formatAmount(netAmount()) }}
+      <span class="text-sm font-semibold whitespace-nowrap">
+        <CurrencyDisplay :amount="netAmount()" colored />
       </span>
     </div>
     <div class="text-xs text-surface-400 mt-1">
@@ -64,11 +58,8 @@ function netAmount() {
     ></div>
     <div class="flex items-center justify-between gap-2">
       <span class="text-sm truncate flex-1 font-medium">{{ group.name || `Group #${group.id}` }}</span>
-      <span
-        class="text-sm font-semibold whitespace-nowrap"
-        :class="direction === 'income' ? 'text-green-700' : 'text-red-700'"
-      >
-        {{ formatAmount(netAmount()) }}
+      <span class="text-sm font-semibold whitespace-nowrap">
+        <CurrencyDisplay :amount="netAmount()" colored />
       </span>
     </div>
     <div class="text-xs text-surface-400 mt-1">

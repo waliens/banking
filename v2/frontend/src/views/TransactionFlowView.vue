@@ -1,36 +1,28 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '../stores/wallets'
+import { useActiveWalletStore } from '../stores/activeWallet'
 import Button from 'primevue/button'
 import TransactionFlowTimeline from '../components/flow/TransactionFlowTimeline.vue'
 import FlowDetailPanel from '../components/flow/FlowDetailPanel.vue'
 
-const route = useRoute()
-const router = useRouter()
 const { t } = useI18n()
 const walletStore = useWalletStore()
+const activeWalletStore = useActiveWalletStore()
 
-const walletId = computed(() => Number(route.params.id))
-const wallet = computed(() => walletStore.wallets.find((w) => w.id === walletId.value))
-const walletAccountIds = computed(() =>
-  (wallet.value?.accounts || []).map((a) => a.id_account ?? a.id),
-)
+const walletId = computed(() => activeWalletStore.activeWalletId)
+const wallet = computed(() => activeWalletStore.activeWallet)
+const walletAccountIds = computed(() => activeWalletStore.walletAccountIds)
 
-const selectedTx = computed(() => {
-  const tx = route.query.tx
-  return tx ? Number(tx) : null
-})
+const selectedTx = ref(null)
 
 function openDetail(txId) {
-  router.push({ query: { ...route.query, tx: txId } })
+  selectedTx.value = txId
 }
 
 function closeDetail() {
-  const query = { ...route.query }
-  delete query.tx
-  router.push({ query })
+  selectedTx.value = null
 }
 
 onMounted(async () => {
@@ -43,14 +35,22 @@ onMounted(async () => {
 <template>
   <div>
     <div class="flex items-center gap-3 mb-6">
-      <Button icon="pi pi-arrow-left" text rounded @click="router.push(`/wallets/${walletId}`)" />
       <div>
         <h1 class="text-2xl font-bold">{{ t('flow.title') }}</h1>
         <p v-if="wallet" class="text-sm text-surface-500">{{ wallet.name }}</p>
       </div>
     </div>
 
-    <div class="relative overflow-hidden">
+    <!-- Empty state if no wallet -->
+    <div v-if="!walletId" class="text-center py-16 text-surface-400">
+      <i class="pi pi-briefcase text-5xl mb-4 block" />
+      <p>{{ t('wallet.noWalletSelected') }}</p>
+      <router-link to="/" class="text-primary-500 mt-2 inline-block">
+        {{ t('wallet.selectWallet') }}
+      </router-link>
+    </div>
+
+    <div v-else class="relative overflow-hidden">
       <div
         :class="selectedTx ? '-translate-x-full' : ''"
         class="transition-transform duration-300"

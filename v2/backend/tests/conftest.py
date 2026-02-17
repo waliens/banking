@@ -172,3 +172,14 @@ def sample_transaction(db, account_checking, account_savings, currency_eur) -> T
     db.add(t)
     db.flush()
     return t
+
+
+@pytest.fixture
+def wallet(db, account_checking) -> Wallet:
+    w = Wallet(name="Main Wallet", description="Test wallet")
+    db.add(w)
+    db.flush()
+    wa = WalletAccount(id_wallet=w.id, id_account=account_checking.id, contribution_ratio=1.0)
+    db.add(wa)
+    db.flush()
+    return w

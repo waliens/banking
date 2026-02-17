@@ -43,6 +43,10 @@ async function loadDetail() {
   }
 }
 
+function onCategoryChanged() {
+  loadDetail()
+}
+
 watch(() => props.transactionId, loadDetail, { immediate: true })
 </script>
 
@@ -62,7 +66,7 @@ watch(() => props.transactionId, loadDetail, { immediate: true })
     </div>
 
     <template v-else-if="transaction">
-      <TransactionDetail :transaction="transaction" />
+      <TransactionDetail :transaction="transaction" @categoryChanged="onCategoryChanged" />
 
       <div v-if="group" class="mt-6 pt-4 border-t border-surface-200">
         <TransactionGroupDetail :group="group" />

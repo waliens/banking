@@ -1,45 +1,90 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTransactionStore } from '../stores/transactions'
 import { useCategoryStore } from '../stores/categories'
 import { useMLStore } from '../stores/ml'
+import { useActiveWalletStore } from '../stores/activeWallet'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
+import DatePicker from 'primevue/datepicker'
+import ToggleSwitch from 'primevue/toggleswitch'
 import DuplicateCandidates from '../components/transactions/DuplicateCandidates.vue'
 import MLSuggestion from '../components/MLSuggestion.vue'
+import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
 
 const { t } = useI18n()
 const transactionStore = useTransactionStore()
 const categoryStore = useCategoryStore()
 const mlStore = useMLStore()
+const activeWalletStore = useActiveWalletStore()
 
 const page = ref(0)
 const pageSize = ref(50)
 const expandedRows = ref([])
+const filtersVisible = ref(false)
 
-const inboxParams = {
-  is_reviewed: false,
-  labeled: false,
-  duplicate_only: false,
-}
+// Filters
+const dateFrom = ref(null)
+const dateTo = ref(null)
+const amountFrom = ref(null)
+const amountTo = ref(null)
+const searchQuery = ref('')
+const showLabeled = ref(false)
+const showReviewed = ref(false)
 
-async function loadData() {
-  await transactionStore.fetchTransactions({
-    ...inboxParams,
+// Batch tag
+const batchCategoryId = ref(null)
+
+let debounceTimer = null
+
+function buildParams() {
+  const params = {
     start: page.value * pageSize.value,
     count: pageSize.value,
     order: 'desc',
-  })
+  }
+
+  // Wallet scoping
+  const walletId = activeWalletStore.activeWalletId
+  if (walletId) {
+    params.wallet = walletId
+    params.wallet_external_only = true
+  }
+
+  // Review/label filters (inverted: show* means include those)
+  if (!showReviewed.value) params.is_reviewed = false
+  if (!showLabeled.value) params.labeled = false
+  params.duplicate_only = false
+
+  if (dateFrom.value) params.date_from = formatDate(dateFrom.value)
+  if (dateTo.value) params.date_to = formatDate(dateTo.value)
+  if (amountFrom.value != null) params.amount_from = amountFrom.value
+  if (amountTo.value != null) params.amount_to = amountTo.value
+  if (searchQuery.value.trim()) params.search = searchQuery.value.trim()
+
+  return params
+}
+
+function formatDate(d) {
+  if (!d) return null
+  const dt = new Date(d)
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+}
+
+async function loadData() {
+  await transactionStore.fetchTransactions(buildParams())
   // Fetch ML predictions for visible transactions
   const ids = transactionStore.transactions.map((t) => t.id)
   if (ids.length > 0) {
     try {
       await mlStore.predictTransactions(ids)
     } catch {
-      // ML predictions are optional — silently ignore errors
+      // ML predictions are optional
     }
   }
 }
@@ -72,6 +117,17 @@ async function markAllReviewed() {
   await refreshAfterAction()
 }
 
+async function applyBatchTag() {
+  if (!batchCategoryId.value) return
+  const categories = {}
+  transactionStore.transactions.forEach((tx) => {
+    categories[tx.id] = batchCategoryId.value
+  })
+  await transactionStore.tagBatch(categories)
+  batchCategoryId.value = null
+  await refreshAfterAction()
+}
+
 async function refreshAfterAction() {
   await Promise.all([loadData(), transactionStore.fetchReviewCount()])
 }
@@ -79,6 +135,28 @@ async function refreshAfterAction() {
 function onDuplicateResolved() {
   refreshAfterAction()
 }
+
+function debouncedReload() {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    page.value = 0
+    loadData()
+  }, 300)
+}
+
+// Watch filters
+watch([dateFrom, dateTo, amountFrom, amountTo, showLabeled, showReviewed], () => {
+  page.value = 0
+  loadData()
+})
+
+watch(searchQuery, debouncedReload)
+
+// Watch active wallet changes
+watch(() => activeWalletStore.activeWalletId, () => {
+  page.value = 0
+  loadData()
+})
 
 onMounted(async () => {
   await Promise.all([loadData(), categoryStore.fetchCategories(), transactionStore.fetchReviewCount()])
@@ -95,9 +173,14 @@ onMounted(async () => {
         </span>
       </h1>
       <div class="flex items-center gap-2">
-        <router-link to="/tagger" class="md:hidden">
-          <Button :label="t('tagger.title')" icon="pi pi-arrows-h" severity="secondary" size="small" />
-        </router-link>
+        <Button
+          :label="t('review.filters')"
+          :icon="filtersVisible ? 'pi pi-filter-slash' : 'pi pi-filter'"
+          severity="secondary"
+          size="small"
+          outlined
+          @click="filtersVisible = !filtersVisible"
+        />
         <Button
           :label="t('review.markAllReviewed')"
           severity="secondary"
@@ -105,6 +188,62 @@ onMounted(async () => {
           icon="pi pi-check-circle"
           :disabled="transactionStore.transactions.length === 0"
           @click="markAllReviewed"
+        />
+      </div>
+    </div>
+
+    <!-- Collapsible filter panel -->
+    <div v-if="filtersVisible" class="bg-surface-0 rounded-xl shadow p-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Date range -->
+        <div>
+          <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('review.dateRange') }}</label>
+          <div class="flex gap-2">
+            <DatePicker v-model="dateFrom" dateFormat="yy-mm-dd" placeholder="From" showIcon class="flex-1" />
+            <DatePicker v-model="dateTo" dateFormat="yy-mm-dd" placeholder="To" showIcon class="flex-1" />
+          </div>
+        </div>
+        <!-- Amount range -->
+        <div>
+          <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('review.amountRange') }}</label>
+          <div class="flex gap-2">
+            <InputNumber v-model="amountFrom" placeholder="Min" class="flex-1" :minFractionDigits="2" />
+            <InputNumber v-model="amountTo" placeholder="Max" class="flex-1" :minFractionDigits="2" />
+          </div>
+        </div>
+        <!-- Search -->
+        <div>
+          <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('common.search') }}</label>
+          <InputText v-model="searchQuery" :placeholder="t('common.search')" class="w-full" />
+        </div>
+        <!-- Toggles -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <ToggleSwitch v-model="showLabeled" />
+            <span class="text-sm">{{ t('review.showLabeled') }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <ToggleSwitch v-model="showReviewed" />
+            <span class="text-sm">{{ t('review.showReviewed') }}</span>
+          </div>
+        </div>
+      </div>
+      <!-- Batch tag -->
+      <div class="flex items-center gap-3 mt-4 pt-3 border-t border-surface-100">
+        <Select
+          v-model="batchCategoryId"
+          :options="categoryStore.categories"
+          optionLabel="name"
+          optionValue="id"
+          :placeholder="t('transactions.category')"
+          class="w-60"
+        />
+        <Button
+          :label="t('review.batchTag')"
+          icon="pi pi-tags"
+          size="small"
+          :disabled="!batchCategoryId || transactionStore.transactions.length === 0"
+          @click="applyBatchTag"
         />
       </div>
     </div>
@@ -147,9 +286,13 @@ onMounted(async () => {
 
         <Column field="amount" :header="t('transactions.amount')" style="width: 120px">
           <template #body="{ data }">
-            <span :class="data.id_source ? 'text-red-500' : 'text-green-600'" class="font-medium">
-              {{ data.id_source ? '-' : '+' }}{{ data.amount }}
-            </span>
+            <CurrencyDisplay
+              :amount="data.amount"
+              :currencySymbol="data.currency_symbol || ''"
+              :showSign="true"
+              colored
+              class="font-medium"
+            />
             <span
               v-if="data.effective_amount != null && data.effective_amount !== data.amount"
               class="text-xs text-surface-400 block"

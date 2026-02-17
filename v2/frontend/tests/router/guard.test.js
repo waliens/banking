@@ -16,6 +16,14 @@ vi.mock('../../src/stores/auth', () => ({
   }),
 }))
 
+vi.mock('../../src/stores/activeWallet', () => ({
+  useActiveWalletStore: () => ({
+    activeWalletId: null,
+    initialize: vi.fn().mockResolvedValue(),
+    clear: vi.fn(),
+  }),
+}))
+
 // Must import router AFTER mocking
 import router from '../../src/router/index'
 
@@ -52,7 +60,7 @@ describe('router guard', () => {
     mockIsAuthenticated = false
     mockFetchUser.mockResolvedValueOnce()
 
-    await router.push('/accounts')
+    await router.push('/review')
 
     expect(mockFetchUser).toHaveBeenCalled()
     // still not authenticated after fetchUser (mock didn't set isAuthenticated)

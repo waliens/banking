@@ -33,5 +33,9 @@ export const useAccountStore = defineStore('accounts', () => {
     return data
   }
 
-  return { accounts, loading, totalCount, fetchAccounts, fetchCount, updateAccount }
+  async function mergeAccounts(idRepr, idAlias) {
+    await api.put('/accounts/merge', { id_repr: idRepr, id_alias: idAlias })
+  }
+
+  return { accounts, loading, totalCount, fetchAccounts, fetchCount, updateAccount, mergeAccounts }
 })

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import CurrencyDisplay from '../common/CurrencyDisplay.vue'
 
 const { t } = useI18n()
 
@@ -23,10 +24,6 @@ const totalReimbursed = computed(() => {
 })
 
 const netExpense = computed(() => totalPaid.value - totalReimbursed.value)
-
-function formatAmount(val) {
-  return Number(val).toLocaleString('en', { minimumFractionDigits: 2 })
-}
 </script>
 
 <template>
@@ -40,15 +37,21 @@ function formatAmount(val) {
     <div class="grid grid-cols-3 gap-3">
       <div class="bg-red-50 rounded-lg p-3 text-center">
         <div class="text-xs text-surface-500">{{ t('transactions.totalPaid') }}</div>
-        <div class="text-sm font-bold text-red-700">{{ formatAmount(totalPaid) }}</div>
+        <div class="text-sm font-bold text-red-700">
+          <CurrencyDisplay :amount="totalPaid" />
+        </div>
       </div>
       <div class="bg-green-50 rounded-lg p-3 text-center">
         <div class="text-xs text-surface-500">{{ t('transactions.totalReimbursed') }}</div>
-        <div class="text-sm font-bold text-green-700">{{ formatAmount(totalReimbursed) }}</div>
+        <div class="text-sm font-bold text-green-700">
+          <CurrencyDisplay :amount="totalReimbursed" />
+        </div>
       </div>
       <div class="bg-surface-50 rounded-lg p-3 text-center">
         <div class="text-xs text-surface-500">{{ t('flow.netAmount') }}</div>
-        <div class="text-sm font-bold">{{ formatAmount(netExpense) }}</div>
+        <div class="text-sm font-bold">
+          <CurrencyDisplay :amount="netExpense" />
+        </div>
       </div>
     </div>
 
@@ -61,9 +64,11 @@ function formatAmount(val) {
       >
         <span class="text-surface-400 text-xs w-20 shrink-0">{{ tx.date }}</span>
         <span class="truncate flex-1">{{ tx.description }}</span>
-        <span class="font-medium whitespace-nowrap">{{ formatAmount(tx.amount) }}</span>
+        <span class="font-medium whitespace-nowrap">
+          <CurrencyDisplay :amount="tx.amount" />
+        </span>
         <span v-if="tx.effective_amount != null && String(tx.effective_amount) !== String(tx.amount)" class="text-surface-400 text-xs whitespace-nowrap">
-          ({{ formatAmount(tx.effective_amount) }})
+          (<CurrencyDisplay :amount="tx.effective_amount" />)
         </span>
       </div>
     </div>

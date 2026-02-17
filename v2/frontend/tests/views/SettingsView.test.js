@@ -20,6 +20,13 @@ vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({ push: vi.fn() })),
 }))
 
+vi.mock('../../src/stores/activeWallet', () => ({
+  useActiveWalletStore: vi.fn(() => ({
+    activeWalletId: 1,
+    setActiveWallet: vi.fn(),
+  })),
+}))
+
 import SettingsView from '../../src/views/SettingsView.vue'
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {
@@ -29,6 +36,8 @@ const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {
     categories: 'Categories',
     mlModels: 'ML Models',
     rules: 'Tag Rules',
+    wallets: 'Wallets',
+    defaultWallet: 'Default wallet',
     changePassword: 'Change Password',
     newPassword: 'New Password',
     confirmPassword: 'Confirm Password',
@@ -43,6 +52,11 @@ const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {
     active: 'Active',
     trainStarted: 'Training started',
     trainFailed: 'Training failed',
+    mergeAccounts: 'Merge Accounts',
+    mergeRepresentative: 'Keep',
+    mergeAlias: 'Remove',
+    mergeWarning: 'Cannot be undone',
+    mergeButton: 'Merge',
   },
   common: { save: 'Save', cancel: 'Cancel', create: 'Create', edit: 'Edit' },
   accounts: { title: 'Accounts', initialBalance: 'Initial Balance' },
@@ -50,11 +64,12 @@ const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {
   rules: { title: 'Rules', name: 'Name', pattern: 'Pattern', amountRange: 'Range', amountMin: 'Min', amountMax: 'Max', priority: 'Priority', active: 'Active', apply: 'Apply', applied: 'Applied' },
   transactions: { title: 'Transactions', category: 'Category', date: 'Date' },
   ml: { train: 'Train' },
+  nav: { wallets: 'Wallets' },
 } } })
 
 const stubComponents = {
   Card: { template: '<div><slot name="title" /><slot name="content" /></div>' },
-  Button: { template: '<button @click="$emit(\'click\')"><slot /></button>', props: ['icon', 'label', 'loading', 'text', 'rounded', 'severity', 'size'] },
+  Button: { template: '<button @click="$emit(\'click\')"><slot /></button>', props: ['icon', 'label', 'loading', 'text', 'rounded', 'severity', 'size', 'title', 'disabled'] },
   Password: { template: '<input type="password" />', props: ['modelValue', 'feedback', 'toggleMask', 'inputClass'] },
   Tabs: { template: '<div><slot /></div>', props: ['value'] },
   TabList: { template: '<div><slot /></div>' },
@@ -71,6 +86,7 @@ const stubComponents = {
   InputNumber: { template: '<input />', props: ['modelValue', 'mode', 'minFractionDigits'] },
   ColorPicker: { template: '<input />', props: ['modelValue'] },
   Select: { template: '<select />', props: ['modelValue', 'options', 'optionLabel', 'optionValue', 'showClear', 'placeholder'] },
+  MultiSelect: { template: '<select />', props: ['modelValue', 'options', 'optionLabel', 'optionValue', 'placeholder'] },
 }
 
 describe('SettingsView', () => {
@@ -84,8 +100,9 @@ describe('SettingsView', () => {
     expect(wrapper.text()).toContain('Settings')
   })
 
-  it('renders all four tab labels', () => {
+  it('renders all five tab labels including Wallets', () => {
     const wrapper = mount(SettingsView, { global: { stubs: stubComponents, plugins: [i18n, PrimeVue, ToastService] } })
+    expect(wrapper.text()).toContain('Wallets')
     expect(wrapper.text()).toContain('Accounts')
     expect(wrapper.text()).toContain('Categories')
     expect(wrapper.text()).toContain('Tag Rules')

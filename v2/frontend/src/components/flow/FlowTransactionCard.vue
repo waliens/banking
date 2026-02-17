@@ -1,4 +1,6 @@
 <script setup>
+import CurrencyDisplay from '../common/CurrencyDisplay.vue'
+
 const props = defineProps({
   transaction: { type: Object, required: true },
   direction: { type: String, required: true },
@@ -6,10 +8,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['select'])
-
-function formatAmount(val) {
-  return Number(val).toLocaleString('en', { minimumFractionDigits: 2 })
-}
 </script>
 
 <template>
@@ -22,12 +20,13 @@ function formatAmount(val) {
   >
     <div class="flex items-center justify-between gap-2">
       <span class="text-sm truncate flex-1">{{ transaction.description }}</span>
-      <span
-        class="text-sm font-semibold whitespace-nowrap"
-        :class="direction === 'income' ? 'text-green-700' : 'text-red-700'"
-      >
-        {{ direction === 'income' ? '+' : '-' }}{{ formatAmount(transaction.amount) }}
-        {{ transaction.currency_symbol || '' }}
+      <span class="text-sm font-semibold whitespace-nowrap">
+        <CurrencyDisplay
+          :amount="transaction.amount"
+          :currencySymbol="transaction.currency_symbol || ''"
+          :showSign="true"
+          colored
+        />
       </span>
     </div>
     <div class="text-xs text-surface-400 mt-1">{{ transaction.date }}</div>
@@ -54,12 +53,13 @@ function formatAmount(val) {
     ></div>
     <div class="flex items-center justify-between gap-2">
       <span class="text-sm truncate flex-1">{{ transaction.description }}</span>
-      <span
-        class="text-sm font-semibold whitespace-nowrap"
-        :class="direction === 'income' ? 'text-green-700' : 'text-red-700'"
-      >
-        {{ direction === 'income' ? '+' : '-' }}{{ formatAmount(transaction.amount) }}
-        {{ transaction.currency_symbol || '' }}
+      <span class="text-sm font-semibold whitespace-nowrap">
+        <CurrencyDisplay
+          :amount="transaction.amount"
+          :currencySymbol="transaction.currency_symbol || ''"
+          :showSign="true"
+          colored
+        />
       </span>
     </div>
     <div class="text-xs text-surface-400 mt-1">{{ transaction.date }}</div>

@@ -5,7 +5,9 @@ from app.auth import create_access_token, create_refresh_token, decode_refresh_t
 from app.config import settings
 from app.dependencies import get_current_user, get_db
 from app.models.user import User
-from app.schemas.auth import LoginRequest, TokenResponse, UserCreate, UserResponse, UserUpdate
+from app.models.wallet import Wallet
+from app.schemas.auth import LoginRequest, PreferencesUpdate, TokenResponse, UserCreate, UserResponse, UserUpdate
+from sqlalchemy.orm.attributes import flag_modified
 
 router = APIRouter()
 
@@ -57,6 +59,27 @@ def logout(response: Response) -> dict[str, str]:
 
 @router.get("/me", response_model=UserResponse)
 def get_me(user: User = Depends(get_current_user)) -> User:
+    return user
+
+
+@router.put("/me/preferences", response_model=UserResponse)
+def update_preferences(
+    body: PreferencesUpdate, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> User:
+    if body.default_wallet_id is not None:
+        wallet = db.get(Wallet, body.default_wallet_id)
+        if wallet is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wallet not found")
+
+    prefs = user.preferences or {}
+    if body.default_wallet_id is not None:
+        prefs["default_wallet_id"] = body.default_wallet_id
+    else:
+        prefs.pop("default_wallet_id", None)
+    user.preferences = prefs
+    flag_modified(user, "preferences")
+    db.commit()
+    db.refresh(user)
     return user
 
 

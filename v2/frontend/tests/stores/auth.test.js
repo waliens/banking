@@ -44,7 +44,9 @@ describe('useAuthStore', () => {
   describe('login', () => {
     it('stores token and fetches user on success', async () => {
       api.post.mockResolvedValueOnce({ data: { access_token: 'new-token' } })
-      api.get.mockResolvedValueOnce({ data: { id: 1, username: 'alice' } })
+      api.get
+        .mockResolvedValueOnce({ data: { id: 1, username: 'alice' } }) // /auth/me
+        .mockResolvedValueOnce({ data: [] }) // /wallets (activeWallet.initialize)
 
       await store.login('alice', 'pass')
 

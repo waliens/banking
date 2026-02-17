@@ -234,6 +234,73 @@ describe('useSwipeGesture', () => {
     wrapper.unmount()
   })
 
+  it('fires onSwipeDown for positive vertical swipe when handler provided', async () => {
+    const { mount } = await import('@vue/test-utils')
+    const { defineComponent, ref: vueRef } = await import('vue')
+
+    const onUp = vi.fn()
+    const onDown = vi.fn()
+
+    const TestComp = defineComponent({
+      setup() {
+        const cardRef = vueRef(null)
+        useSwipeGesture(cardRef, { onSwipeUp: onUp, onSwipeDown: onDown, threshold: 50 })
+        return { cardRef }
+      },
+      template: '<div ref="cardRef" />',
+    })
+
+    const wrapper = mount(TestComp)
+    const div = wrapper.element
+
+    div.dispatchEvent(new TouchEvent('touchstart', { touches: [new Touch({ identifier: 0, target: div, clientX: 100, clientY: 100 })] }))
+    for (let i = 1; i <= 5; i++) {
+      div.dispatchEvent(new TouchEvent('touchmove', {
+        touches: [new Touch({ identifier: 0, target: div, clientX: 100, clientY: 100 + i * 20 })],
+        cancelable: true,
+      }))
+    }
+    div.dispatchEvent(new TouchEvent('touchend', { touches: [] }))
+
+    expect(onDown).toHaveBeenCalled()
+    expect(onUp).not.toHaveBeenCalled()
+
+    wrapper.unmount()
+  })
+
+  it('clamps vertical to upward-only when no onSwipeDown handler', async () => {
+    const { mount } = await import('@vue/test-utils')
+    const { defineComponent, ref: vueRef } = await import('vue')
+
+    const onUp = vi.fn()
+
+    const TestComp = defineComponent({
+      setup() {
+        const cardRef = vueRef(null)
+        const result = useSwipeGesture(cardRef, { onSwipeUp: onUp, threshold: 50 })
+        return { cardRef, ...result }
+      },
+      template: '<div ref="cardRef" />',
+    })
+
+    const wrapper = mount(TestComp)
+    const div = wrapper.element
+
+    // Swipe down — should NOT fire onUp and offset should be clamped to 0
+    div.dispatchEvent(new TouchEvent('touchstart', { touches: [new Touch({ identifier: 0, target: div, clientX: 100, clientY: 100 })] }))
+    for (let i = 1; i <= 5; i++) {
+      div.dispatchEvent(new TouchEvent('touchmove', {
+        touches: [new Touch({ identifier: 0, target: div, clientX: 100, clientY: 100 + i * 20 })],
+        cancelable: true,
+      }))
+    }
+    div.dispatchEvent(new TouchEvent('touchend', { touches: [] }))
+
+    expect(onUp).not.toHaveBeenCalled()
+
+    wrapper.unmount()
+  })
+
   it('locks to vertical axis and ignores horizontal movement', async () => {
     const { mount } = await import('@vue/test-utils')
     const { defineComponent, ref: vueRef } = await import('vue')

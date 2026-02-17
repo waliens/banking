@@ -4,21 +4,25 @@ import { useI18n } from 'vue-i18n'
 import { useTransactionStore } from '../stores/transactions'
 import { useCategoryStore } from '../stores/categories'
 import { useMLStore } from '../stores/ml'
+import { useActiveWalletStore } from '../stores/activeWallet'
 import { useSwipeGesture } from '../composables/useSwipeGesture'
 import CategoryGrid from '../components/tagger/CategoryGrid.vue'
 import MLSuggestion from '../components/MLSuggestion.vue'
+import TransactionDetail from '../components/transactions/TransactionDetail.vue'
 import Button from 'primevue/button'
+import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
 
 const { t } = useI18n()
 const transactionStore = useTransactionStore()
 const categoryStore = useCategoryStore()
 const mlStore = useMLStore()
+const activeWalletStore = useActiveWalletStore()
 
-const mode = ref('card') // 'card' | 'pick-parent' | 'pick-child'
+const mode = ref('card') // 'card' | 'pick-parent' | 'pick-child' | 'detail'
 const currentIndex = ref(0)
 const processedCount = ref(0)
 const selectedParent = ref(null)
-const animatingOut = ref(null) // 'left' | 'right' | 'up' | null
+const animatingOut = ref(null) // 'left' | 'right' | 'up' | 'down' | null
 const cardRef = ref(null)
 
 const batch = ref([])
@@ -39,6 +43,7 @@ const { offsetX, offsetY, swipeDirection } = useSwipeGesture(cardRef, {
   onSwipeRight: handleSwipeRight,
   onSwipeLeft: handleSwipeLeft,
   onSwipeUp: handleSwipeUp,
+  onSwipeDown: handleSwipeDown,
   threshold: 100,
 })
 
@@ -56,6 +61,7 @@ const overlayClass = computed(() => {
   if (swipeDirection.value === 'right' && currentPrediction.value) return 'border-green-500'
   if (swipeDirection.value === 'up') return 'border-surface-400'
   if (swipeDirection.value === 'left') return 'border-indigo-500'
+  if (swipeDirection.value === 'down') return 'border-blue-500'
   return 'border-transparent'
 })
 
@@ -63,18 +69,28 @@ const overlayLabel = computed(() => {
   if (swipeDirection.value === 'right' && currentPrediction.value) return currentPrediction.value.category_name
   if (swipeDirection.value === 'up') return t('tagger.skip')
   if (swipeDirection.value === 'left') return t('tagger.categorize')
+  if (swipeDirection.value === 'down') return t('tagger.detail')
   return ''
 })
 
 async function loadBatch() {
-  await transactionStore.fetchTransactions({
+  const params = {
     is_reviewed: false,
     labeled: false,
     duplicate_only: false,
     start: 0,
     count: 20,
     order: 'desc',
-  })
+  }
+
+  // Wallet scoping
+  const walletId = activeWalletStore.activeWalletId
+  if (walletId) {
+    params.wallet = walletId
+    params.wallet_external_only = true
+  }
+
+  await transactionStore.fetchTransactions(params)
   batch.value = [...transactionStore.transactions]
   currentIndex.value = 0
 
@@ -127,6 +143,11 @@ async function handleSwipeUp() {
 function handleSwipeLeft() {
   if (!currentTx.value) return
   mode.value = 'pick-parent'
+}
+
+function handleSwipeDown() {
+  if (!currentTx.value) return
+  mode.value = 'detail'
 }
 
 async function selectParent(categoryId) {
@@ -211,14 +232,20 @@ onMounted(async () => {
               'text-green-600': swipeDirection === 'right',
               'text-surface-400': swipeDirection === 'up',
               'text-indigo-600': swipeDirection === 'left',
+              'text-blue-600': swipeDirection === 'down',
             }"
           >
             {{ overlayLabel }}
           </div>
 
           <!-- Amount -->
-          <div class="text-3xl font-bold text-center mb-4" :class="currentTx.id_source ? 'text-red-500' : 'text-green-600'">
-            {{ currentTx.id_source ? '-' : '+' }}{{ currentTx.amount }}
+          <div class="text-3xl font-bold text-center mb-4">
+            <CurrencyDisplay
+              :amount="currentTx.amount"
+              :currencySymbol="currentTx.currency_symbol || ''"
+              :showSign="true"
+              colored
+            />
           </div>
           <div
             v-if="currentTx.effective_amount != null && currentTx.effective_amount !== currentTx.amount"
@@ -254,6 +281,19 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- Detail mode -->
+      <div v-else-if="mode === 'detail' && currentTx" class="w-full max-w-lg">
+        <div class="flex items-center gap-2 mb-4">
+          <button @click="backToCard" class="text-primary-500">
+            <i class="pi pi-arrow-left" />
+          </button>
+          <h3 class="font-bold">{{ t('tagger.detail') }}</h3>
+        </div>
+        <div class="bg-surface-0 rounded-xl shadow p-4">
+          <TransactionDetail :transaction="currentTx" @categoryChanged="backToCard" />
+        </div>
+      </div>
+
       <!-- Pick parent category -->
       <div v-else-if="mode === 'pick-parent'" class="w-full max-w-lg">
         <div class="flex items-center gap-2 mb-4">
@@ -282,6 +322,7 @@ onMounted(async () => {
       <div class="flex justify-between text-xs text-surface-400 max-w-sm mx-auto">
         <span>← {{ t('tagger.hintLeft') }}</span>
         <span>↑ {{ t('tagger.hintUp') }}</span>
+        <span>↓ {{ t('tagger.hintDown') }}</span>
         <span>{{ t('tagger.hintRight') }} →</span>
       </div>
     </div>

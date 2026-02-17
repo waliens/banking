@@ -13,6 +13,10 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = data.access_token
     localStorage.setItem('access_token', data.access_token)
     await fetchUser()
+    // Initialize active wallet after login
+    const { useActiveWalletStore } = await import('./activeWallet')
+    const activeWalletStore = useActiveWalletStore()
+    await activeWalletStore.initialize(user.value)
   }
 
   async function fetchUser() {
@@ -37,6 +41,10 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       token.value = null
       localStorage.removeItem('access_token')
+      // Clear active wallet on logout
+      const { useActiveWalletStore } = await import('./activeWallet')
+      const activeWalletStore = useActiveWalletStore()
+      activeWalletStore.clear()
     }
   }
 

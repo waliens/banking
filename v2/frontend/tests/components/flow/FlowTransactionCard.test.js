@@ -5,6 +5,13 @@ import FlowTransactionCard from '../../../src/components/flow/FlowTransactionCar
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {} } })
 
+const stubComponents = {
+  CurrencyDisplay: {
+    template: '<span>{{ showSign && amount > 0 ? "+" : amount < 0 ? "-" : "" }}{{ Math.abs(amount).toFixed(2) }} {{ currencySymbol }}</span>',
+    props: ['amount', 'currencySymbol', 'showSign', 'colored', 'decimals'],
+  },
+}
+
 function mountCard(props = {}) {
   return mount(FlowTransactionCard, {
     props: {
@@ -20,6 +27,7 @@ function mountCard(props = {}) {
     },
     global: {
       plugins: [i18n],
+      stubs: stubComponents,
     },
   })
 }
@@ -66,13 +74,8 @@ describe('FlowTransactionCard', () => {
     expect(wrapper.emitted('select')[0]).toEqual([1])
   })
 
-  it('shows + prefix for income', () => {
+  it('renders CurrencyDisplay with showSign', () => {
     const wrapper = mountCard({ direction: 'income' })
     expect(wrapper.text()).toContain('+42.50')
-  })
-
-  it('shows - prefix for expense', () => {
-    const wrapper = mountCard({ direction: 'expense' })
-    expect(wrapper.text()).toContain('-42.50')
   })
 })

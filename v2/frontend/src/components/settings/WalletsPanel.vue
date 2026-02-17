@@ -1,20 +1,20 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useWalletStore } from '../stores/wallets'
-import { useAccountStore } from '../stores/accounts'
+import { useWalletStore } from '../../stores/wallets'
+import { useAccountStore } from '../../stores/accounts'
+import { useActiveWalletStore } from '../../stores/activeWallet'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import MultiSelect from 'primevue/multiselect'
 
-const router = useRouter()
 const { t } = useI18n()
 const toast = useToast()
 const walletStore = useWalletStore()
 const accountStore = useAccountStore()
+const activeWalletStore = useActiveWalletStore()
 
 const showDialog = ref(false)
 const editingWallet = ref(null)
@@ -59,6 +59,11 @@ async function handleDelete(wallet) {
   await walletStore.deleteWallet(wallet.id)
 }
 
+function setAsDefault(walletId) {
+  activeWalletStore.setActiveWallet(walletId)
+  toast.add({ severity: 'success', summary: t('settings.defaultWallet'), detail: t('common.save'), life: 2000 })
+}
+
 onMounted(async () => {
   await Promise.all([walletStore.fetchWallets(), accountStore.fetchAccounts()])
 })
@@ -67,17 +72,37 @@ onMounted(async () => {
 <template>
   <div>
     <div class="flex items-center justify-between mb-4">
-      <h1 class="text-2xl font-bold">{{ t('nav.wallets') }}</h1>
+      <h2 class="text-lg font-semibold">{{ t('settings.wallets') }}</h2>
       <Button :label="t('common.create')" icon="pi pi-plus" @click="openCreate" size="small" />
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div v-for="wallet in walletStore.wallets" :key="wallet.id" class="bg-surface-0 rounded-xl shadow p-4 cursor-pointer hover:shadow-md transition-shadow" @click="router.push(`/wallets/${wallet.id}`)">
+      <div
+        v-for="wallet in walletStore.wallets"
+        :key="wallet.id"
+        class="bg-surface-0 rounded-xl shadow p-4"
+      >
         <div class="flex items-center justify-between mb-2">
-          <h2 class="text-lg font-semibold">{{ wallet.name }}</h2>
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-semibold">{{ wallet.name }}</h3>
+            <i
+              v-if="activeWalletStore.activeWalletId === wallet.id"
+              class="pi pi-star-fill text-yellow-500 text-sm"
+              :title="t('settings.defaultWallet')"
+            />
+          </div>
           <div class="flex gap-1">
-            <Button icon="pi pi-pencil" text rounded size="small" @click.stop="openEdit(wallet)" />
-            <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click.stop="handleDelete(wallet)" />
+            <Button
+              v-if="activeWalletStore.activeWalletId !== wallet.id"
+              icon="pi pi-star"
+              text
+              rounded
+              size="small"
+              :title="t('settings.defaultWallet')"
+              @click="setAsDefault(wallet.id)"
+            />
+            <Button icon="pi pi-pencil" text rounded size="small" @click="openEdit(wallet)" />
+            <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="handleDelete(wallet)" />
           </div>
         </div>
         <p v-if="wallet.description" class="text-sm text-surface-500 mb-2">{{ wallet.description }}</p>

@@ -1,4 +1,4 @@
-"""Tests for auth endpoints: login, refresh, logout, user CRUD."""
+"""Tests for auth endpoints: login, refresh, logout, user CRUD, preferences."""
 
 import pytest
 from app.models import User
@@ -121,3 +121,47 @@ class TestUserCRUD:
             headers=auth_headers,
         )
         assert r.status_code == 404
+
+
+class TestPreferences:
+    def test_set_default_wallet(self, client, user, auth_headers, wallet):
+        r = client.put(
+            "/api/v2/auth/me/preferences",
+            json={"default_wallet_id": wallet.id},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["preferences"]["default_wallet_id"] == wallet.id
+
+    def test_clear_default_wallet(self, client, user, auth_headers, wallet):
+        # First set a preference
+        client.put(
+            "/api/v2/auth/me/preferences",
+            json={"default_wallet_id": wallet.id},
+            headers=auth_headers,
+        )
+        # Then clear it
+        r = client.put(
+            "/api/v2/auth/me/preferences",
+            json={"default_wallet_id": None},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "default_wallet_id" not in (data["preferences"] or {})
+
+    def test_set_invalid_wallet(self, client, user, auth_headers):
+        r = client.put(
+            "/api/v2/auth/me/preferences",
+            json={"default_wallet_id": 99999},
+            headers=auth_headers,
+        )
+        assert r.status_code == 404
+
+    def test_preferences_unauthenticated(self, client):
+        r = client.put(
+            "/api/v2/auth/me/preferences",
+            json={"default_wallet_id": 1},
+        )
+        assert r.status_code == 401

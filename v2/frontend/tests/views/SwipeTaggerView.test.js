@@ -11,6 +11,14 @@ vi.mock('../../src/services/api', () => ({
   },
 }))
 
+vi.mock('../../src/stores/activeWallet', () => ({
+  useActiveWalletStore: vi.fn(() => ({
+    activeWalletId: 1,
+    activeWallet: { id: 1, name: 'Test Wallet', accounts: [{ id_account: 10 }] },
+    walletAccountIds: [10],
+  })),
+}))
+
 import api from '../../src/services/api'
 import SwipeTaggerView from '../../src/views/SwipeTaggerView.vue'
 
@@ -35,6 +43,11 @@ const i18n = createI18n({
         hintLeft: 'Categorize',
         hintUp: 'Skip',
         hintRight: 'Accept',
+        hintDown: 'Detail',
+        detail: 'Detail',
+      },
+      transactions: {
+        effectiveAmount: 'Effective amount',
       },
     },
   },
@@ -44,6 +57,8 @@ const stubComponents = {
   Button: { template: '<button @click="$emit(\'click\')">{{ label }}</button>', props: ['label', 'icon', 'severity', 'size'] },
   MLSuggestion: { template: '<span />', props: ['categoryName', 'categoryColor', 'probability'] },
   CategoryGrid: { template: '<div class="category-grid" />', props: ['categories', 'transaction'] },
+  TransactionDetail: { template: '<div class="transaction-detail" />', props: ['transaction'] },
+  CurrencyDisplay: { template: '<span>{{ amount }}</span>', props: ['amount', 'currencySymbol', 'showSign', 'colored'] },
 }
 
 const routerLinkStub = { template: '<a><slot /></a>', props: ['to'] }
@@ -98,13 +113,27 @@ describe('SwipeTaggerView', () => {
     expect(wrapper.text()).toContain('2025-01-15')
   })
 
-  it('shows hint bar in card mode', async () => {
+  it('shows hint bar with 4 directions in card mode', async () => {
     setupApiMock(sampleTxs, [])
     const wrapper = mountTagger()
     await new Promise((r) => setTimeout(r, 50))
 
     expect(wrapper.text()).toContain('Categorize')
     expect(wrapper.text()).toContain('Skip')
+    expect(wrapper.text()).toContain('Detail')
     expect(wrapper.text()).toContain('Accept')
+  })
+
+  it('passes wallet scoping params when loading batch', async () => {
+    setupApiMock(sampleTxs, [])
+    mountTagger()
+    await new Promise((r) => setTimeout(r, 50))
+
+    expect(api.get).toHaveBeenCalledWith('/transactions', {
+      params: expect.objectContaining({
+        wallet: 1,
+        wallet_external_only: true,
+      }),
+    })
   })
 })

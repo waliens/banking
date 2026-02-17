@@ -17,6 +17,13 @@ const messages = {
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages })
 
+const stubComponents = {
+  CurrencyDisplay: {
+    template: '<span>{{ Number(amount).toFixed(2) }}</span>',
+    props: ['amount', 'currencySymbol', 'colored', 'showSign', 'decimals'],
+  },
+}
+
 function mountDetail(group = {}) {
   return mount(TransactionGroupDetail, {
     props: {
@@ -32,6 +39,7 @@ function mountDetail(group = {}) {
     },
     global: {
       plugins: [i18n],
+      stubs: stubComponents,
     },
   })
 }
@@ -49,21 +57,18 @@ describe('TransactionGroupDetail', () => {
 
   it('shows total paid', () => {
     const wrapper = mountDetail()
-    // -200.00 is the only negative amount, abs = 200
     expect(wrapper.text()).toContain('Total paid')
     expect(wrapper.text()).toContain('200.00')
   })
 
   it('shows total reimbursed', () => {
     const wrapper = mountDetail()
-    // 50.00 is positive
     expect(wrapper.text()).toContain('Total reimbursed')
     expect(wrapper.text()).toContain('50.00')
   })
 
   it('shows net expense', () => {
     const wrapper = mountDetail()
-    // 200 - 50 = 150
     expect(wrapper.text()).toContain('Net amount')
     expect(wrapper.text()).toContain('150.00')
   })

@@ -1,6 +1,16 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { setActivePinia, createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
+
+vi.mock('../../../src/services/api', () => ({
+  default: {
+    get: vi.fn(() => Promise.resolve({ data: [] })),
+    post: vi.fn(() => Promise.resolve({ data: { predictions: [] } })),
+    put: vi.fn(() => Promise.resolve({ data: {} })),
+  },
+}))
+
 import TransactionDetail from '../../../src/components/transactions/TransactionDetail.vue'
 
 const messages = {
@@ -16,6 +26,9 @@ const messages = {
       reviewed: 'Reviewed',
       notReviewed: 'Not reviewed',
     },
+    ml: {
+      suggestion: 'ML Suggestion',
+    },
   },
 }
 
@@ -25,6 +38,18 @@ const stubComponents = {
   Tag: {
     template: '<span>{{ value }}</span>',
     props: ['value', 'severity', 'class'],
+  },
+  Select: {
+    template: '<select><option v-for="o in options" :key="o.id">{{ o.name }}</option></select>',
+    props: ['modelValue', 'options', 'optionLabel', 'optionValue', 'placeholder'],
+  },
+  MLSuggestion: {
+    template: '<span class="ml-suggestion">{{ categoryName }}</span>',
+    props: ['categoryName', 'categoryColor', 'probability'],
+  },
+  CurrencyDisplay: {
+    template: '<span>{{ amount }} {{ currencySymbol }}</span>',
+    props: ['amount', 'currencySymbol', 'colored', 'showSign', 'decimals'],
   },
 }
 
@@ -43,6 +68,7 @@ function mountDetail(transaction = {}) {
         source_name: 'Checking',
         dest_name: 'Coffee Corp',
         category_name: 'Food',
+        id_category: 5,
         is_reviewed: true,
         notes: null,
         data_source: null,
@@ -58,6 +84,11 @@ function mountDetail(transaction = {}) {
 }
 
 describe('TransactionDetail', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+  })
+
   it('displays amount and currency', () => {
     const wrapper = mountDetail()
     expect(wrapper.text()).toContain('4.50')
@@ -87,14 +118,9 @@ describe('TransactionDetail', () => {
     expect(wrapper.text()).toContain('Coffee Corp')
   })
 
-  it('shows category name', () => {
+  it('renders a category Select dropdown', () => {
     const wrapper = mountDetail()
-    expect(wrapper.text()).toContain('Food')
-  })
-
-  it('shows Uncategorized when no category', () => {
-    const wrapper = mountDetail({ category_name: null })
-    expect(wrapper.text()).toContain('Uncategorized')
+    expect(wrapper.find('select').exists()).toBe(true)
   })
 
   it('shows notes when present', () => {

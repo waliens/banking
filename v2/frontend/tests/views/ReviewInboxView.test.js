@@ -18,6 +18,14 @@ vi.mock('../../src/stores/categories', () => ({
   })),
 }))
 
+vi.mock('../../src/stores/activeWallet', () => ({
+  useActiveWalletStore: vi.fn(() => ({
+    activeWalletId: 1,
+    activeWallet: { id: 1, name: 'Test Wallet', accounts: [{ id_account: 10 }] },
+    walletAccountIds: [10],
+  })),
+}))
+
 import api from '../../src/services/api'
 import ReviewInboxView from '../../src/views/ReviewInboxView.vue'
 
@@ -27,8 +35,14 @@ const stubComponents = {
   DataTable: { template: '<div><slot /></div>', props: ['value', 'loading', 'lazy', 'paginator', 'rows', 'totalRecords', 'expandedRows', 'dataKey', 'stripedRows', 'responsiveLayout'] },
   Column: { template: '<div />', props: ['field', 'header', 'expander', 'style'] },
   Select: { template: '<select />', props: ['modelValue', 'options', 'optionLabel', 'optionValue', 'placeholder'] },
-  Button: { template: '<button @click="$emit(\'click\')">{{ label }}</button>', props: ['label', 'severity', 'size', 'icon', 'disabled', 'text'] },
+  Button: { template: '<button @click="$emit(\'click\')">{{ label }}</button>', props: ['label', 'severity', 'size', 'icon', 'disabled', 'text', 'outlined'] },
   DuplicateCandidates: { template: '<div />', props: ['transactionId'] },
+  MLSuggestion: { template: '<div />', props: ['categoryName', 'categoryColor', 'probability'] },
+  CurrencyDisplay: { template: '<span />', props: ['amount', 'currencySymbol', 'showSign', 'colored'] },
+  InputText: { template: '<input />', props: ['modelValue', 'placeholder'] },
+  InputNumber: { template: '<input />', props: ['modelValue', 'placeholder', 'minFractionDigits'] },
+  DatePicker: { template: '<input />', props: ['modelValue', 'dateFormat', 'placeholder', 'showIcon'] },
+  ToggleSwitch: { template: '<input type="checkbox" />', props: ['modelValue'] },
 }
 
 describe('ReviewInboxView', () => {
@@ -46,7 +60,7 @@ describe('ReviewInboxView', () => {
       .mockResolvedValueOnce({ data: { count: 0 } }) // /transactions/review-inbox/count
   })
 
-  it('fetches transactions with inbox filters on mount', async () => {
+  it('fetches transactions with wallet scoping params on mount', async () => {
     mount(ReviewInboxView, { global: { stubs: stubComponents, plugins: [i18n] } })
     await new Promise((r) => setTimeout(r, 10))
 
@@ -55,6 +69,8 @@ describe('ReviewInboxView', () => {
         is_reviewed: false,
         labeled: false,
         duplicate_only: false,
+        wallet: 1,
+        wallet_external_only: true,
       }),
     })
   })
