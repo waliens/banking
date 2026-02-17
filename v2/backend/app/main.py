@@ -18,8 +18,32 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     from app.models.currency import Currency
     from app.models.user import User
 
-    logger.info("Creating database tables if they don't exist...")
+    logger.info("Running database migrations...")
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import inspect, text
+
+    # Bootstrap: create tables that don't exist yet (handles fresh databases)
     Base.metadata.create_all(bind=engine)
+
+    # Transition from create_all-only to Alembic: if alembic_version table
+    # doesn't exist or has no rows, stamp the baseline so upgrade proceeds
+    # from the right point.
+    inspector = inspect(engine)
+    if "alembic_version" not in inspector.get_table_names():
+        logger.info("No alembic_version table — stamping baseline")
+        alembic_cfg = Config("alembic.ini")
+        command.stamp(alembic_cfg, "0001")
+    else:
+        with engine.connect() as conn:
+            row = conn.execute(text("SELECT version_num FROM alembic_version")).first()
+            if row is None:
+                logger.info("Empty alembic_version — stamping baseline")
+                alembic_cfg = Config("alembic.ini")
+                command.stamp(alembic_cfg, "0001")
+
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
 
     db = SessionLocal()
     try:
@@ -67,6 +91,7 @@ from app.routers import (
     accounts,
     categories,
     transactions,
+    transaction_groups,
     currencies,
     wallets,
     wallet_stats,
@@ -79,6 +104,7 @@ app.include_router(auth.router, prefix="/api/v2/auth", tags=["auth"])
 app.include_router(accounts.router, prefix="/api/v2/accounts", tags=["accounts"])
 app.include_router(categories.router, prefix="/api/v2/categories", tags=["categories"])
 app.include_router(transactions.router, prefix="/api/v2/transactions", tags=["transactions"])
+app.include_router(transaction_groups.router, prefix="/api/v2/transaction-groups", tags=["transaction-groups"])
 app.include_router(currencies.router, prefix="/api/v2/currencies", tags=["currencies"])
 app.include_router(wallets.router, prefix="/api/v2/wallets", tags=["wallets"])
 app.include_router(wallet_stats.router, prefix="/api/v2/wallets", tags=["wallet-stats"])

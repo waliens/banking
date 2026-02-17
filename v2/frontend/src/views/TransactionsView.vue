@@ -3,6 +3,8 @@ import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTransactionStore } from '../stores/transactions'
 import { useCategoryStore } from '../stores/categories'
+import { useTransactionGroupStore } from '../stores/transactionGroups'
+import TransactionGroupDialog from '../components/transactions/TransactionGroupDialog.vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import InputText from 'primevue/inputtext'
@@ -13,6 +15,29 @@ import Button from 'primevue/button'
 const { t } = useI18n()
 const transactionStore = useTransactionStore()
 const categoryStore = useCategoryStore()
+const groupStore = useTransactionGroupStore()
+
+const groupDialogVisible = ref(false)
+const groupDialogGroup = ref(null)
+const groupDialogInitialTx = ref(null)
+
+function openGroupDialog(tx) {
+  if (tx.id_transaction_group) {
+    groupStore.fetchGroup(tx.id_transaction_group).then((g) => {
+      groupDialogGroup.value = g
+      groupDialogInitialTx.value = null
+      groupDialogVisible.value = true
+    })
+  } else {
+    groupDialogGroup.value = null
+    groupDialogInitialTx.value = tx
+    groupDialogVisible.value = true
+  }
+}
+
+function onGroupSaved() {
+  loadData()
+}
 
 const page = ref(0)
 const pageSize = ref(50)
@@ -136,6 +161,34 @@ async function onCategoryChange(transactionId, categoryId) {
             <span :class="data.id_source ? 'text-red-500' : 'text-green-600'" class="font-medium">
               {{ data.id_source ? '-' : '+' }}{{ data.amount }}
             </span>
+            <span
+              v-if="data.effective_amount != null && data.effective_amount !== data.amount"
+              class="text-xs text-surface-400 block"
+            >
+              ({{ t('transactions.effectiveAmount') }}: {{ data.effective_amount }})
+            </span>
+          </template>
+        </Column>
+
+        <Column :header="t('transactions.group')" style="width: 100px">
+          <template #body="{ data }">
+            <Button
+              v-if="data.id_transaction_group"
+              :label="t('transactions.group')"
+              severity="info"
+              text
+              size="small"
+              @click="openGroupDialog(data)"
+            />
+            <Button
+              v-else
+              icon="pi pi-link"
+              severity="secondary"
+              text
+              size="small"
+              @click="openGroupDialog(data)"
+              :aria-label="t('transactions.createGroup')"
+            />
           </template>
         </Column>
 
@@ -155,5 +208,13 @@ async function onCategoryChange(transactionId, categoryId) {
         </Column>
       </DataTable>
     </div>
+
+    <TransactionGroupDialog
+      v-model:visible="groupDialogVisible"
+      :group="groupDialogGroup"
+      :initialTransaction="groupDialogInitialTx"
+      @saved="onGroupSaved"
+      @deleted="onGroupSaved"
+    />
   </div>
 </template>

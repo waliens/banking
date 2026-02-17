@@ -150,6 +150,12 @@ onMounted(async () => {
             <span :class="data.id_source ? 'text-red-500' : 'text-green-600'" class="font-medium">
               {{ data.id_source ? '-' : '+' }}{{ data.amount }}
             </span>
+            <span
+              v-if="data.effective_amount != null && data.effective_amount !== data.amount"
+              class="text-xs text-surface-400 block"
+            >
+              ({{ t('transactions.effectiveAmount') }}: {{ data.effective_amount }})
+            </span>
           </template>
         </Column>
 

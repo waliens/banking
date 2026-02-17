@@ -22,6 +22,7 @@ from app.models import (
     Category,
     Currency,
     Transaction,
+    TransactionGroup,
     User,
     Wallet,
     WalletAccount,

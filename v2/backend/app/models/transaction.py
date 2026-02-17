@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from typing import Any
 
-from sqlalchemy import Date, ForeignKey, Index, JSON, Numeric, String, Text, text
+from sqlalchemy import Date, ForeignKey, Index, JSON, Numeric, String, Text
 from sqlalchemy import types as sa_types
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -44,12 +44,17 @@ class Transaction(Base):
     notes: Mapped[str | None] = mapped_column(String)
     search_text: Mapped[str | None] = mapped_column(TSVector())
     id_recurring: Mapped[int | None] = mapped_column(ForeignKey("recurring_pattern.id"))
+    id_transaction_group: Mapped[int | None] = mapped_column(
+        ForeignKey("transaction_group.id", ondelete="SET NULL"), nullable=True
+    )
+    effective_amount: Mapped[Decimal | None] = mapped_column(Numeric(20, 2), nullable=True)
 
     source: Mapped["Account | None"] = relationship(foreign_keys=[id_source], lazy="joined")
     dest: Mapped["Account | None"] = relationship(foreign_keys=[id_dest], lazy="joined")
     currency: Mapped["Currency"] = relationship(lazy="joined")
     category: Mapped["Category | None"] = relationship(lazy="joined")
     duplicate_of: Mapped["Transaction | None"] = relationship(remote_side=[id])
+    transaction_group: Mapped["TransactionGroup | None"] = relationship(back_populates="transactions", lazy="joined")
 
     __table_args__ = (Index("ix_transaction_date", "date"),)
 
@@ -57,3 +62,4 @@ class Transaction(Base):
 from app.models.account import Account  # noqa: E402
 from app.models.category import Category  # noqa: E402
 from app.models.currency import Currency  # noqa: E402
+from app.models.transaction_group import TransactionGroup  # noqa: E402

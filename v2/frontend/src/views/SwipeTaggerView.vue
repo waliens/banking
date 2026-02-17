@@ -220,6 +220,12 @@ onMounted(async () => {
           <div class="text-3xl font-bold text-center mb-4" :class="currentTx.id_source ? 'text-red-500' : 'text-green-600'">
             {{ currentTx.id_source ? '-' : '+' }}{{ currentTx.amount }}
           </div>
+          <div
+            v-if="currentTx.effective_amount != null && currentTx.effective_amount !== currentTx.amount"
+            class="text-center text-sm text-surface-400 -mt-2 mb-4"
+          >
+            {{ t('transactions.effectiveAmount') }}: {{ currentTx.effective_amount }}
+          </div>
 
           <!-- Description -->
           <div class="text-center text-surface-700 font-medium mb-2 truncate">

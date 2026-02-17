@@ -18,6 +18,8 @@ from app.schemas.wallet_stats import (
 
 router = APIRouter()
 
+effective = func.coalesce(Transaction.effective_amount, Transaction.amount)
+
 
 def _get_wallet_or_404(db: Session, wallet_id: int) -> Wallet:
     wallet = db.get(Wallet, wallet_id)
@@ -44,7 +46,7 @@ def wallet_balance(
     incoming = (
         select(
             Transaction.id_dest.label("account_id"),
-            func.coalesce(func.sum(Transaction.amount), Decimal(0)).label("total"),
+            func.coalesce(func.sum(effective), Decimal(0)).label("total"),
         )
         .where(Transaction.id_dest.in_(acct_ids_sq), Transaction.id_duplicate_of.is_(None))
         .group_by(Transaction.id_dest)
@@ -55,7 +57,7 @@ def wallet_balance(
     outgoing = (
         select(
             Transaction.id_source.label("account_id"),
-            func.coalesce(func.sum(Transaction.amount), Decimal(0)).label("total"),
+            func.coalesce(func.sum(effective), Decimal(0)).label("total"),
         )
         .where(Transaction.id_source.in_(acct_ids_sq), Transaction.id_duplicate_of.is_(None))
         .group_by(Transaction.id_source)
@@ -125,12 +127,12 @@ def wallet_income_expense(
 
     # Income: dest is in wallet (money coming in from outside)
     income_case = case(
-        (Transaction.id_dest.in_(acct_ids_sq), Transaction.amount),
+        (Transaction.id_dest.in_(acct_ids_sq), effective),
         else_=Decimal(0),
     )
     # Expense: source is in wallet (money going out)
     expense_case = case(
-        (Transaction.id_source.in_(acct_ids_sq), Transaction.amount),
+        (Transaction.id_source.in_(acct_ids_sq), effective),
         else_=Decimal(0),
     )
 
@@ -213,7 +215,7 @@ def wallet_per_category(
             Transaction.id_category,
             Category.name.label("category_name"),
             Category.color.label("category_color"),
-            func.sum(Transaction.amount).label("amount"),
+            func.sum(effective).label("amount"),
             Transaction.id_currency,
         )
         .outerjoin(Category, Transaction.id_category == Category.id)
@@ -224,7 +226,7 @@ def wallet_per_category(
             Category.color,
             Transaction.id_currency,
         )
-        .order_by(func.sum(Transaction.amount).desc())
+        .order_by(func.sum(effective).desc())
     )
 
     rows = db.execute(q).all()

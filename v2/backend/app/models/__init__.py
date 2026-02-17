@@ -3,6 +3,7 @@ from app.models.currency import Currency
 from app.models.account import Account, AccountAlias
 from app.models.category import Category
 from app.models.transaction import Transaction
+from app.models.transaction_group import TransactionGroup
 from app.models.wallet import Wallet, WalletAccount
 from app.models.tag_rule import TagRule
 from app.models.expense_split import ExpenseSplit, ExpenseSplitReimbursement
@@ -16,6 +17,7 @@ __all__ = [
     "AccountAlias",
     "Category",
     "Transaction",
+    "TransactionGroup",
     "Wallet",
     "WalletAccount",
     "TagRule",

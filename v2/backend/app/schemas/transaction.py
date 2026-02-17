@@ -22,6 +22,8 @@ class TransactionResponse(BaseModel):
     description: str
     is_reviewed: bool
     notes: str | None
+    effective_amount: Decimal | None
+    id_transaction_group: int | None
     source: AccountResponse | None = None
     dest: AccountResponse | None = None
     currency: CurrencyResponse
@@ -53,6 +55,7 @@ class TransactionUpdate(BaseModel):
     description: str | None = None
     notes: str | None = None
     is_reviewed: bool | None = None
+    effective_amount: Decimal | None = None
 
 
 class TransactionTagBatch(BaseModel):

@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -9,6 +10,11 @@ from app.models import *  # noqa: F401, F403 — ensure all models are registere
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Use BANKING_DATABASE_URL env var if set (e.g. inside Docker), else fall back to alembic.ini
+db_url = os.environ.get("BANKING_DATABASE_URL")
+if db_url:
+    config.set_main_option("sqlalchemy.url", db_url)
 
 target_metadata = Base.metadata
 
