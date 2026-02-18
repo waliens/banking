@@ -119,37 +119,12 @@ onMounted(async () => {
     </div>
 
     <template v-else>
-      <!-- Balance cards -->
-      <div class="mb-6">
-        <h2 class="text-lg font-semibold mb-3">{{ t('wallet.balance') }}</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div
-            v-for="account in walletStore.balance?.accounts || []"
-            :key="account.id"
-            class="bg-surface-0 rounded-xl shadow p-4"
-          >
-            <div class="text-sm text-surface-500">{{ account.name || account.number }}</div>
-            <div class="text-xl font-bold mt-1">
-              <CurrencyDisplay
-                :amount="account.balance"
-                :currencySymbol="account.currency_symbol"
-              />
-            </div>
-          </div>
-        </div>
-        <p
-          v-if="walletStore.balance && !walletStore.balance.accounts?.length"
-          class="text-surface-500"
-        >
-          {{ t('wallet.noData') }}
-        </p>
-      </div>
-
       <!-- Stats tabs -->
       <Tabs value="income-expense">
         <TabList>
           <Tab value="income-expense">{{ t('wallet.incomeExpense') }}</Tab>
           <Tab value="per-category">{{ t('wallet.perCategory') }}</Tab>
+          <Tab value="balance">{{ t('wallet.balance') }}</Tab>
         </TabList>
         <TabPanels>
           <TabPanel value="income-expense">
@@ -180,6 +155,31 @@ onMounted(async () => {
               />
             </div>
             <CategoryChart :data="walletStore.perCategory" />
+          </TabPanel>
+          <TabPanel value="balance">
+            <div class="mt-2">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div
+                  v-for="account in walletStore.balance?.accounts || []"
+                  :key="account.id"
+                  class="bg-surface-0 rounded-xl shadow p-4"
+                >
+                  <div class="text-sm text-surface-500">{{ account.name || account.number }}</div>
+                  <div class="text-xl font-bold mt-1">
+                    <CurrencyDisplay
+                      :amount="account.balance"
+                      :currencySymbol="account.currency_symbol"
+                    />
+                  </div>
+                </div>
+              </div>
+              <p
+                v-if="walletStore.balance && !walletStore.balance.accounts?.length"
+                class="text-surface-500"
+              >
+                {{ t('wallet.noData') }}
+              </p>
+            </div>
           </TabPanel>
         </TabPanels>
       </Tabs>
