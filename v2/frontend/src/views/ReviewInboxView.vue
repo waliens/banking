@@ -288,7 +288,7 @@ onMounted(async () => {
           <template #body="{ data }">
             <CurrencyDisplay
               :amount="data.amount"
-              :currencySymbol="data.currency_symbol || ''"
+              :currencySymbol="data.currency.symbol || ''"
               :showSign="true"
               colored
               class="font-medium"

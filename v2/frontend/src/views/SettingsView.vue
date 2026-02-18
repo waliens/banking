@@ -51,25 +51,6 @@ async function savePassword() {
   <div>
     <h1 class="text-2xl font-bold mb-4">{{ t('settings.title') }}</h1>
 
-    <Card class="mb-6">
-      <template #title>{{ t('settings.changePassword') }}</template>
-      <template #content>
-        <div class="flex flex-col gap-4 max-w-sm">
-          <div>
-            <label class="block text-sm font-medium mb-1">{{ t('settings.newPassword') }}</label>
-            <Password v-model="newPassword" :feedback="false" toggleMask class="w-full" inputClass="w-full" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">{{ t('settings.confirmPassword') }}</label>
-            <Password v-model="confirmPassword" :feedback="false" toggleMask class="w-full" inputClass="w-full" />
-          </div>
-          <div>
-            <Button :label="t('common.save')" icon="pi pi-check" :loading="saving" @click="savePassword" />
-          </div>
-        </div>
-      </template>
-    </Card>
-
     <Tabs value="wallets">
       <TabList>
         <Tab value="wallets">{{ t('settings.wallets') }}</Tab>
@@ -77,14 +58,15 @@ async function savePassword() {
         <Tab value="categories">{{ t('settings.categories') }}</Tab>
         <Tab value="rules">{{ t('settings.rules') }}</Tab>
         <Tab value="ml">{{ t('settings.mlModels') }}</Tab>
+        <Tab value="password">{{ t('settings.changePassword') }}</Tab>
       </TabList>
       <TabPanels>
         <TabPanel value="wallets">
           <WalletsPanel />
         </TabPanel>
         <TabPanel value="accounts">
-          <AccountsPanel />
           <AccountMergePanel />
+          <AccountsPanel />
         </TabPanel>
         <TabPanel value="categories">
           <CategoriesPanel />
@@ -94,6 +76,26 @@ async function savePassword() {
         </TabPanel>
         <TabPanel value="ml">
           <MLModelsPanel />
+        </TabPanel>
+        <TabPanel value="password">
+          <Card>
+            <template #title>{{ t('settings.changePassword') }}</template>
+            <template #content>
+              <div class="flex flex-col gap-4 max-w-sm">
+                <div>
+                  <label class="block text-sm font-medium mb-1">{{ t('settings.newPassword') }}</label>
+                  <Password v-model="newPassword" :feedback="false" toggleMask class="w-full" inputClass="w-full" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">{{ t('settings.confirmPassword') }}</label>
+                  <Password v-model="confirmPassword" :feedback="false" toggleMask class="w-full" inputClass="w-full" />
+                </div>
+                <div>
+                  <Button :label="t('common.save')" icon="pi pi-check" :loading="saving" @click="savePassword" />
+                </div>
+              </div>
+            </template>
+          </Card>
         </TabPanel>
       </TabPanels>
     </Tabs>

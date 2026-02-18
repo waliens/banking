@@ -75,14 +75,14 @@ onMounted(async () => {
       <div class="text-2xl font-bold">
         <CurrencyDisplay
           :amount="transaction.amount"
-          :currencySymbol="transaction.currency_symbol || ''"
+          :currencySymbol="transaction.currency.symbol || ''"
         />
       </div>
       <div v-if="hasEffectiveAmount()" class="text-sm text-surface-500 mt-1">
         {{ t('transactions.effectiveAmount') }}:
         <CurrencyDisplay
           :amount="transaction.effective_amount"
-          :currencySymbol="transaction.currency_symbol || ''"
+          :currencySymbol="transaction.currency.symbol || ''"
         />
       </div>
     </div>

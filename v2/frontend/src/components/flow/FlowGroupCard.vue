@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CurrencyDisplay from '../common/CurrencyDisplay.vue'
 
@@ -12,10 +13,12 @@ const props = defineProps({
 
 const emit = defineEmits(['select'])
 
-function netAmount() {
+const displayAmount = computed(() => {
   if (!props.group.transactions) return 0
-  return props.group.transactions.reduce((sum, tx) => sum + Number(tx.effective_amount ?? tx.amount), 0)
-}
+  const amount = props.group.transactions.reduce((sum, tx) => sum + Number(tx.effective_amount ?? tx.amount), 0)
+  return props.direction === 'expense' ? -amount : amount
+})
+
 </script>
 
 <template>
@@ -29,7 +32,7 @@ function netAmount() {
     <div class="flex items-center justify-between gap-2">
       <span class="text-sm truncate flex-1 font-medium">{{ group.name || `Group #${group.id}` }}</span>
       <span class="text-sm font-semibold whitespace-nowrap">
-        <CurrencyDisplay :amount="netAmount()" colored />
+        <CurrencyDisplay :amount="displayAmount" colored />
       </span>
     </div>
     <div class="text-xs text-surface-400 mt-1">
@@ -59,7 +62,7 @@ function netAmount() {
     <div class="flex items-center justify-between gap-2">
       <span class="text-sm truncate flex-1 font-medium">{{ group.name || `Group #${group.id}` }}</span>
       <span class="text-sm font-semibold whitespace-nowrap">
-        <CurrencyDisplay :amount="netAmount()" colored />
+        <CurrencyDisplay :amount="displayAmount" colored />
       </span>
     </div>
     <div class="text-xs text-surface-400 mt-1">

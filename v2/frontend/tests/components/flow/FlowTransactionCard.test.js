@@ -20,7 +20,7 @@ function mountCard(props = {}) {
         description: 'Groceries',
         amount: '42.50',
         date: '2024-06-15',
-        currency_symbol: '€',
+        currency: { symbol: '€' },
       },
       direction: 'expense',
       ...props,

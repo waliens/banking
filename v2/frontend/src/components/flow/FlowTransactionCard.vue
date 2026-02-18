@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import CurrencyDisplay from '../common/CurrencyDisplay.vue'
 
 const props = defineProps({
@@ -8,6 +9,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['select'])
+
+const displayAmount = computed(() => {
+  const amount = props.transaction.amount
+  return props.direction === 'expense' ? -amount : amount
+})
 </script>
 
 <template>
@@ -22,8 +28,8 @@ const emit = defineEmits(['select'])
       <span class="text-sm truncate flex-1">{{ transaction.description }}</span>
       <span class="text-sm font-semibold whitespace-nowrap">
         <CurrencyDisplay
-          :amount="transaction.amount"
-          :currencySymbol="transaction.currency_symbol || ''"
+          :amount="displayAmount"
+          :currencySymbol="transaction.currency.symbol || ''"
           :showSign="true"
           colored
         />
@@ -55,8 +61,8 @@ const emit = defineEmits(['select'])
       <span class="text-sm truncate flex-1">{{ transaction.description }}</span>
       <span class="text-sm font-semibold whitespace-nowrap">
         <CurrencyDisplay
-          :amount="transaction.amount"
-          :currencySymbol="transaction.currency_symbol || ''"
+          :amount="displayAmount"
+          :currencySymbol="transaction.currency.symbol || ''"
           :showSign="true"
           colored
         />

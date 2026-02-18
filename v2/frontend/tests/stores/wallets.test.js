@@ -88,7 +88,7 @@ describe('useWalletStore', () => {
 
   describe('fetchBalance', () => {
     it('fetches balance and stores result', async () => {
-      const balanceData = { accounts: [{ id: 1, name: 'Checking', balance: '1000.00', id_currency: 1, currency_symbol: '€' }] }
+      const balanceData = { accounts: [{ id: 1, name: 'Checking', balance: '1000.00', id_currency: 1, currency: { symbol: '€' } }] }
       api.get.mockResolvedValueOnce({ data: balanceData })
 
       const result = await store.fetchBalance(5)

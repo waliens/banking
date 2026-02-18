@@ -47,7 +47,7 @@ async function onUpload(event) {
   <div>
     <h1 class="text-2xl font-bold mb-4">{{ t('nav.import') }}</h1>
 
-    <div class="bg-surface-0 rounded-xl shadow p-6 max-w-xl">
+    <div class="bg-surface-0 rounded-xl shadow p-6 w-full">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <label class="text-sm font-medium">Format</label>

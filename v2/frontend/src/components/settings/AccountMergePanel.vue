@@ -38,7 +38,7 @@ async function merge() {
 </script>
 
 <template>
-  <div class="mt-6 pt-4 border-t border-surface-200">
+  <div class="pb-6">
     <h3 class="text-base font-semibold mb-3">{{ t('settings.mergeAccounts') }}</h3>
     <p class="text-sm text-surface-500 mb-4">{{ t('settings.mergeWarning') }}</p>
     <div class="flex flex-wrap items-end gap-3">
@@ -73,5 +73,6 @@ async function merge() {
         @click="merge"
       />
     </div>
+    <div class="mt-6 pt-4 border-t border-surface-200"></div>
   </div>
 </template>

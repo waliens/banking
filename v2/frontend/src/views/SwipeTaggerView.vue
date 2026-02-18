@@ -242,7 +242,7 @@ onMounted(async () => {
           <div class="text-3xl font-bold text-center mb-4">
             <CurrencyDisplay
               :amount="currentTx.amount"
-              :currencySymbol="currentTx.currency_symbol || ''"
+              :currencySymbol="currentTx.currency.symbol || ''"
               :showSign="true"
               colored
             />

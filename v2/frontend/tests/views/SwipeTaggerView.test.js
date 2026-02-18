@@ -84,8 +84,8 @@ function mountTagger() {
 }
 
 const sampleTxs = [
-  { id: 1, description: 'Grocery', date: '2025-01-15', amount: 42.5, id_source: 1, source: { name: 'Main' } },
-  { id: 2, description: 'Salary', date: '2025-01-14', amount: 3000, id_source: null, source: { name: 'Main' } },
+  { id: 1, description: 'Grocery', date: '2025-01-15', amount: 42.5, id_source: 1, source: { name: 'Main' }, currency: { symbol: '€' } },
+  { id: 2, description: 'Salary', date: '2025-01-14', amount: 3000, id_source: null, source: { name: 'Main' }, currency: { symbol: '€' } },
 ]
 
 describe('SwipeTaggerView', () => {

@@ -61,7 +61,7 @@ function mountDetail(transaction = {}) {
         description: 'Coffee Shop',
         date: '2024-06-15',
         amount: '4.50',
-        currency_symbol: '€',
+        currency: { symbol: '€' },
         effective_amount: null,
         id_source: 1,
         id_dest: 2,
