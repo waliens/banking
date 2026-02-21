@@ -3,23 +3,23 @@ ARG NGINX_VERSION=1.22.1
 
 #######################################################################################
 ## Stage: build front-end
-FROM node:${NODE_VERSION} as frontend-builder
+FROM node:${NODE_VERSION} AS frontend-builder
 
 WORKDIR /app
 RUN apk add --no-cache bash
 COPY ./yarn.lock ./package.json /app/
-  
+
 RUN yarn install
 
 ADD ./src /app/src
 ADD ./public /app/public
-ADD ./bin /app/bin 
+ADD ./bin /app/bin
 
-RUN VUE_APP_MODE=production yarn build 
+RUN VUE_APP_MODE=production yarn build
 
 #######################################################################################
 ## Stage: dev image (with hot swap)
-FROM node:${NODE_VERSION} as dev-server
+FROM node:${NODE_VERSION} AS dev-server
 
 WORKDIR /app
 
@@ -37,7 +37,7 @@ CMD ["yarn", "serve"]
 
 #######################################################################################
 ## Stage: building nginx image serving the front-end
-FROM nginx:${NGINX_VERSION}-alpine as prod-server
+FROM nginx:${NGINX_VERSION}-alpine AS prod-server
 
 ARG NGINX_VERSION
 

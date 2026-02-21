@@ -5,3 +5,14 @@ server/.env
 /.vscode/
 /.idea/
 .env
+/backups/
+server/.vscode
+v2/frontend/node_modules/
+v2/frontend/dist/
+v2/frontend/.vscode/
+v2/backend/.venv/
+v2/backend/.pytest_cache/
+v2/backend/.mypy_cache/
+v2/backend/.vscode/
+v2/backend/*/__pycache__/
+v2/backend/*/*.pyc

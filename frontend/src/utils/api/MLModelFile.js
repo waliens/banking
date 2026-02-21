@@ -11,7 +11,6 @@ export default class MLModelFile extends Model {
     super._initProperties();
 
     this.filename = null;
-    this.target = null;
     this.metadata_ = null;
     this.state = null;
   }
@@ -20,8 +19,8 @@ export default class MLModelFile extends Model {
     return this.metadata_;
   }
 
-  static async refresh(target) {
-    let data = await this.backend().post( `${this.className}/${target}/refresh`);
+  static async refresh() {
+    let data = await this.backend().post(`${this.className}/refresh`);
     return data;
   }
 }

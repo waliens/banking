@@ -26,10 +26,10 @@ ENV FLASK_RUN_HOST=0.0.0.0
 ENV MODEL_PATH=/models
 ENV FLASK_ENV=production
 
-FROM backend as task-runner
+FROM backend AS task-runner
 RUN echo "building task-runner stage"
 CMD ["celery", "-A", "banking.celery", "worker"]
 
-FROM backend AS server 
+FROM backend AS server
 RUN echo "building server stage"
 CMD ["flask", "run"]

@@ -47,6 +47,7 @@ app.config.update(
   JWT_REFRESH_TOKEN_EXPIRES=timedelta(days=30),
   JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=1),
   APPLICATION_ROOT=os.environ.get('API_PREFIX_PATH', default="/api"),
+  JWT_VERIFY_SUB = False
 )
 
 # celery workers
@@ -75,8 +76,8 @@ logging.basicConfig()
 
 #################### CELERY TASKS #######################
 @celery.task
-def trigger_model_train(target):
-  train_model(trigger_model_train.session, data_source=target)
+def trigger_model_train():
+  train_model(trigger_model_train.session)
 
 @celery.task
 def delete_invalid_models():
@@ -205,12 +206,22 @@ def account_transactions(id_account):
   from sqlalchemy import or_
   start = request.args.get("start", type=int, default=0)
   count = request.args.get("count", type=int, default=50)
-  transactions = Transaction.query \
-    .filter(
-      or_(Transaction.id_dest == id_account, Transaction.id_source == id_account),
-      Transaction.id_is_duplicate_of == None
-    ) \
-    .order_by(Transaction.when.desc())[start:(start+count)]
+  order = request.args.get("order", type=str, default="desc")
+  sort_by = request.args.get("sort_by", type=str, default=None)
+  search_query = request.args.get("search_query", type=str, default=None)
+
+  if sort_by is not None and sort_by not in {'when', 'amount'}:
+    return error_response("cannot fetch transactions without categories but with a category id")
+  if search_query is not None and len(search_query) < 3:
+    return error_response("cannot search for search query of length < 3")
+
+  transactions = get_transaction_query(
+    account=id_account,
+    search_query=search_query,
+    sort_by=sort_by,
+    order=order
+  )[start:(start+count)]
+
   return jsonify([t.as_dict() for t in transactions])
 
 
@@ -333,7 +344,7 @@ def get_transactions_count():
     return error_response("group id must be provided if group_data or group_external_only is requested")
   if search_query is not None and len(search_query) < 3:
     return error_response("cannot search for search query of length < 3")
-  
+
   # not filtering by group
   if in_group == -1:
     in_group = None
@@ -386,7 +397,7 @@ def ml_infer_category(id_transaction):
     category, proba = predict_category(transaction)
     return jsonify({"category": category.as_dict(), "proba": proba})
   except NoValidModelException:
-    trigger_model_train.delay(transaction.data_source)
+    trigger_model_train.delay()
     return error_response("no valid model ready (retry later)", code=400)
   except TooManyAvailableModelsException("too many available model for prediction"):
     return error_response("too many models available for prediction", code=500)
@@ -421,6 +432,7 @@ def create_manual_transaction():
   id_currency = request.json.get("id_currency", None)
   id_category = request.json.get("id_category", None)
   id_group = request.json.get("id_group", None)
+  description = request.json.get("description", "")
 
   if date_when is None:
     return error_response("'when' is empty, should be set to a date")
@@ -445,7 +457,8 @@ def create_manual_transaction():
       id_currency=id_currency,
       id_category=id_category,
       data_source="manual",
-      id_is_duplicate_of=None
+      id_is_duplicate_of=None,
+      description=description
     )
     session.add(transaction)
     session.flush()
@@ -487,6 +500,8 @@ def edit_manual_transaction(id_transaction):
       transaction.id_currency = id_currency
     if "id_category" in request.json:
       transaction.id_category = request.json.get("id_category")
+    if "description" in request.json:
+      transaction.description = request.json.get("description", "")
     new_source, new_dest = transaction.id_source, transaction.id_dest
     if "id_dest" in request.json:
       new_dest = request.json.get("id_dest")
@@ -823,7 +838,7 @@ def get_group_stats_per_category(id_group):
       include_unlabeled=unlabeled,
       bucket_level=level
     )
-  else: 
+  else:
     buckets = per_category_aggregated(
       session,
       id_group,
@@ -832,7 +847,7 @@ def get_group_stats_per_category(id_group):
       id_category=id_category,
       include_unlabeled=unlabeled,
       bucket_level=level
-    )    
+    )
   return jsonify(buckets[-1] if len(buckets) > 0 else [])
 
 
@@ -872,17 +887,26 @@ def accounts():
   return jsonify([a.as_dict(show_balance=False) for a in accounts])
 
 
-@api.route("/model/<target>/refresh", methods=["POST"])
+@api.route("/model/refresh", methods=["POST"])
 @jwt_required()
-def refresh_model(target):
-  if target not in {'belfius'}:
-    return error_response({'msg': 'invalid target'}, code=403)
+def refresh_model():
   session = Session()
-  session.execute(MLModelFile.invalidate_models_stmt(target=target))
+  session.execute(MLModelFile.invalidate_models_stmt())
   session.commit()
   delete_invalid_models.delay()
-  trigger_model_train.delay(target)
+  trigger_model_train.delay()
   return jsonify({'msg': 'retrain triggered'})
+
+
+# ENABLE FOR MANUAL TESTING
+# @api.route("/model/train", methods=["GET"])
+# def train_model_endpoint():
+#   session = Session()
+#   try:
+#     train_model(session)
+#     return jsonify({'msg': 'model training triggered'})
+#   except Exception as e:
+#     return error_response(str(e), code=500)
 
 
 @api.route("/models", methods=["GET"])

@@ -9,12 +9,12 @@
       <ul>
         <li>Belfius CSV file (more info <a href="https://www.belfius.be/webapps/fr/selfcare/belfius/comptes/solde-historique/Comment-exporter-mon-historique-vers-un-fichier-CSV-(Excel)-en-Belfius-Direct-Net-">here</a>)</li>
         <li>ING CSV file</li>
-        <li>Mastercard spending monthly statement (PDF file from Belfius)</li> 
+        <li>Mastercard spending monthly statement (PDF file from Belfius)</li>
       </ul>
       <p>
         The upload system is robust enough to support upload of duplicate transactions (see <a href="#help-duplicate-transactions">below</a>). It also attempts to auto-detect and  <br/>
-        merge accounts with different names but same number (e.g. matching legacy belgian account numbers with IBAN if necessary). <br /> 
-        Merging account is useful for machine learning (see section <em>Machine learning models</em>). Accounts which were not auto-merge 
+        merge accounts with different names but same number (e.g. matching legacy belgian account numbers with IBAN if necessary). <br />
+        Merging account is useful for machine learning (see section <em>Machine learning models</em>). Accounts which were not auto-merge
         can also be merged manually on the <router-link :to="{name: 'merge-accounts'}">merging page</router-link>.
       </p>
       <p><em>Note:</em> the mastercard PDF upload requires you to also associate the credit card account.</p>
@@ -28,7 +28,7 @@
       <p>
         A duplicate transaction is a transaction that appears several times in the database. The application attempts to automatically <br />
         prevent the creation of duplicate. This is done for instance by making upload idempotent, i.e. re-uploading several times the same <br />
-        transaction file (csv, pdf, etc.) does not create duplicate transactions. 
+        transaction file (csv, pdf, etc.) does not create duplicate transactions.
       </p>
       <p>
         Unfortunately, it is not always possible to automatically prevent the creation of duplicates. For instance, if a transaction is uploaded <br />
@@ -43,7 +43,7 @@
         This ruleset is not perfect as it can falsly flag a transaction as duplicate that is not (false positive). It can also miss actual <br />
         duplicates (e.g. when the two banks have not accounted the transaction on the same day) (false negative). The application provides <br />
         tools to deal with these false positives and negatives. <router-link :to="{name: 'manage-duplicate-transactions'}">This page</router-link> allows to manually unflag false positives. In the <router-link :to="{name: 'transactions-tagging'}">transactions labeling page</router-link>, <br />
-        false negative transactions can manually be marked as duplicates.  
+        false negative transactions can manually be marked as duplicates.
       </p>
       <h3 class="subtitle">Initial account balance</h3>
       <p>
@@ -59,11 +59,11 @@
       </p>
       <p>
         A profile must be created to access the reporting features of the app (it can contain only one account if necessary). <br/>
-        After creation, the profile must be selected which gives access to the reporting page. 
+        After creation, the profile must be selected which gives access to the reporting page.
       </p>
       <p>
         A transaction must be explicitely associated to a profile for this transaction to be considered in the different profile-related <br />
-        pages. Association of transactions and profiles are automated <strong>ONLY on two occasions</strong>: 
+        pages. Association of transactions and profiles are automated <strong>ONLY on two occasions</strong>:
         <ul>
           <li>The transaction is added to the app and is involved with one of the accounts of a profile, this transaction is automatically associated to the profile</li>
           <li>A profile is created, all transactions involved with at least one account of the profile are associated with this profile</li>
@@ -94,9 +94,9 @@
         The app provides a labeling page for making easier to label the uploaded transactions. This page provides a filterable <br/>
         list of transactions and different tools for labeling individual transactions or a batch of transaction. A machine <br />
         learning model can be used to suggest labels (see section <em>Machine learning models</em>).
-      </p> 
+      </p>
       <p>Tips for faster labeling:</p>
-      <ul> 
+      <ul>
         <li>Use the filters to keep only a set of transactions that should be assigned the same category. Then use the "<em>Set all</em>" and "<em>Validate page</em>" to set all categories at once.</li>
         <li>Transactions for which the ML model has a high confidence (>90%) can likely be tagged directly without checking the transaction metadata.</li>
       </ul>
@@ -104,12 +104,12 @@
       <h2 class="subtitle">Machine learning models</h2>
       <p>See <router-link :to="{name: 'models'}">model page</router-link></p>
       <p>
-        This page can be used to trigger the training of a machine learning model for classifying transactions. Machine learning models are currently <br/>
-        supported for transactions from Belfius CSV only. To train a machine learning model, at least 50 transactions must have been tagged beforehand <br/>
+        This page can be used to trigger the training of a machine learning model for classifying transactions. <br/>
+        To train a machine learning model, at least 50 transactions must have been tagged beforehand <br/>
         (ideally with several transactions labeled per category).
       </p>
     </section>
-  </div>  
+  </div>
 </template>
 
 <script>

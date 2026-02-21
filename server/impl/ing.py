@@ -1,5 +1,3 @@
-
-import csv
 from decimal import Decimal
 import os
 from typing import Dict, Iterable, Set
@@ -36,7 +34,7 @@ class IngParserOrchestrator(BankParserOrchestrator):
   def get_transaction_files(self, path: str):
     return [
       os.path.join(path, f)
-      for f in os.listdir(path) 
+      for f in os.listdir(path)
       if "." not in f or f.rsplit(".", 1)[1] not in {'pdf', 'json', 'db'}
     ]
 
@@ -89,30 +87,33 @@ class IngParserOrchestrator(BankParserOrchestrator):
       if amount > 0:
         src_account, dest_account = dest_account, src_account
 
+      communication = sanitize(row[8])
+      details = sanitize(row[9])
       when = parse_date(row[4]).date()
       t = Transaction(
         amount=amount.copy_abs(),
         src=src_account, dest=dest_account,
         currency=Currency.validate(row[7]),
         when=when,
+        description=details or communication or "",
         id_fn=identifier_fn,
         valued_at=parse_date(row[5]).date(),
         transaction_nb=sanitize(row[3]),
         statement_nb=when.year,
-        communication=sanitize(row[8]),
-        details=sanitize(row[9]),
+        communication=communication,
+        details=details,
         message=sanitize(row[10])
       )
 
       transactions.append(t)
 
     return number, transactions
-  
+
   def check_transaction_files(self, path: str):
     for filepath in self.get_transaction_files(path):
       try:
         rows = parse_csv_file(filepath, header_length=0, encoding=self.ING_FILES_ENCODING) # 12 because want to get headers
-        for row in rows: # only read header row 
+        for row in rows: # only read header row
           if row[0] != "Numéro de compte": # check first header
             return False
           break

@@ -95,7 +95,7 @@ class Currency(Enum):
 
 
 class Transaction(object):
-  def __init__(self, amount: Decimal, currency: Currency, when: date, src: Account, dest: Account, id_fn: callable, **metadata):
+  def __init__(self, amount: Decimal, currency: Currency, when: date, src: Account, dest: Account, description: str, id_fn: callable, **metadata):
     """
     Immutable
 
@@ -107,6 +107,8 @@ class Transaction(object):
       The currency
     when: date
       The time when the transaction happened
+    description: str
+      The transaction description
     _from: Account
       source account
     _to: Account
@@ -120,6 +122,7 @@ class Transaction(object):
     self._amount = amount
     self._currency = currency
     self._when = when
+    self._description = description
     self._src = src
     self._dest = dest
     self._id_fn = id_fn
@@ -152,6 +155,10 @@ class Transaction(object):
   @property
   def when(self):
     return self._when
+
+  @property
+  def description(self):
+    return self._description
 
   # TODO make this better: metadata a attributes
   @property
@@ -291,4 +298,3 @@ class TaggedTransactionBook(object):
       for transac_id, tag_id in loaded.items():
         book.add_tag_by_ids(transac_id, tag_id)
       return book
-

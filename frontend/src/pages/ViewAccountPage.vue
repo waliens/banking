@@ -1,10 +1,11 @@
 <template>
   <div v-if="account">
+    <b-loading v-model="isLoading"></b-loading>
     <section class="level">
       <div class="level-right"><h3 class="level-item title">{{$t('account.details')}}</h3></div>
       <div class="level-left"> <b-button v-on:click="goToEditEvent" class="level-item is-small" icon-right="pen">{{$t('edit')}}</b-button></div>
     </section>
-    
+
     <section class="level">
       <div class="level-item has-text-centered">
         <div>
@@ -37,7 +38,14 @@
     </section>
 
     <section v-if="transactions && account">
-      <transaction-table :transactions="transactions" :reference-account="account" :title="$t('transaction.transactions')"></transaction-table>
+      <transaction-table
+        :transactions="transactions"
+        :reference-account="account"
+        :title="$t('transaction.transactions')"
+        :load-more-enabled="lastFetchedCount == count"
+        :show-load-more="true"
+        @load-more-transactions="loadMoreTransactions"
+      ></transaction-table>
     </section>
   </div>
 </template>
@@ -53,14 +61,21 @@ export default defineComponent({
   components: {CurrencyDisplay, TransactionTable, AccountNumberDisplay},
   data() {
     return {
+      isLoading: false,
       account: null,
-      transactions: null
+      transactions: [],
+      start: 0,
+      count: 50,
+      lastFetchedCount: 0
     };
   },
   async created() {
     if (this.hasAccountId) {
+      this.isLoading = true;
       this.account = await this.fetchAccount();
       this.transactions = await this.fetchTransactions();
+      this.lastFetchedCount = this.transactions.length;
+      this.isLoading = false;
     }
   },
   computed: {
@@ -69,6 +84,14 @@ export default defineComponent({
     },
     accountId() {
       return this.$route.params.accountid;
+    },
+    queryFilters() {
+      return {
+        start: this.start,
+        count: this.count,
+        sort_by: 'when',
+        order: 'desc'
+      };
     }
   },
   methods: {
@@ -77,10 +100,19 @@ export default defineComponent({
     },
     async fetchTransactions() {
       if (this.account) {
-        return await this.account.transactions();
+        let result = await this.account.transactions(this.queryFilters);
+        this.start += this.count;
+        return result;
       } else {
         return [];
       }
+    },
+    async loadMoreTransactions() {
+      this.loading = true;
+      let moreTransactions = await this.fetchTransactions();
+      this.loading = false;
+      this.lastFetchedCount = moreTransactions.length;
+      this.transactions = [...this.transactions, ...moreTransactions];
     },
     formatAlias(alias) {
       return Account.formatNameByObj(alias, this);

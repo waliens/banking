@@ -167,6 +167,7 @@ def import_bank_csv(data_source: str, dirname: str, sess):
       id_source=get_account_id(db_accounts, t.source.identifier),
       id_dest=get_account_id(db_accounts, t.dest.identifier),
       when=t.when,
+      description=t.description,
       metadata_=make_metadata_serializable(t.metadata),
       amount=t.amount,
       id_currency=[c for c in currencies if t.currency == c.short_name][0].id,
@@ -276,7 +277,8 @@ def import_mastercard_pdf(dirname, id_mc_account, sess):
       metadata_=make_mscard_metadata(t),
       id_currency=name2currency[t["currency"]].id,
       id_category=None,
-      data_source="mastercard"
+      data_source="mastercard",
+      description=""
     ))
 
   sess.bulk_save_objects(new_transactions)

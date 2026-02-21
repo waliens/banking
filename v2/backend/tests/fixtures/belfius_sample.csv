@@ -1,0 +1,15 @@
+Header line 1
+Header line 2
+Header line 3
+Header line 4
+Header line 5
+Header line 6
+Header line 7
+Header line 8
+Header line 9
+Header line 10
+Header line 11
+Header line 12
+Compte;Date comptable;N statement;N transaction;Compte contrepartie;Nom contrepartie;Num rue;Code postal;Transaction;Date valeur;Montant;Devise;BIC;Code pays;Communication
+BE12 3456 7890 1234;01/06/2024;001;001;BE98 7654 3210 9876;John Doe;123;1000 Brussels;Virement REF. : ABC123;01/06/2024;-50,00;EUR;GKCCBEBB;BE;Monthly payment
+BE12 3456 7890 1234;15/06/2024;001;002;BE98 7654 3210 9876;Jane Smith;456;2000 Antwerp;Virement REF. : DEF456;15/06/2024;100,00;EUR;GKCCBEBB;BE;Salary received

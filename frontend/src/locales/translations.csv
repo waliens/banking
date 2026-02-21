@@ -100,7 +100,6 @@ ml_model.refresh_success,"Model re-train has been successfully triggered","Le r�
 ml_model.refresh,Re-train,Ré-entraîner
 ml_model.reset_to_predicted,"Reset to predicted category","Ré-initialiser à la catégorie prédite"
 ml_model.state,State,État
-ml_model.target,Target data,Données cibles
 ml_model.title,Models,Modèles,
 name,Name,Nom,
 navbar.data,Data,Données
@@ -217,3 +216,4 @@ september,September,Septembre
 october,October,Octobre
 november,November,Novembre
 december,December,Décembre
+load_more,Load More,Charger plus

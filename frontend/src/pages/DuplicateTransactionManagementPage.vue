@@ -163,7 +163,7 @@ export default defineComponent({
         sort_by: this.sortField,
         count: this.transactionsPerPage,
         start: this.pageStart,
-        ml_category: true,
+        ml_category: false,
         ... this.getFilterParams()
       };
     },
