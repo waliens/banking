@@ -47,6 +47,7 @@ async function logout() {
       :class="sidebarCollapsed ? 'w-16' : 'w-56'"
     >
       <div class="flex items-center justify-between p-4">
+        <img v-if="!sidebarCollapsed" src="/favicon.svg" alt="Banking Logo" class="h-8 w-8" />
         <span v-if="!sidebarCollapsed" class="text-lg font-bold">Banking</span>
         <button @click="sidebarCollapsed = !sidebarCollapsed" class="p-1 hover:bg-surface-700 rounded">
           <i :class="sidebarCollapsed ? 'pi pi-angle-right' : 'pi pi-angle-left'" />

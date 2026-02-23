@@ -161,7 +161,7 @@ const messages = {
       switchWallet: 'Switch wallet',
       noWalletSelected: 'No wallet selected',
       selectWallet: 'Select a wallet',
-      createFirst: 'Create your first wallet in Settings',
+      createFirst: 'Import transactions or create your first wallet.',
     },
     flow: {
       title: 'Transaction Flow',

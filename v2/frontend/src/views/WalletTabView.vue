@@ -113,9 +113,14 @@ onMounted(async () => {
       <i class="pi pi-briefcase text-5xl mb-4 block" />
       <h2 class="text-xl font-semibold mb-2">{{ t('wallet.noWalletSelected') }}</h2>
       <p class="mb-4">{{ t('wallet.createFirst') }}</p>
-      <router-link to="/settings">
-        <Button :label="t('nav.settings')" icon="pi pi-cog" />
-      </router-link>
+      <div class="flex justify-center gap-3 mb-4">
+        <router-link to="/import">
+          <Button :label="t('nav.import')" icon="pi pi-upload" />
+        </router-link>
+        <router-link to="/settings">
+          <Button :label="t('nav.settings')" icon="pi pi-cog" />
+        </router-link>
+      </div>
     </div>
 
     <template v-else>
