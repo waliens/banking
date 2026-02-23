@@ -118,7 +118,7 @@ onMounted(async () => {
           <Button :label="t('nav.import')" icon="pi pi-upload" />
         </router-link>
         <router-link to="/settings">
-          <Button :label="t('nav.settings')" icon="pi pi-cog" />
+          <Button :label="t('nav.wallet')" icon="pi pi-plus" />
         </router-link>
       </div>
     </div>

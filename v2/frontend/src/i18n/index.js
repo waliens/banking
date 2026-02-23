@@ -161,7 +161,7 @@ const messages = {
       switchWallet: 'Switch wallet',
       noWalletSelected: 'No wallet selected',
       selectWallet: 'Select a wallet',
-      createFirst: 'Import transactions or create your first wallet.',
+      createFirst: 'Import transactions or select/create a wallet.',
     },
     flow: {
       title: 'Transaction Flow',
@@ -339,7 +339,7 @@ const messages = {
       switchWallet: 'Changer de portefeuille',
       noWalletSelected: 'Aucun portefeuille sélectionné',
       selectWallet: 'Sélectionner un portefeuille',
-      createFirst: 'Créez votre premier portefeuille dans les Paramètres',
+      createFirst: 'Importer des transactions ou créer/sélectionner un portefeuille.',
     },
     flow: {
       title: 'Flux de transactions',
