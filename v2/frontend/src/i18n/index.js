@@ -73,6 +73,8 @@ const messages = {
       accountTo: 'Dest account',
       anyAccount: 'Any account',
       transactionDetail: 'Transaction Detail',
+      saveTag: 'Save tag',
+      saveAllTags: 'Save all tags',
     },
     accounts: {
       title: 'Accounts',
@@ -86,6 +88,7 @@ const messages = {
       parent: 'Parent',
       icon: 'Icon',
       clearIcon: 'Clear icon',
+      selectCategory: 'Select category',
     },
     rules: {
       title: 'Tag Rules',
@@ -218,6 +221,7 @@ const messages = {
       noTransactions: 'No transactions to display',
       backToFlow: 'Back',
       detail: 'Transaction Detail',
+      transactionDetail: 'Transaction detail',
       netAmount: 'Net amount',
       transactionsCount: '{count} transactions',
       reviewed: 'Reviewed',
@@ -296,6 +300,8 @@ const messages = {
       accountTo: 'Compte destination',
       anyAccount: 'Tout compte',
       transactionDetail: 'Détail de la transaction',
+      saveTag: 'Enregistrer la catégorie',
+      saveAllTags: 'Enregistrer toutes les catégories',
     },
     accounts: {
       title: 'Comptes',
@@ -309,6 +315,7 @@ const messages = {
       parent: 'Parent',
       icon: 'Icône',
       clearIcon: 'Supprimer l\'icône',
+      selectCategory: 'Sélectionner une catégorie',
     },
     rules: {
       title: 'Regles de categorisation',
@@ -441,6 +448,7 @@ const messages = {
       noTransactions: 'Aucune transaction à afficher',
       backToFlow: 'Retour',
       detail: 'Détail de la transaction',
+      transactionDetail: 'Détail de la transaction',
       netAmount: 'Montant net',
       transactionsCount: '{count} transactions',
       reviewed: 'Revu',

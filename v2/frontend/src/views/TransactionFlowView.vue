@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '../stores/wallets'
 import { useActiveWalletStore } from '../stores/activeWallet'
 import Button from 'primevue/button'
+import Drawer from 'primevue/drawer'
 import TransactionFlowTimeline from '../components/flow/TransactionFlowTimeline.vue'
 import FlowDetailPanel from '../components/flow/FlowDetailPanel.vue'
 
@@ -16,15 +17,14 @@ const wallet = computed(() => activeWalletStore.activeWallet)
 const walletAccountIds = computed(() => activeWalletStore.walletAccountIds)
 
 const selectedTx = ref(null)
-const detailContainerRef = ref(null)
+
+const drawerVisible = computed({
+  get: () => selectedTx.value !== null,
+  set: (v) => { if (!v) closeDetail() },
+})
 
 function openDetail(txId) {
   selectedTx.value = txId
-  nextTick(() => {
-    if (detailContainerRef.value) {
-      detailContainerRef.value.scrollTop = 0
-    }
-  })
 }
 
 function closeDetail() {
@@ -56,30 +56,22 @@ onMounted(async () => {
       </router-link>
     </div>
 
-    <div v-else class="relative overflow-hidden">
-      <div
-        :class="selectedTx ? '-translate-x-full' : ''"
-        class="transition-transform duration-300"
-      >
-        <TransactionFlowTimeline
-          v-if="wallet"
-          contextType="wallet"
-          :contextId="walletId"
-          :walletAccountIds="walletAccountIds"
-          @select="openDetail"
-        />
-      </div>
-      <div
-        ref="detailContainerRef"
-        :class="selectedTx ? 'translate-x-0' : 'translate-x-full'"
-        class="absolute inset-0 transition-transform duration-300 bg-surface-50"
-      >
-        <FlowDetailPanel
-          v-if="selectedTx"
-          :transactionId="selectedTx"
-          @back="closeDetail"
-        />
-      </div>
+    <div v-else>
+      <TransactionFlowTimeline
+        v-if="wallet"
+        contextType="wallet"
+        :contextId="walletId"
+        :walletAccountIds="walletAccountIds"
+        @select="openDetail"
+      />
     </div>
+
+    <Drawer v-model:visible="drawerVisible" position="right" :header="t('flow.transactionDetail')" class="w-full md:w-[28rem]">
+      <FlowDetailPanel
+        v-if="selectedTx"
+        :transactionId="selectedTx"
+        @back="closeDetail"
+      />
+    </Drawer>
   </div>
 </template>

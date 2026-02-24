@@ -8,7 +8,6 @@ import { useMLStore } from '../stores/ml'
 import { useActiveWalletStore } from '../stores/activeWallet'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-import Select from 'primevue/select'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
@@ -21,6 +20,7 @@ import AccountDisplay from '../components/common/AccountDisplay.vue'
 import MLSuggestion from '../components/MLSuggestion.vue'
 import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
 import AccountSelect from '../components/common/AccountSelect.vue'
+import CategorySelect from '../components/common/CategorySelect.vue'
 
 const { t } = useI18n()
 const transactionStore = useTransactionStore()
@@ -33,6 +33,17 @@ const page = ref(0)
 const pageSize = ref(50)
 const expandedRows = ref([])
 const filtersVisible = ref(false)
+
+// Staged (pending) category selections — not yet committed to backend
+const pendingCategories = ref({})
+
+function isPending(txId) {
+  return txId in pendingCategories.value
+}
+
+function displayCategoryId(data) {
+  return isPending(data.id) ? pendingCategories.value[data.id] : data.id_category
+}
 
 // Filters
 const dateFrom = ref(null)
@@ -110,13 +121,34 @@ async function acceptSuggestion(transactionId, categoryId) {
 }
 
 function onPage(event) {
+  pendingCategories.value = {}
   page.value = event.page
   pageSize.value = event.rows
   loadData()
 }
 
-async function onCategoryChange(transactionId, categoryId) {
-  await transactionStore.setCategory(transactionId, categoryId)
+function onCategoryStaged(txId, categoryId) {
+  if (categoryId === null) {
+    // Clearing is deliberate — commit immediately, clear any pending
+    transactionStore.setCategory(txId, null).then(() => refreshAfterAction())
+    delete pendingCategories.value[txId]
+  } else {
+    pendingCategories.value[txId] = categoryId
+  }
+}
+
+async function commitCategory(txId) {
+  await transactionStore.setCategory(txId, pendingCategories.value[txId])
+  delete pendingCategories.value[txId]
+  await refreshAfterAction()
+}
+
+async function commitAllPending() {
+  const entries = Object.entries(pendingCategories.value)
+  if (!entries.length) return
+  const categories = Object.fromEntries(entries.filter(([, v]) => v !== null))
+  if (Object.keys(categories).length) await transactionStore.tagBatch(categories)
+  pendingCategories.value = {}
   await refreshAfterAction()
 }
 
@@ -180,14 +212,19 @@ function debouncedReload() {
 
 // Watch filters
 watch([dateFrom, dateTo, amountFrom, amountTo, showLabeled, showReviewed, accountFrom, accountTo], () => {
+  pendingCategories.value = {}
   page.value = 0
   loadData()
 })
 
-watch(searchQuery, debouncedReload)
+watch(searchQuery, () => {
+  pendingCategories.value = {}
+  debouncedReload()
+})
 
 // Watch active wallet changes
 watch(() => activeWalletStore.activeWalletId, () => {
+  pendingCategories.value = {}
   page.value = 0
   loadData()
 })
@@ -214,6 +251,14 @@ onMounted(async () => {
           size="small"
           outlined
           @click="filtersVisible = !filtersVisible"
+        />
+        <Button
+          :label="t('review.saveAllTags')"
+          severity="warn"
+          size="small"
+          icon="pi pi-check-circle"
+          :disabled="Object.keys(pendingCategories).length === 0"
+          @click="commitAllPending"
         />
         <Button
           :label="t('review.markAllReviewed')"
@@ -284,12 +329,10 @@ onMounted(async () => {
       </div>
       <!-- Batch tag -->
       <div class="flex items-center gap-3 mt-4 pt-3 border-t border-surface-100">
-        <Select
+        <CategorySelect
           v-model="batchCategoryId"
-          :options="categoryStore.categories"
-          optionLabel="name"
-          optionValue="id"
           :placeholder="t('transactions.category')"
+          :showClear="true"
           class="w-60"
         />
         <Button
@@ -359,46 +402,54 @@ onMounted(async () => {
 
         <Column :header="t('ml.suggestion')" style="width: 140px">
           <template #body="{ data }">
-            <MLSuggestion
-              v-if="mlStore.predictions[data.id]"
-              :categoryName="mlStore.predictions[data.id].category_name"
-              :categoryColor="mlStore.predictions[data.id].category_color"
-              :probability="mlStore.predictions[data.id].probability"
-              @accept="acceptSuggestion(data.id, mlStore.predictions[data.id].category_id)"
-            />
+            <div @click.stop>
+              <MLSuggestion
+                v-if="mlStore.predictions[data.id]"
+                :categoryName="mlStore.predictions[data.id].category_name"
+                :categoryColor="mlStore.predictions[data.id].category_color"
+                :probability="mlStore.predictions[data.id].probability"
+                @accept="acceptSuggestion(data.id, mlStore.predictions[data.id].category_id)"
+              />
+            </div>
           </template>
         </Column>
 
-        <Column field="category" :header="t('transactions.category')" style="width: 180px">
+        <Column field="category" :header="t('transactions.category')" style="width: 210px">
           <template #body="{ data }">
-            <Select
-              :modelValue="data.id_category"
-              @update:modelValue="(v) => onCategoryChange(data.id, v)"
-              :options="categoryStore.categories"
-              optionLabel="name"
-              optionValue="id"
-              :placeholder="t('transactions.uncategorized')"
-              class="w-full text-xs"
-            >
-              <template #option="{ option }">
-                <div class="flex items-center gap-2">
-                  <i v-if="option.icon" :class="option.icon" class="text-sm"></i>
-                  <span>{{ option.name }}</span>
-                </div>
-              </template>
-            </Select>
+            <div @click.stop class="flex items-center gap-1">
+              <CategorySelect
+                :modelValue="displayCategoryId(data)"
+                @update:modelValue="(v) => onCategoryStaged(data.id, v)"
+                :placeholder="t('transactions.uncategorized')"
+                :showClear="!!displayCategoryId(data)"
+                class="flex-1"
+                :class="isPending(data.id) ? 'ring-1 ring-amber-400 rounded-lg' : ''"
+              />
+              <Button
+                v-if="isPending(data.id)"
+                icon="pi pi-check"
+                severity="success"
+                size="small"
+                text
+                rounded
+                @click="commitCategory(data.id)"
+                v-tooltip.top="t('review.saveTag')"
+              />
+            </div>
           </template>
         </Column>
 
         <Column style="width: 120px">
           <template #body="{ data }">
-            <Button
-              :label="t('review.markReviewed')"
-              severity="secondary"
-              size="small"
-              text
-              @click="markReviewed(data.id)"
-            />
+            <div @click.stop>
+              <Button
+                :label="t('review.markReviewed')"
+                severity="secondary"
+                size="small"
+                text
+                @click="markReviewed(data.id)"
+              />
+            </div>
           </template>
         </Column>
 

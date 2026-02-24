@@ -42,9 +42,9 @@ const stubComponents = {
     template: '<span>{{ value }}</span>',
     props: ['value', 'severity', 'class'],
   },
-  Select: {
-    template: '<select><option v-for="o in options" :key="o.id">{{ o.name }}</option></select>',
-    props: ['modelValue', 'options', 'optionLabel', 'optionValue', 'placeholder'],
+  CategorySelect: {
+    template: '<div class="category-select-stub"></div>',
+    props: ['modelValue', 'placeholder', 'showClear'],
   },
   MLSuggestion: {
     template: '<span class="ml-suggestion">{{ categoryName }}</span>',
@@ -124,9 +124,9 @@ describe('TransactionDetail', () => {
     expect(wrapper.text()).toContain('Coffee Corp')
   })
 
-  it('renders a category Select dropdown', () => {
+  it('renders a category CategorySelect dropdown', () => {
     const wrapper = mountDetail()
-    expect(wrapper.find('select').exists()).toBe(true)
+    expect(wrapper.find('.category-select-stub').exists()).toBe(true)
   })
 
   it('shows notes when present', () => {

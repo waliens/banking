@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import CurrencyDisplay from '../common/CurrencyDisplay.vue'
+import AccountDisplay from '../common/AccountDisplay.vue'
 
 const props = defineProps({
   transaction: { type: Object, required: true },
@@ -36,6 +37,10 @@ const displayAmount = computed(() => {
       </span>
     </div>
     <div class="text-xs text-surface-400 mt-1">{{ transaction.date }}</div>
+    <AccountDisplay
+      :account="direction === 'income' ? transaction.source : transaction.dest"
+      class="text-xs mt-0.5 text-surface-500"
+    />
   </div>
 
   <!-- Desktop card -->
@@ -69,5 +74,9 @@ const displayAmount = computed(() => {
       </span>
     </div>
     <div class="text-xs text-surface-400 mt-1">{{ transaction.date }}</div>
+    <AccountDisplay
+      :account="direction === 'income' ? transaction.source : transaction.dest"
+      class="text-xs mt-0.5 text-surface-500"
+    />
   </div>
 </template>

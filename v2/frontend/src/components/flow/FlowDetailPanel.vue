@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
 import api from '../../services/api'
@@ -19,7 +19,6 @@ const emit = defineEmits(['back'])
 const transaction = ref(null)
 const group = ref(null)
 const loading = ref(false)
-const containerRef = ref(null)
 
 async function loadDetail() {
   loading.value = true
@@ -41,10 +40,6 @@ async function loadDetail() {
     }
   } finally {
     loading.value = false
-    await nextTick()
-    if (containerRef.value) {
-      containerRef.value.scrollTop = 0
-    }
   }
 }
 
@@ -56,7 +51,7 @@ watch(() => props.transactionId, loadDetail, { immediate: true })
 </script>
 
 <template>
-  <div ref="containerRef" class="p-4 overflow-y-auto h-full">
+  <div class="p-4">
     <Button
       :label="t('flow.backToFlow')"
       icon="pi pi-arrow-left"

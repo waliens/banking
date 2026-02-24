@@ -2,8 +2,8 @@
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Tag from 'primevue/tag'
-import Select from 'primevue/select'
 import { useCategoryStore } from '../../stores/categories'
+import CategorySelect from '../common/CategorySelect.vue'
 import { useTransactionStore } from '../../stores/transactions'
 import { useMLStore } from '../../stores/ml'
 import MLSuggestion from '../MLSuggestion.vue'
@@ -125,22 +125,13 @@ onMounted(async () => {
       <div class="flex items-center gap-2 text-sm">
         <span class="text-surface-500">{{ t('transactions.category') }}:</span>
       </div>
-      <Select
+      <CategorySelect
         :modelValue="transaction.id_category"
         @update:modelValue="onCategoryChange"
-        :options="categoryStore.categories"
-        optionLabel="name"
-        optionValue="id"
         :placeholder="t('transactions.uncategorized')"
+        :showClear="true"
         class="w-full"
-      >
-        <template #option="{ option }">
-          <div class="flex items-center gap-2">
-            <i v-if="option.icon" :class="option.icon" class="text-sm"></i>
-            <span>{{ option.name }}</span>
-          </div>
-        </template>
-      </Select>
+      />
       <MLSuggestion
         v-if="mlStore.predictions[transaction.id]"
         :categoryName="mlStore.predictions[transaction.id].category_name"

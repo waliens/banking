@@ -10,8 +10,8 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
-import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
+import CategorySelect from '../common/CategorySelect.vue'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -145,11 +145,10 @@ onMounted(async () => {
 
         <div>
           <label class="block text-sm font-medium mb-1">{{ t('transactions.category') }}</label>
-          <Select
+          <CategorySelect
             v-model="form.id_category"
-            :options="categoryStore.categories"
-            optionLabel="name"
-            optionValue="id"
+            :placeholder="t('categories.selectCategory')"
+            :showClear="true"
             class="w-full"
           />
         </div>
