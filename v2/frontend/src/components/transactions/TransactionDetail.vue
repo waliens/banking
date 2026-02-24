@@ -1,7 +1,8 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Tag from 'primevue/tag'
+import Button from 'primevue/button'
 import { useCategoryStore } from '../../stores/categories'
 import CategorySelect from '../common/CategorySelect.vue'
 import { useTransactionStore } from '../../stores/transactions'
@@ -9,6 +10,7 @@ import { useMLStore } from '../../stores/ml'
 import MLSuggestion from '../MLSuggestion.vue'
 import CurrencyDisplay from '../common/CurrencyDisplay.vue'
 import AccountDisplay from '../common/AccountDisplay.vue'
+import CreateTagRuleDialog from './CreateTagRuleDialog.vue'
 
 const { t } = useI18n()
 const categoryStore = useCategoryStore()
@@ -29,6 +31,12 @@ function hasEffectiveAmount() {
 
 async function onCategoryChange(categoryId) {
   await transactionStore.setCategory(props.transaction.id, categoryId)
+  emit('categoryChanged')
+}
+
+const ruleDialogVisible = ref(false)
+
+function onRuleCreated() {
   emit('categoryChanged')
 }
 
@@ -138,6 +146,20 @@ onMounted(async () => {
         :categoryColor="mlStore.predictions[transaction.id].category_color"
         :probability="mlStore.predictions[transaction.id].probability"
         @accept="acceptSuggestion(mlStore.predictions[transaction.id].category_id)"
+      />
+      <Button
+        :label="t('rules.createFromTransaction')"
+        icon="pi pi-bolt"
+        severity="secondary"
+        text
+        size="small"
+        class="mt-1"
+        @click="ruleDialogVisible = true"
+      />
+      <CreateTagRuleDialog
+        v-model:visible="ruleDialogVisible"
+        :transaction="transaction"
+        @created="onRuleCreated"
       />
     </div>
 

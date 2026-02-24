@@ -12,6 +12,7 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import ToggleSwitch from 'primevue/toggleswitch'
 import CategorySelect from '../common/CategorySelect.vue'
+import AccountSelect from '../common/AccountSelect.vue'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -26,13 +27,15 @@ const form = ref({
   match_description: null,
   match_amount_min: null,
   match_amount_max: null,
+  match_account_from: null,
+  match_account_to: null,
   priority: 0,
   is_active: true,
 })
 
 function openCreate() {
   editing.value = null
-  form.value = { name: '', id_category: null, match_description: null, match_amount_min: null, match_amount_max: null, priority: 0, is_active: true }
+  form.value = { name: '', id_category: null, match_description: null, match_amount_min: null, match_amount_max: null, match_account_from: null, match_account_to: null, priority: 0, is_active: true }
   dialogVisible.value = true
 }
 
@@ -44,6 +47,8 @@ function openEdit(rule) {
     match_description: rule.match_description,
     match_amount_min: rule.match_amount_min ? Number(rule.match_amount_min) : null,
     match_amount_max: rule.match_amount_max ? Number(rule.match_amount_max) : null,
+    match_account_from: rule.match_account_from || null,
+    match_account_to: rule.match_account_to || null,
     priority: rule.priority,
     is_active: rule.is_active,
   }
@@ -167,6 +172,16 @@ onMounted(async () => {
             <label class="block text-sm font-medium mb-1">{{ t('rules.amountMax') }}</label>
             <InputNumber v-model="form.match_amount_max" mode="decimal" :minFractionDigits="2" class="w-full" />
           </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ t('rules.fromAccount') }}</label>
+          <AccountSelect v-model="form.match_account_from" :showClear="true" class="w-full" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ t('rules.toAccount') }}</label>
+          <AccountSelect v-model="form.match_account_to" :showClear="true" class="w-full" />
         </div>
 
         <div>

@@ -29,6 +29,9 @@ const messages = {
     ml: {
       suggestion: 'ML Suggestion',
     },
+    rules: {
+      createFromTransaction: 'Create rule',
+    },
     import: {
       viewDetails: 'View import details',
     },
@@ -53,6 +56,14 @@ const stubComponents = {
   CurrencyDisplay: {
     template: '<span>{{ amount }} {{ currencySymbol }}</span>',
     props: ['amount', 'currencySymbol', 'colored', 'showSign', 'decimals'],
+  },
+  CreateTagRuleDialog: {
+    template: '<div class="create-tag-rule-dialog-stub"></div>',
+    props: ['visible', 'transaction'],
+  },
+  Button: {
+    template: '<button :class="$attrs.class" @click="$emit(\'click\')">{{ label }}</button>',
+    props: ['label', 'icon', 'severity', 'text', 'size'],
   },
 }
 
@@ -142,5 +153,10 @@ describe('TransactionDetail', () => {
   it('shows not reviewed status', () => {
     const wrapper = mountDetail({ is_reviewed: false })
     expect(wrapper.text()).toContain('Not reviewed')
+  })
+
+  it('renders a create rule button', () => {
+    const wrapper = mountDetail()
+    expect(wrapper.text()).toContain('Create rule')
   })
 })
