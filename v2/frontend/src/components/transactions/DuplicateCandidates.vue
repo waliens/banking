@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTransactionStore } from '../../stores/transactions'
 import Button from 'primevue/button'
+import AccountDisplay from '../common/AccountDisplay.vue'
 
 const props = defineProps({
   transactionId: { type: Number, required: true },
@@ -54,10 +55,13 @@ watch(() => props.transactionId, loadCandidates, { immediate: true })
           <span>{{ candidate.date }}</span>
           <span class="font-medium">{{ candidate.amount }} {{ candidate.currency?.short_name }}</span>
           <span class="text-surface-500 truncate max-w-xs">{{ candidate.description }}</span>
-          <span class="text-surface-400">
-            {{ candidate.source?.name || candidate.source?.number || '' }}
-            <template v-if="candidate.dest"> → {{ candidate.dest?.name || candidate.dest?.number }}</template>
-          </span>
+          <div class="flex items-center gap-2 text-surface-400">
+            <AccountDisplay :account="candidate.source" />
+            <template v-if="candidate.dest">
+              <i class="pi pi-arrow-right text-xs shrink-0"></i>
+              <AccountDisplay :account="candidate.dest" />
+            </template>
+          </div>
         </div>
         <div class="flex gap-2">
           <Button

@@ -24,6 +24,7 @@ class TransactionResponse(BaseModel):
     notes: str | None
     effective_amount: Decimal | None
     id_transaction_group: int | None
+    id_import: int | None = None
     source: AccountResponse | None = None
     dest: AccountResponse | None = None
     currency: CurrencyResponse

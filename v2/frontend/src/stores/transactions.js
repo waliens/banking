@@ -61,10 +61,21 @@ export const useTransactionStore = defineStore('transactions', () => {
     return data
   }
 
+  async function unmarkDuplicate(id) {
+    const { data } = await api.delete(`/transactions/${id}/duplicate_of`)
+    return data
+  }
+
+  async function fetchTransaction(id) {
+    const { data } = await api.get(`/transactions/${id}`)
+    return data
+  }
+
   return {
     transactions, totalCount, loading, reviewCount,
     fetchTransactions, setCategory, tagBatch,
     reviewTransaction, reviewBatch, fetchReviewCount,
     markDuplicate, fetchDuplicateCandidates,
+    unmarkDuplicate, fetchTransaction,
   }
 })

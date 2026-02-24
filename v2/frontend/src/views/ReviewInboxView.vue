@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTransactionStore } from '../stores/transactions'
 import { useCategoryStore } from '../stores/categories'
+import { useAccountStore } from '../stores/accounts'
 import { useMLStore } from '../stores/ml'
 import { useActiveWalletStore } from '../stores/activeWallet'
 import DataTable from 'primevue/datatable'
@@ -13,13 +14,18 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import DatePicker from 'primevue/datepicker'
 import ToggleSwitch from 'primevue/toggleswitch'
+import Drawer from 'primevue/drawer'
 import DuplicateCandidates from '../components/transactions/DuplicateCandidates.vue'
+import TransactionDetail from '../components/transactions/TransactionDetail.vue'
+import AccountDisplay from '../components/common/AccountDisplay.vue'
 import MLSuggestion from '../components/MLSuggestion.vue'
 import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
+import AccountSelect from '../components/common/AccountSelect.vue'
 
 const { t } = useI18n()
 const transactionStore = useTransactionStore()
 const categoryStore = useCategoryStore()
+const accountStore = useAccountStore()
 const mlStore = useMLStore()
 const activeWalletStore = useActiveWalletStore()
 
@@ -36,6 +42,13 @@ const amountTo = ref(null)
 const searchQuery = ref('')
 const showLabeled = ref(false)
 const showReviewed = ref(false)
+const accountFrom = ref(null)
+const accountTo = ref(null)
+
+// Drawer
+const drawerVisible = ref(false)
+const selectedTransaction = ref(null)
+const drawerLoading = ref(false)
 
 // Batch tag
 const batchCategoryId = ref(null)
@@ -66,6 +79,8 @@ function buildParams() {
   if (amountFrom.value != null) params.amount_from = amountFrom.value
   if (amountTo.value != null) params.amount_to = amountTo.value
   if (searchQuery.value.trim()) params.search = searchQuery.value.trim()
+  if (accountFrom.value != null) params.account_from = accountFrom.value
+  if (accountTo.value != null) params.account_to = accountTo.value
 
   return params
 }
@@ -136,6 +151,25 @@ function onDuplicateResolved() {
   refreshAfterAction()
 }
 
+async function openDrawer(tx) {
+  drawerLoading.value = true
+  drawerVisible.value = true
+  try {
+    const data = await transactionStore.fetchTransaction(tx.id)
+    selectedTransaction.value = data
+  } finally {
+    drawerLoading.value = false
+  }
+}
+
+function onDrawerCategoryChanged() {
+  refreshAfterAction()
+  // Reload detail
+  if (selectedTransaction.value) {
+    openDrawer(selectedTransaction.value)
+  }
+}
+
 function debouncedReload() {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
@@ -145,7 +179,7 @@ function debouncedReload() {
 }
 
 // Watch filters
-watch([dateFrom, dateTo, amountFrom, amountTo, showLabeled, showReviewed], () => {
+watch([dateFrom, dateTo, amountFrom, amountTo, showLabeled, showReviewed, accountFrom, accountTo], () => {
   page.value = 0
   loadData()
 })
@@ -159,7 +193,7 @@ watch(() => activeWalletStore.activeWalletId, () => {
 })
 
 onMounted(async () => {
-  await Promise.all([loadData(), categoryStore.fetchCategories(), transactionStore.fetchReviewCount()])
+  await Promise.all([loadData(), categoryStore.fetchCategories(), transactionStore.fetchReviewCount(), accountStore.fetchAccounts()])
 })
 </script>
 
@@ -194,30 +228,50 @@ onMounted(async () => {
 
     <!-- Collapsible filter panel -->
     <div v-if="filtersVisible" class="bg-surface-0 rounded-xl shadow p-4 mb-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Date range -->
-        <div>
+        <div class="min-w-0">
           <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('review.dateRange') }}</label>
           <div class="flex gap-2">
-            <DatePicker v-model="dateFrom" dateFormat="yy-mm-dd" placeholder="From" showIcon class="flex-1" />
-            <DatePicker v-model="dateTo" dateFormat="yy-mm-dd" placeholder="To" showIcon class="flex-1" />
+            <DatePicker v-model="dateFrom" dateFormat="yy-mm-dd" placeholder="From" showIcon class="flex-1 min-w-0" />
+            <DatePicker v-model="dateTo" dateFormat="yy-mm-dd" placeholder="To" showIcon class="flex-1 min-w-0" />
           </div>
         </div>
         <!-- Amount range -->
-        <div>
+        <div class="min-w-0">
           <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('review.amountRange') }}</label>
           <div class="flex gap-2">
-            <InputNumber v-model="amountFrom" placeholder="Min" class="flex-1" :minFractionDigits="2" />
-            <InputNumber v-model="amountTo" placeholder="Max" class="flex-1" :minFractionDigits="2" />
+            <InputNumber v-model="amountFrom" placeholder="Min" class="flex-1 min-w-0" :minFractionDigits="2" />
+            <InputNumber v-model="amountTo" placeholder="Max" class="flex-1 min-w-0" :minFractionDigits="2" />
           </div>
         </div>
         <!-- Search -->
-        <div>
+        <div class="min-w-0">
           <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('common.search') }}</label>
           <InputText v-model="searchQuery" :placeholder="t('common.search')" class="w-full" />
         </div>
+        <!-- Source account -->
+        <div class="min-w-0">
+          <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('review.accountFrom') }}</label>
+          <AccountSelect
+            v-model="accountFrom"
+            :placeholder="t('review.anyAccount')"
+            :showClear="true"
+            class="w-full"
+          />
+        </div>
+        <!-- Dest account -->
+        <div class="min-w-0">
+          <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('review.accountTo') }}</label>
+          <AccountSelect
+            v-model="accountTo"
+            :placeholder="t('review.anyAccount')"
+            :showClear="true"
+            class="w-full"
+          />
+        </div>
         <!-- Toggles -->
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2 min-w-0">
           <div class="flex items-center gap-2">
             <ToggleSwitch v-model="showLabeled" />
             <span class="text-sm">{{ t('review.showLabeled') }}</span>
@@ -263,10 +317,11 @@ onMounted(async () => {
         :rows="pageSize"
         :totalRecords="transactionStore.totalCount"
         @page="onPage"
+        @row-click="(e) => openDrawer(e.data)"
         dataKey="id"
         stripedRows
         responsiveLayout="scroll"
-        class="text-sm"
+        class="text-sm cursor-pointer"
       >
         <Column expander style="width: 3rem" />
 
@@ -274,13 +329,13 @@ onMounted(async () => {
 
         <Column field="description" :header="t('transactions.description')">
           <template #body="{ data }">
-            <span class="truncate block max-w-xs">{{ data.description || '—' }}</span>
+            <span v-tooltip.top="data.description" class="truncate block max-w-xs">{{ data.description || '—' }}</span>
           </template>
         </Column>
 
         <Column field="source" :header="t('transactions.source')" style="width: 150px">
           <template #body="{ data }">
-            {{ data.source?.name || data.source?.number || '—' }}
+            <AccountDisplay :account="data.source" />
           </template>
         </Column>
 
@@ -324,7 +379,14 @@ onMounted(async () => {
               optionValue="id"
               :placeholder="t('transactions.uncategorized')"
               class="w-full text-xs"
-            />
+            >
+              <template #option="{ option }">
+                <div class="flex items-center gap-2">
+                  <i v-if="option.icon" :class="option.icon" class="text-sm"></i>
+                  <span>{{ option.name }}</span>
+                </div>
+              </template>
+            </Select>
           </template>
         </Column>
 
@@ -345,5 +407,18 @@ onMounted(async () => {
         </template>
       </DataTable>
     </div>
+
+    <!-- Transaction Detail Drawer -->
+    <Drawer v-model:visible="drawerVisible" position="right" :header="t('review.transactionDetail')" class="w-full md:w-[28rem]">
+      <div v-if="drawerLoading" class="flex items-center justify-center py-12">
+        <i class="pi pi-spinner pi-spin text-2xl text-surface-400"></i>
+      </div>
+      <TransactionDetail
+        v-else-if="selectedTransaction"
+        :transaction="selectedTransaction"
+        :showFullDetails="true"
+        @categoryChanged="onDrawerCategoryChanged"
+      />
+    </Drawer>
   </div>
 </template>

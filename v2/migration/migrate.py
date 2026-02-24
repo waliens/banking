@@ -19,6 +19,7 @@ The v1 database is never modified. Safe to re-run (truncates v2 tables first).
 """
 import argparse
 import json
+import re
 import sys
 from urllib.parse import quote_plus
 
@@ -140,6 +141,25 @@ def resolve_url(label: str, args, prefix: str, parser: argparse.ArgumentParser) 
 # Core migration logic
 # ---------------------------------------------------------------------------
 
+
+
+def _normalize_icon(fa_icon: str | None) -> str | None:
+    """Normalize FontAwesome icon class for storage.
+
+    Keeps the original FA icon class for maximum diversity and compatibility.
+    Handles both "fa-xxx" and "fa fa-xxx" formats by extracting the icon name.
+
+    Args:
+        fa_icon: The original FA icon class (e.g. "fa-home" or "fa fa-home")
+
+    Returns:
+        The normalized icon class (e.g. "fas fa-home"), or None if input is None/empty
+    """
+    if not fa_icon:
+        return None
+    return f"fas fa-{fa_icon}"  # Return the matched icon class
+
+
 def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
     from sqlalchemy import create_engine, text
     from sqlalchemy.orm import Session
@@ -200,10 +220,11 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
             text("SELECT id, name, id_parent, color, icon FROM category")
         ).fetchall()
         for c in categories:
+            normalized_icon = _normalize_icon(c.icon)
             v2.execute(text(
                 "INSERT INTO category (id, name, id_parent, color, icon, sort_order, is_income) "
                 "VALUES (:id, :name, :id_parent, :color, :icon, 0, false)"
-            ), {"id": c.id, "name": c.name, "id_parent": c.id_parent, "color": c.color, "icon": c.icon})
+            ), {"id": c.id, "name": c.name, "id_parent": c.id_parent, "color": c.color, "icon": normalized_icon})
         commit_or_dry(v2)
         print(f"  {len(categories)} categories")
 

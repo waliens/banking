@@ -2,26 +2,32 @@ import os
 import tempfile
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
-from app.models import User
+from app.models import Account, ImportRecord, Transaction, User
 from app.parsers import belfius, ing, mastercard
+from app.schemas.import_record import ImportRecordResponse
+from app.schemas.account import AccountResponse
+from app.schemas.transaction import TransactionResponse
 from app.services.import_service import import_parsed_transactions
 
 router = APIRouter()
 
 
-@router.post("/upload")
+@router.post("/upload", response_model=ImportRecordResponse)
 async def upload_files(
     files: list[UploadFile],
     format: str = Query(...),
     id_mscard_account: int | None = Query(default=None),
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
-) -> dict[str, object]:
+) -> ImportRecord:
     if format not in {"belfius", "ing", "mastercard_pdf"}:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unsupported format: {format}")
+
+    filenames = [f.filename or f"file_{i}" for i, f in enumerate(files)]
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # save uploaded files
@@ -38,7 +44,7 @@ async def upload_files(
                     status_code=status.HTTP_400_BAD_REQUEST, detail="File format not matching Belfius data source"
                 )
             parsed = belfius.parse_folder(tmpdir)
-            transactions = import_parsed_transactions(db, parsed, "belfius")
+            import_record = import_parsed_transactions(db, parsed, "belfius", filenames=filenames)
 
         elif format == "ing":
             if not ing.check_files(tmpdir):
@@ -46,7 +52,7 @@ async def upload_files(
                     status_code=status.HTTP_400_BAD_REQUEST, detail="File format not matching ING data source"
                 )
             parsed = ing.parse_folder(tmpdir)
-            transactions = import_parsed_transactions(db, parsed, "ing")
+            import_record = import_parsed_transactions(db, parsed, "ing", filenames=filenames)
 
         elif format == "mastercard_pdf":
             if id_mscard_account is None:
@@ -95,6 +101,81 @@ async def upload_files(
                         },
                     )
                 )
-            transactions = import_parsed_transactions(db, parsed, "mastercard")
+            import_record = import_parsed_transactions(db, parsed, "mastercard", filenames=filenames)
 
-    return {"status": "ok", "imported": len(transactions)}
+    return import_record
+
+
+@router.get("", response_model=list[ImportRecordResponse])
+def list_imports(
+    start: int = 0,
+    count: int = 20,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> list[ImportRecord]:
+    q = select(ImportRecord).order_by(ImportRecord.created_at.desc()).offset(start).limit(count)
+    return list(db.execute(q).scalars().all())
+
+
+@router.get("/{import_id}", response_model=ImportRecordResponse)
+def get_import(
+    import_id: int,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> ImportRecord:
+    record = db.get(ImportRecord, import_id)
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Import record not found")
+    return record
+
+
+@router.get("/{import_id}/transactions", response_model=list[TransactionResponse])
+def get_import_transactions(
+    import_id: int,
+    start: int = 0,
+    count: int = 50,
+    duplicate_only: bool = False,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> list[Transaction]:
+    record = db.get(ImportRecord, import_id)
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Import record not found")
+
+    q = select(Transaction).where(Transaction.id_import == import_id)
+    if duplicate_only:
+        q = q.where(Transaction.id_duplicate_of.is_not(None))
+    else:
+        q = q.where(Transaction.id_duplicate_of.is_(None))
+    q = q.order_by(Transaction.date.desc(), Transaction.id.desc()).offset(start).limit(count)
+    return list(db.execute(q).scalars().unique().all())
+
+
+@router.get("/{import_id}/accounts", response_model=list[AccountResponse])
+def get_import_accounts(
+    import_id: int,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> list[Account]:
+    record = db.get(ImportRecord, import_id)
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Import record not found")
+
+    # Find accounts that were first seen in transactions from this import
+    account_ids = (
+        db.execute(
+            select(Transaction.id_source)
+            .where(Transaction.id_import == import_id, Transaction.id_source.is_not(None))
+            .union(
+                select(Transaction.id_dest).where(
+                    Transaction.id_import == import_id, Transaction.id_dest.is_not(None)
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if not account_ids:
+        return []
+    accounts = db.execute(select(Account).where(Account.id.in_(account_ids))).scalars().unique().all()
+    return list(accounts)

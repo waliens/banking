@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from difflib import SequenceMatcher
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.orm import Session
 
@@ -16,17 +19,90 @@ from app.schemas.account import (
 router = APIRouter()
 
 
+class MergeSuggestion(BaseModel):
+    account_a: AccountResponse
+    account_b: AccountResponse
+    score: float
+    reason: str
+
+
 @router.get("", response_model=list[AccountResponse])
 def list_accounts(
     start: int = 0,
     count: int | None = None,
+    search: str | None = None,
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> list[Account]:
-    q = select(Account).order_by(Account.name, Account.id).offset(start)
+    q = select(Account)
+    if search:
+        term = f"%{search}%"
+        q = q.where(or_(
+            Account.name.ilike(term),
+            Account.number.ilike(term),
+        ))
+    q = q.order_by(Account.name, Account.number, Account.id).offset(start)
     if count is not None:
         q = q.limit(count)
     return list(db.execute(q).scalars().unique().all())
+
+
+@router.get("/merge-suggestions", response_model=list[MergeSuggestion])
+def merge_suggestions(
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> list[MergeSuggestion]:
+    accounts = list(db.execute(select(Account)).scalars().unique().all())
+
+    # Build set of already-aliased pairs to exclude
+    aliased_ids: set[int] = set()
+    for a in accounts:
+        for alias in a.aliases:
+            aliased_ids.add(a.id)
+
+    suggestions: list[MergeSuggestion] = []
+
+    for i, a in enumerate(accounts):
+        for b in accounts[i + 1 :]:
+            score = 0.0
+            reason = ""
+
+            # Name similarity
+            if a.name and b.name:
+                name_sim = SequenceMatcher(None, a.name.lower(), b.name.lower()).ratio()
+                if name_sim > 0.7:
+                    score = max(score, name_sim)
+                    reason = "similar_name"
+
+            # IBAN prefix matching (first 8 chars = same bank)
+            if a.number and b.number:
+                if a.number[:8] == b.number[:8] and len(a.number) >= 8 and len(b.number) >= 8:
+                    iban_score = 0.6
+                    if a.name and b.name and a.name.lower() == b.name.lower():
+                        iban_score = 0.95
+                        reason = "same_name_different_number"
+                    score = max(score, iban_score)
+                    if not reason:
+                        reason = "same_bank"
+
+            # Same number different name
+            if a.number and b.number and a.number == b.number:
+                score = max(score, 0.9)
+                reason = "same_number"
+
+            if score >= 0.6:
+                suggestions.append(
+                    MergeSuggestion(
+                        account_a=AccountResponse.model_validate(a),
+                        account_b=AccountResponse.model_validate(b),
+                        score=round(score, 3),
+                        reason=reason,
+                    )
+                )
+
+    # Sort by score descending, limit to 20
+    suggestions.sort(key=lambda s: s.score, reverse=True)
+    return suggestions[:20]
 
 
 @router.get("/count", response_model=AccountCountResponse)
@@ -129,3 +205,36 @@ def add_alias(
     db.commit()
     db.refresh(alias)
     return alias
+
+
+@router.delete("/{account_id}/aliases/{alias_id}", status_code=status.HTTP_200_OK)
+def remove_alias(
+    account_id: int,
+    alias_id: int,
+    promote: bool = Query(default=False),
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    alias = db.get(AccountAlias, alias_id)
+    if alias is None or alias.id_account != account_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alias not found")
+
+    if promote:
+        # Promote alias to a standalone account
+        account = db.get(Account, account_id)
+        new_account = Account(
+            name=alias.name,
+            number=alias.number,
+            initial_balance=0,
+            id_currency=account.id_currency if account else 1,
+            institution=account.institution if account else None,
+            is_active=True,
+        )
+        db.add(new_account)
+        db.delete(alias)
+        db.commit()
+        return {"msg": "alias promoted to account"}
+
+    db.delete(alias)
+    db.commit()
+    return {"msg": "alias removed"}

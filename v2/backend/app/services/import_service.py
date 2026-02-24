@@ -5,17 +5,22 @@ import datetime
 import logging
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Account, AccountAlias, Currency, Transaction
+from app.models import Account, AccountAlias, Currency, ImportRecord, Transaction
 from app.parsers.common import ParsedTransaction
 
 logger = logging.getLogger(__name__)
 
 
-def resolve_account(db: Session, number: str | None, name: str | None, id_currency: int) -> Account | None:
-    """Find or create an account by number/name."""
+def resolve_account(
+    db: Session, number: str | None, name: str | None, id_currency: int, *, _new_account_ids: set[int] | None = None
+) -> Account | None:
+    """Find or create an account by number/name.
+
+    If _new_account_ids is provided, newly created account ids are added to it.
+    """
     if number is None and name is None:
         return None
 
@@ -42,6 +47,8 @@ def resolve_account(db: Session, number: str | None, name: str | None, id_curren
     account = Account(number=number, name=name, initial_balance=0, id_currency=id_currency)
     db.add(account)
     db.flush()
+    if _new_account_ids is not None:
+        _new_account_ids.add(account.id)
     return account
 
 
@@ -88,34 +95,60 @@ def import_parsed_transactions(
     db: Session,
     parsed: list[ParsedTransaction],
     data_source: str,
-) -> list[Transaction]:
+    filenames: list[str] | None = None,
+) -> ImportRecord:
     """Import parsed transactions into the database.
 
     Resolves accounts, detects duplicates, creates transactions.
+    Returns an ImportRecord with statistics.
     """
     currencies = {c.short_name: c for c in db.query(Currency).all()}
     existing_ids = {row[0] for row in db.execute(select(Transaction.external_id)).all()}
 
+    total_parsed = len(parsed)
+
     # filter already imported and deduplicate within batch
     seen: set[str] = set()
     new_parsed: list[ParsedTransaction] = []
+    skipped = 0
     for p in parsed:
-        if p.external_id not in existing_ids and p.external_id not in seen:
+        if p.external_id in existing_ids:
+            skipped += 1
+        elif p.external_id not in seen:
             seen.add(p.external_id)
             new_parsed.append(p)
+        else:
+            skipped += 1
+
+    # Create import record early so we have the id
+    import_record = ImportRecord(
+        format=data_source,
+        filenames=filenames or [],
+        total_transactions=total_parsed,
+        new_transactions=0,
+        duplicate_transactions=0,
+        skipped_transactions=skipped,
+        new_accounts=0,
+        auto_tagged=0,
+    )
+    db.add(import_record)
+    db.flush()
+
     if not new_parsed:
-        return []
+        db.commit()
+        return import_record
 
     default_currency_id = currencies.get("EUR", next(iter(currencies.values()))).id
 
     # resolve accounts and build Transaction objects
+    new_account_ids: set[int] = set()
     transactions = []
     for p in new_parsed:
         currency = currencies.get(p.currency)
         currency_id = currency.id if currency else default_currency_id
 
-        source = resolve_account(db, p.source_number, p.source_name, currency_id)
-        dest = resolve_account(db, p.dest_number, p.dest_name, currency_id)
+        source = resolve_account(db, p.source_number, p.source_name, currency_id, _new_account_ids=new_account_ids)
+        dest = resolve_account(db, p.dest_number, p.dest_name, currency_id, _new_account_ids=new_account_ids)
 
         t = Transaction(
             external_id=p.external_id,
@@ -129,6 +162,7 @@ def import_parsed_transactions(
             data_source=data_source,
             description=p.description,
             is_reviewed=False,
+            id_import=import_record.id,
         )
         transactions.append(t)
 
@@ -156,5 +190,20 @@ def import_parsed_transactions(
     if rules_applied:
         logger.info("Auto-applied tag rules to %d transaction(s)", rules_applied)
 
+    # Compute date range
+    dates = [t.date for t in transactions]
+    date_earliest = min(dates) if dates else None
+    date_latest = max(dates) if dates else None
+
+    # Update import record stats
+    new_count = len(transactions) - len(duplicate_map)
+    import_record.new_transactions = new_count
+    import_record.duplicate_transactions = len(duplicate_map)
+    import_record.new_accounts = len(new_account_ids)
+    import_record.auto_tagged = rules_applied
+    import_record.date_earliest = date_earliest
+    import_record.date_latest = date_latest
+    db.commit()
+
     logger.info("Imported %d new transaction(s) (%d duplicates)", len(transactions), len(duplicate_map))
-    return transactions
+    return import_record

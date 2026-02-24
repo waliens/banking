@@ -9,6 +9,7 @@ import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import ColorPicker from 'primevue/colorpicker'
 import Select from 'primevue/select'
+import IconPicker from '../common/IconPicker.vue'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -118,6 +119,10 @@ onMounted(() => categoryStore.fetchCategories())
             placeholder="None (root)"
             class="w-full"
           />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium">{{ t('categories.icon') }}</label>
+          <IconPicker v-model="form.icon" />
         </div>
       </div>
       <template #footer>

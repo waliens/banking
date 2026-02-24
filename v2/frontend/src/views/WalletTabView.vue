@@ -14,6 +14,7 @@ import TabPanel from 'primevue/tabpanel'
 import IncomeExpenseChart from '../components/analytics/IncomeExpenseChart.vue'
 import CategoryChart from '../components/analytics/CategoryChart.vue'
 import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
+import AccountDisplay from '../components/common/AccountDisplay.vue'
 
 const { t } = useI18n()
 const walletStore = useWalletStore()
@@ -169,7 +170,7 @@ onMounted(async () => {
                   :key="account.id"
                   class="bg-surface-0 rounded-xl shadow p-4"
                 >
-                  <div class="text-sm text-surface-500">{{ account.name || account.number }}</div>
+                  <AccountDisplay :account="account" />
                   <div class="text-xl font-bold mt-1">
                     <CurrencyDisplay
                       :amount="account.balance"

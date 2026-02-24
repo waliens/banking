@@ -6,6 +6,8 @@ vi.mock('../../src/services/api', () => ({
   default: {
     get: vi.fn(),
     put: vi.fn(),
+    post: vi.fn(),
+    delete: vi.fn(),
   },
 }))
 
@@ -91,6 +93,49 @@ describe('useAccountStore', () => {
       expect(result).toEqual(updated)
       // no crash, accounts unchanged
       expect(store.accounts).toEqual([])
+    })
+  })
+
+  describe('fetchMergeSuggestions', () => {
+    it('calls GET /accounts/merge-suggestions and stores results', async () => {
+      const suggestions = [{ account_a: { id: 1 }, account_b: { id: 2 }, score: 0.8, reason: 'similar_name' }]
+      api.get.mockResolvedValueOnce({ data: suggestions })
+
+      await store.fetchMergeSuggestions()
+
+      expect(api.get).toHaveBeenCalledWith('/accounts/merge-suggestions')
+      expect(store.mergeSuggestions).toEqual(suggestions)
+    })
+  })
+
+  describe('removeAlias', () => {
+    it('calls DELETE with default promote=false', async () => {
+      api.delete.mockResolvedValueOnce({ data: { msg: 'ok' } })
+
+      await store.removeAlias(1, 2)
+
+      expect(api.delete).toHaveBeenCalledWith('/accounts/1/aliases/2', { params: { promote: false } })
+    })
+
+    it('calls DELETE with promote=true when specified', async () => {
+      api.delete.mockResolvedValueOnce({ data: { msg: 'ok' } })
+
+      await store.removeAlias(1, 2, { promote: true })
+
+      expect(api.delete).toHaveBeenCalledWith('/accounts/1/aliases/2', { params: { promote: true } })
+    })
+  })
+
+  describe('addAlias', () => {
+    it('calls POST and returns created alias', async () => {
+      api.post.mockResolvedValueOnce({ data: { id: 3, name: 'X', number: 'Y', id_account: 1 } })
+
+      const result = await store.addAlias(1, { name: 'X', number: 'Y' })
+
+      expect(api.post).toHaveBeenCalledWith('/accounts/1/aliases', { name: 'X', number: 'Y' })
+      expect(result.name).toBe('X')
+      expect(result.number).toBe('Y')
+      expect(result.id_account).toBe(1)
     })
   })
 })

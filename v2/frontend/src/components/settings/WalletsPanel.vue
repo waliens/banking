@@ -8,7 +8,8 @@ import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
-import MultiSelect from 'primevue/multiselect'
+import AccountSelect from '../common/AccountSelect.vue'
+import AccountDisplay from '../common/AccountDisplay.vue'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -110,9 +111,9 @@ onMounted(async () => {
           <span
             v-for="wa in wallet.accounts"
             :key="wa.id_account"
-            class="text-xs bg-surface-100 px-2 py-1 rounded"
+            class="bg-surface-100 px-2 py-1 rounded"
           >
-            {{ wa.account?.name || wa.account?.number || `#${wa.id_account}` }}
+            <AccountDisplay :account="wa.account || { name: null, number: `#${wa.id_account}` }" />
           </span>
         </div>
       </div>
@@ -130,11 +131,9 @@ onMounted(async () => {
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-sm font-medium">{{ t('accounts.title') }}</label>
-          <MultiSelect
+          <AccountSelect
             v-model="form.accountIds"
-            :options="accountStore.accounts"
-            optionLabel="name"
-            optionValue="id"
+            :multiple="true"
             placeholder="Select accounts"
             class="w-full"
           />

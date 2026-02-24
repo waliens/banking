@@ -29,6 +29,9 @@ const messages = {
     ml: {
       suggestion: 'ML Suggestion',
     },
+    import: {
+      viewDetails: 'View import details',
+    },
   },
 }
 
@@ -65,14 +68,17 @@ function mountDetail(transaction = {}) {
         effective_amount: null,
         id_source: 1,
         id_dest: 2,
-        source_name: 'Checking',
-        dest_name: 'Coffee Corp',
+        source: { name: 'Checking', number: 'BE1234', institution: null },
+        dest: { name: 'Coffee Corp', number: 'BE5678', institution: null },
         category_name: 'Food',
         id_category: 5,
         is_reviewed: true,
         notes: null,
         data_source: null,
         external_id: null,
+        id_import: null,
+        id_duplicate_of: null,
+        raw_metadata: null,
         ...transaction,
       },
     },

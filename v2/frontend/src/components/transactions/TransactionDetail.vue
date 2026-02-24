@@ -8,6 +8,7 @@ import { useTransactionStore } from '../../stores/transactions'
 import { useMLStore } from '../../stores/ml'
 import MLSuggestion from '../MLSuggestion.vue'
 import CurrencyDisplay from '../common/CurrencyDisplay.vue'
+import AccountDisplay from '../common/AccountDisplay.vue'
 
 const { t } = useI18n()
 const categoryStore = useCategoryStore()
@@ -16,6 +17,7 @@ const mlStore = useMLStore()
 
 const props = defineProps({
   transaction: { type: Object, required: true },
+  showFullDetails: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['categoryChanged'])
@@ -67,6 +69,12 @@ onMounted(async () => {
           severity="warn"
           class="text-xs"
         />
+        <Tag
+          v-if="transaction.id_duplicate_of"
+          value="Duplicate"
+          severity="warn"
+          class="text-xs"
+        />
       </div>
     </div>
 
@@ -87,13 +95,29 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Accounts -->
-    <div class="flex items-center gap-2 text-sm">
-      <span class="text-surface-500">{{ t('transactions.source') }}:</span>
-      <span class="font-medium">{{ transaction.source_name || `#${transaction.id_source}` }}</span>
-      <i class="pi pi-arrow-right text-surface-400 text-xs"></i>
-      <span class="text-surface-500">{{ t('transactions.dest') }}:</span>
-      <span class="font-medium">{{ transaction.dest_name || `#${transaction.id_dest}` }}</span>
+    <!-- Accounts (enhanced for showFullDetails) -->
+    <div v-if="showFullDetails" class="space-y-3">
+      <div v-if="transaction.source" class="bg-surface-50 rounded-lg p-3 text-sm">
+        <div class="text-xs font-semibold text-surface-500 mb-1">{{ t('transactions.source') }}</div>
+        <AccountDisplay :account="transaction.source" />
+        <div v-if="transaction.source.institution" class="text-xs text-surface-400">{{ transaction.source.institution }}</div>
+      </div>
+      <div v-if="transaction.dest" class="bg-surface-50 rounded-lg p-3 text-sm">
+        <div class="text-xs font-semibold text-surface-500 mb-1">{{ t('transactions.dest') }}</div>
+        <AccountDisplay :account="transaction.dest" />
+        <div v-if="transaction.dest.institution" class="text-xs text-surface-400">{{ transaction.dest.institution }}</div>
+      </div>
+    </div>
+    <div v-else class="flex items-start gap-3 text-sm">
+      <div>
+        <div class="text-xs text-surface-500 mb-1">{{ t('transactions.source') }}</div>
+        <AccountDisplay :account="transaction.source || (transaction.id_source ? { name: null, number: `#${transaction.id_source}` } : null)" />
+      </div>
+      <i class="pi pi-arrow-right text-surface-400 text-xs mt-1"></i>
+      <div>
+        <div class="text-xs text-surface-500 mb-1">{{ t('transactions.dest') }}</div>
+        <AccountDisplay :account="transaction.dest || (transaction.id_dest ? { name: null, number: `#${transaction.id_dest}` } : null)" />
+      </div>
     </div>
 
     <!-- Category (interactive) -->
@@ -109,7 +133,14 @@ onMounted(async () => {
         optionValue="id"
         :placeholder="t('transactions.uncategorized')"
         class="w-full"
-      />
+      >
+        <template #option="{ option }">
+          <div class="flex items-center gap-2">
+            <i v-if="option.icon" :class="option.icon" class="text-sm"></i>
+            <span>{{ option.name }}</span>
+          </div>
+        </template>
+      </Select>
       <MLSuggestion
         v-if="mlStore.predictions[transaction.id]"
         :categoryName="mlStore.predictions[transaction.id].category_name"
@@ -129,6 +160,17 @@ onMounted(async () => {
     <div class="text-xs text-surface-400 space-y-1 pt-2 border-t border-surface-100">
       <div v-if="transaction.data_source">Source: {{ transaction.data_source }}</div>
       <div v-if="transaction.external_id">ID: {{ transaction.external_id }}</div>
+      <div v-if="showFullDetails && transaction.id_import">
+        <router-link :to="`/imports/${transaction.id_import}`" class="text-primary-500 hover:underline">
+          {{ t('import.viewDetails') }}
+        </router-link>
+      </div>
+      <div v-if="showFullDetails && transaction.raw_metadata" class="mt-2">
+        <details class="cursor-pointer">
+          <summary class="text-surface-500">Raw metadata</summary>
+          <pre class="text-xs bg-surface-50 rounded p-2 mt-1 overflow-x-auto">{{ JSON.stringify(transaction.raw_metadata, null, 2) }}</pre>
+        </details>
+      </div>
     </div>
   </div>
 </template>

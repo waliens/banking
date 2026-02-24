@@ -18,6 +18,20 @@ vi.mock('../../src/stores/categories', () => ({
   })),
 }))
 
+vi.mock('../../src/stores/accounts', () => ({
+  useAccountStore: vi.fn(() => ({
+    accounts: [],
+    fetchAccounts: vi.fn().mockResolvedValue([]),
+  })),
+}))
+
+vi.mock('../../src/stores/ml', () => ({
+  useMLStore: vi.fn(() => ({
+    predictions: {},
+    predictTransactions: vi.fn().mockResolvedValue({}),
+  })),
+}))
+
 vi.mock('../../src/stores/activeWallet', () => ({
   useActiveWalletStore: vi.fn(() => ({
     activeWalletId: 1,
@@ -43,6 +57,8 @@ const stubComponents = {
   InputNumber: { template: '<input />', props: ['modelValue', 'placeholder', 'minFractionDigits'] },
   DatePicker: { template: '<input />', props: ['modelValue', 'dateFormat', 'placeholder', 'showIcon'] },
   ToggleSwitch: { template: '<input type="checkbox" />', props: ['modelValue'] },
+  Drawer: { template: '<div><slot /></div>', props: ['visible', 'position', 'header'] },
+  TransactionDetail: { template: '<div />', props: ['transaction', 'showFullDetails'] },
 }
 
 describe('ReviewInboxView', () => {

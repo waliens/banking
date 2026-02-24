@@ -29,6 +29,11 @@ const routes = [
     component: () => import('../views/ImportView.vue'),
   },
   {
+    path: '/imports/:id',
+    name: 'import-detail',
+    component: () => import('../views/ImportDetailView.vue'),
+  },
+  {
     path: '/settings',
     name: 'settings',
     component: () => import('../views/SettingsView.vue'),

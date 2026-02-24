@@ -17,6 +17,7 @@ import AccountMergePanel from '../components/settings/AccountMergePanel.vue'
 import CategoriesPanel from '../components/settings/CategoriesPanel.vue'
 import TagRulesPanel from '../components/settings/TagRulesPanel.vue'
 import MLModelsPanel from '../components/settings/MLModelsPanel.vue'
+import DuplicatesPanel from '../components/settings/DuplicatesPanel.vue'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -58,6 +59,7 @@ async function savePassword() {
         <Tab value="categories">{{ t('settings.categories') }}</Tab>
         <Tab value="rules">{{ t('settings.rules') }}</Tab>
         <Tab value="ml">{{ t('settings.mlModels') }}</Tab>
+        <Tab value="duplicates">{{ t('settings.duplicates') }}</Tab>
         <Tab value="password">{{ t('settings.changePassword') }}</Tab>
       </TabList>
       <TabPanels>
@@ -76,6 +78,9 @@ async function savePassword() {
         </TabPanel>
         <TabPanel value="ml">
           <MLModelsPanel />
+        </TabPanel>
+        <TabPanel value="duplicates">
+          <DuplicatesPanel />
         </TabPanel>
         <TabPanel value="password">
           <Card>

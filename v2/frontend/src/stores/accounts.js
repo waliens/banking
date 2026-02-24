@@ -37,5 +37,26 @@ export const useAccountStore = defineStore('accounts', () => {
     await api.put('/accounts/merge', { id_repr: idRepr, id_alias: idAlias })
   }
 
-  return { accounts, loading, totalCount, fetchAccounts, fetchCount, updateAccount, mergeAccounts }
+  const mergeSuggestions = ref([])
+
+  async function fetchMergeSuggestions() {
+    const { data } = await api.get('/accounts/merge-suggestions')
+    mergeSuggestions.value = data
+    return data
+  }
+
+  async function removeAlias(accountId, aliasId, { promote = false } = {}) {
+    await api.delete(`/accounts/${accountId}/aliases/${aliasId}`, { params: { promote } })
+  }
+
+  async function addAlias(accountId, payload) {
+    const { data } = await api.post(`/accounts/${accountId}/aliases`, payload)
+    return data
+  }
+
+  return {
+    accounts, loading, totalCount, mergeSuggestions,
+    fetchAccounts, fetchCount, updateAccount, mergeAccounts,
+    fetchMergeSuggestions, removeAlias, addAlias,
+  }
 })

@@ -21,6 +21,7 @@ from app.models import (
     AccountAlias,
     Category,
     Currency,
+    ImportRecord,
     Transaction,
     TransactionGroup,
     User,
@@ -183,3 +184,38 @@ def wallet(db, account_checking) -> Wallet:
     db.add(wa)
     db.flush()
     return w
+
+
+@pytest.fixture
+def import_record(db, account_checking, account_savings, currency_eur) -> ImportRecord:
+    ir = ImportRecord(
+        format="belfius",
+        filenames=["test.csv"],
+        total_transactions=3,
+        new_transactions=2,
+        duplicate_transactions=1,
+        skipped_transactions=0,
+        new_accounts=0,
+        auto_tagged=0,
+        date_earliest=datetime.date(2024, 6, 1),
+        date_latest=datetime.date(2024, 6, 30),
+    )
+    db.add(ir)
+    db.flush()
+    # Create linked transactions
+    for i in range(2):
+        t = Transaction(
+            external_id=f"import-tx-{i}",
+            id_source=account_checking.id,
+            id_dest=account_savings.id,
+            date=datetime.date(2024, 6, 15),
+            amount=Decimal("25.00"),
+            id_currency=currency_eur.id,
+            data_source="belfius",
+            description=f"Import test {i}",
+            is_reviewed=False,
+            id_import=ir.id,
+        )
+        db.add(t)
+    db.flush()
+    return ir

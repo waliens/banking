@@ -40,6 +40,8 @@ class AccountCountResponse(BaseModel):
 
 
 class AccountUpdate(BaseModel):
+    name: str | None = None
+    number: str | None = None
     initial_balance: Decimal | None = None
     institution: str | None = None
     is_active: bool | None = None

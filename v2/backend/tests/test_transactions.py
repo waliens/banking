@@ -452,3 +452,27 @@ class TestDuplicates:
             headers=auth_headers,
         )
         assert r.status_code == 400
+
+
+class TestImportIdFilter:
+    def test_filter_by_import_id(self, client, auth_headers, import_record):
+        r = client.get(f"/api/v2/transactions?import_id={import_record.id}", headers=auth_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 2
+        assert all(t["description"].startswith("Import test") for t in data)
+
+    def test_filter_by_nonexistent_import_id(self, client, auth_headers, import_record):
+        r = client.get("/api/v2/transactions?import_id=99999", headers=auth_headers)
+        assert r.status_code == 200
+        assert r.json() == []
+
+    def test_import_id_does_not_include_other_transactions(
+        self, client, auth_headers, db, import_record, sample_transaction
+    ):
+        # sample_transaction has no id_import, import_record transactions do
+        r = client.get(f"/api/v2/transactions?import_id={import_record.id}", headers=auth_headers)
+        assert r.status_code == 200
+        data = r.json()
+        ids = {t["id"] for t in data}
+        assert sample_transaction.id not in ids

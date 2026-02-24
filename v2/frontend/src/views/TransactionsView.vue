@@ -5,6 +5,7 @@ import { useTransactionStore } from '../stores/transactions'
 import { useCategoryStore } from '../stores/categories'
 import { useTransactionGroupStore } from '../stores/transactionGroups'
 import TransactionGroupDialog from '../components/transactions/TransactionGroupDialog.vue'
+import AccountDisplay from '../components/common/AccountDisplay.vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import InputText from 'primevue/inputtext'
@@ -146,13 +147,13 @@ async function onCategoryChange(transactionId, categoryId) {
 
         <Column field="source" :header="t('transactions.source')" style="width: 150px">
           <template #body="{ data }">
-            {{ data.source?.name || data.source?.number || '—' }}
+            <AccountDisplay :account="data.source" />
           </template>
         </Column>
 
         <Column field="dest" :header="t('transactions.dest')" style="width: 150px">
           <template #body="{ data }">
-            {{ data.dest?.name || data.dest?.number || '—' }}
+            <AccountDisplay :account="data.dest" />
           </template>
         </Column>
 

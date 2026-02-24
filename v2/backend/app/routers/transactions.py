@@ -43,6 +43,7 @@ def _build_transaction_query(
     search_query: str | None = None,
     sort_by: str | None = None,
     order: str = "desc",
+    import_id: int | None = None,
 ) -> Select[tuple[Transaction]]:
     q = select(Transaction)
 
@@ -101,6 +102,9 @@ def _build_transaction_query(
     else:
         q = q.where(Transaction.id_duplicate_of.is_(None))
 
+    if import_id is not None:
+        q = q.where(Transaction.id_import == import_id)
+
     if search_query and len(search_query) >= 3:
         q = q.where(Transaction.description.ilike(f"%{search_query}%"))
 
@@ -136,6 +140,7 @@ def list_transactions(
     amount_to: Decimal | None = None,
     duplicate_only: bool = False,
     search_query: str | None = None,
+    import_id: int | None = None,
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> list[Transaction]:
@@ -156,6 +161,7 @@ def list_transactions(
         search_query=search_query,
         sort_by=sort_by,
         order=order,
+        import_id=import_id,
     )
     results = db.execute(q.offset(start).limit(count)).scalars().unique().all()
     return list(results)
@@ -176,6 +182,7 @@ def count_transactions(
     amount_to: Decimal | None = None,
     duplicate_only: bool = False,
     search_query: str | None = None,
+    import_id: int | None = None,
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> TransactionCountResponse:
@@ -194,6 +201,7 @@ def count_transactions(
         amount_to=amount_to,
         duplicate_only=duplicate_only,
         search_query=search_query,
+        import_id=import_id,
     )
     count_q = select(func.count()).select_from(q.subquery())
     return TransactionCountResponse(count=db.execute(count_q).scalar_one())

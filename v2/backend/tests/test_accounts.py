@@ -23,6 +23,26 @@ class TestListAccounts:
         r = client.get("/api/v2/accounts")
         assert r.status_code == 401
 
+    def test_list_accounts_search_by_name(self, client, auth_headers, account_checking, account_savings):
+        r = client.get("/api/v2/accounts?search=Check", headers=auth_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 1
+        assert data[0]["name"] == "Checking"
+
+    def test_list_accounts_search_by_number(self, client, auth_headers, account_checking, account_savings):
+        r = client.get("/api/v2/accounts?search=1234", headers=auth_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 1
+        assert data[0]["number"] == "BE1234"
+
+    def test_list_accounts_search_no_match(self, client, auth_headers, account_checking, account_savings):
+        r = client.get("/api/v2/accounts?search=NonExistent", headers=auth_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 0
+
 
 class TestGetAccount:
     def test_get_existing(self, client, auth_headers, account_checking):
@@ -129,3 +149,131 @@ class TestMergeAccounts:
         )
         assert r.status_code == 400
         assert "transactions between" in r.json()["detail"]
+
+
+class TestMergeSuggestions:
+    def test_similar_names_returns_suggestion(self, client, auth_headers, db, currency_eur):
+        a = Account(
+            name="John Doe",
+            number="BE11110000",
+            initial_balance=0,
+            id_currency=currency_eur.id,
+            is_active=True,
+        )
+        b = Account(
+            name="John Doee",
+            number="BE22220000",
+            initial_balance=0,
+            id_currency=currency_eur.id,
+            is_active=True,
+        )
+        db.add_all([a, b])
+        db.flush()
+
+        r = client.get("/api/v2/accounts/merge-suggestions", headers=auth_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) >= 1
+        ids_in_suggestions = set()
+        for s in data:
+            ids_in_suggestions.add(s["account_a"]["id"])
+            ids_in_suggestions.add(s["account_b"]["id"])
+        assert a.id in ids_in_suggestions
+        assert b.id in ids_in_suggestions
+
+    def test_no_similar_accounts_returns_empty(self, client, auth_headers, db, currency_eur):
+        a = Account(
+            name="Alpha Corp",
+            number="BE00001111",
+            initial_balance=0,
+            id_currency=currency_eur.id,
+            is_active=True,
+        )
+        b = Account(
+            name="Zebra Inc",
+            number="FR99998888",
+            initial_balance=0,
+            id_currency=currency_eur.id,
+            is_active=True,
+        )
+        db.add_all([a, b])
+        db.flush()
+
+        r = client.get("/api/v2/accounts/merge-suggestions", headers=auth_headers)
+        assert r.status_code == 200
+        assert r.json() == []
+
+
+class TestRemoveAlias:
+    def test_remove_alias_success(self, client, auth_headers, db, account_checking):
+        alias = AccountAlias(name="Old Checking", number="BE0000", id_account=account_checking.id)
+        db.add(alias)
+        db.flush()
+
+        r = client.delete(
+            f"/api/v2/accounts/{account_checking.id}/aliases/{alias.id}",
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        assert r.json()["msg"] == "alias removed"
+        assert db.get(AccountAlias, alias.id) is None
+
+    def test_remove_alias_with_promote(self, client, auth_headers, db, account_checking):
+        alias = AccountAlias(name="Promoted Account", number="BE9999", id_account=account_checking.id)
+        db.add(alias)
+        db.flush()
+        alias_id = alias.id
+
+        r = client.delete(
+            f"/api/v2/accounts/{account_checking.id}/aliases/{alias_id}?promote=true",
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        assert r.json()["msg"] == "alias promoted to account"
+        # Alias should be deleted
+        assert db.get(AccountAlias, alias_id) is None
+        # A new account with the alias name should exist
+        from sqlalchemy import select
+
+        new_acc = db.execute(select(Account).where(Account.name == "Promoted Account")).scalar_one_or_none()
+        assert new_acc is not None
+        assert new_acc.number == "BE9999"
+
+    def test_remove_nonexistent_alias(self, client, auth_headers, account_checking):
+        r = client.delete(
+            f"/api/v2/accounts/{account_checking.id}/aliases/99999",
+            headers=auth_headers,
+        )
+        assert r.status_code == 404
+
+    def test_remove_alias_wrong_account(self, client, auth_headers, db, account_checking, account_savings):
+        alias = AccountAlias(name="Belongs to Savings", number="BE7777", id_account=account_savings.id)
+        db.add(alias)
+        db.flush()
+
+        # Try to delete alias via the checking account (wrong account)
+        r = client.delete(
+            f"/api/v2/accounts/{account_checking.id}/aliases/{alias.id}",
+            headers=auth_headers,
+        )
+        assert r.status_code == 404
+
+
+class TestUpdateAccountNameNumber:
+    def test_update_name(self, client, auth_headers, account_checking):
+        r = client.put(
+            f"/api/v2/accounts/{account_checking.id}",
+            json={"name": "My Checking Account"},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        assert r.json()["name"] == "My Checking Account"
+
+    def test_update_number(self, client, auth_headers, account_checking):
+        r = client.put(
+            f"/api/v2/accounts/{account_checking.id}",
+            json={"number": "BE9999"},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        assert r.json()["number"] == "BE9999"

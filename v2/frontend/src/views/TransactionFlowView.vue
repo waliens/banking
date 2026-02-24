@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '../stores/wallets'
 import { useActiveWalletStore } from '../stores/activeWallet'
@@ -16,9 +16,15 @@ const wallet = computed(() => activeWalletStore.activeWallet)
 const walletAccountIds = computed(() => activeWalletStore.walletAccountIds)
 
 const selectedTx = ref(null)
+const detailContainerRef = ref(null)
 
 function openDetail(txId) {
   selectedTx.value = txId
+  nextTick(() => {
+    if (detailContainerRef.value) {
+      detailContainerRef.value.scrollTop = 0
+    }
+  })
 }
 
 function closeDetail() {
@@ -64,6 +70,7 @@ onMounted(async () => {
         />
       </div>
       <div
+        ref="detailContainerRef"
         :class="selectedTx ? 'translate-x-0' : 'translate-x-full'"
         class="absolute inset-0 transition-transform duration-300 bg-surface-50"
       >

@@ -9,6 +9,7 @@ from app.models.tag_rule import TagRule
 from app.models.expense_split import ExpenseSplit, ExpenseSplitReimbursement
 from app.models.recurring_pattern import RecurringPattern
 from app.models.ml_model import MLModel
+from app.models.import_record import ImportRecord
 
 __all__ = [
     "User",
@@ -25,4 +26,5 @@ __all__ = [
     "ExpenseSplitReimbursement",
     "RecurringPattern",
     "MLModel",
+    "ImportRecord",
 ]

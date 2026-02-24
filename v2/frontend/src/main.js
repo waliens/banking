@@ -10,6 +10,7 @@ import router from './router'
 import i18n from './i18n'
 
 import 'primeicons/primeicons.css'
+import '@fortawesome/fontawesome-free/css/all.css'
 import './style.css'
 
 const app = createApp(App)

@@ -6,6 +6,7 @@ vi.mock('../../src/services/api', () => ({
   default: {
     get: vi.fn(),
     put: vi.fn(),
+    delete: vi.fn(),
   },
 }))
 
@@ -144,6 +145,29 @@ describe('useTransactionStore', () => {
 
       expect(api.get).toHaveBeenCalledWith('/transactions/5/duplicate_candidates', { params: { days: 7 } })
       expect(result).toEqual(candidates)
+    })
+  })
+
+  describe('unmarkDuplicate', () => {
+    it('calls DELETE with correct path', async () => {
+      api.delete.mockResolvedValueOnce({ data: { msg: 'success' } })
+
+      const result = await store.unmarkDuplicate(5)
+
+      expect(api.delete).toHaveBeenCalledWith('/transactions/5/duplicate_of')
+      expect(result).toEqual({ msg: 'success' })
+    })
+  })
+
+  describe('fetchTransaction', () => {
+    it('fetches a single transaction by id', async () => {
+      const tx = { id: 7, description: 'Groceries', amount: '42.00' }
+      api.get.mockResolvedValueOnce({ data: tx })
+
+      const result = await store.fetchTransaction(7)
+
+      expect(api.get).toHaveBeenCalledWith('/transactions/7')
+      expect(result).toEqual(tx)
     })
   })
 })
