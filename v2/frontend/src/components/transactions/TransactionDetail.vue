@@ -19,7 +19,6 @@ const mlStore = useMLStore()
 
 const props = defineProps({
   transaction: { type: Object, required: true },
-  showFullDetails: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['categoryChanged'])
@@ -103,28 +102,20 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Accounts (enhanced for showFullDetails) -->
-    <div v-if="showFullDetails" class="space-y-3">
+    <!-- Accounts (vertical layout) -->
+    <div class="space-y-2">
       <div v-if="transaction.source" class="bg-surface-50 rounded-lg p-3 text-sm">
         <div class="text-xs font-semibold text-surface-500 mb-1">{{ t('transactions.source') }}</div>
         <AccountDisplay :account="transaction.source" />
         <div v-if="transaction.source.institution" class="text-xs text-surface-400">{{ transaction.source.institution }}</div>
       </div>
+      <div v-if="transaction.source && transaction.dest" class="flex justify-center">
+        <i class="pi pi-arrow-down text-surface-400 text-sm"></i>
+      </div>
       <div v-if="transaction.dest" class="bg-surface-50 rounded-lg p-3 text-sm">
         <div class="text-xs font-semibold text-surface-500 mb-1">{{ t('transactions.dest') }}</div>
         <AccountDisplay :account="transaction.dest" />
         <div v-if="transaction.dest.institution" class="text-xs text-surface-400">{{ transaction.dest.institution }}</div>
-      </div>
-    </div>
-    <div v-else class="flex items-start gap-3 text-sm">
-      <div>
-        <div class="text-xs text-surface-500 mb-1">{{ t('transactions.source') }}</div>
-        <AccountDisplay :account="transaction.source || (transaction.id_source ? { name: null, number: `#${transaction.id_source}` } : null)" />
-      </div>
-      <i class="pi pi-arrow-right text-surface-400 text-xs mt-1"></i>
-      <div>
-        <div class="text-xs text-surface-500 mb-1">{{ t('transactions.dest') }}</div>
-        <AccountDisplay :account="transaction.dest || (transaction.id_dest ? { name: null, number: `#${transaction.id_dest}` } : null)" />
       </div>
     </div>
 
@@ -173,12 +164,12 @@ onMounted(async () => {
     <div class="text-xs text-surface-400 space-y-1 pt-2 border-t border-surface-100">
       <div v-if="transaction.data_source">Source: {{ transaction.data_source }}</div>
       <div v-if="transaction.external_id">ID: {{ transaction.external_id }}</div>
-      <div v-if="showFullDetails && transaction.id_import">
+      <div v-if="transaction.id_import">
         <router-link :to="`/imports/${transaction.id_import}`" class="text-primary-500 hover:underline">
           {{ t('import.viewDetails') }}
         </router-link>
       </div>
-      <div v-if="showFullDetails && transaction.raw_metadata" class="mt-2">
+      <div v-if="transaction.raw_metadata" class="mt-2">
         <details class="cursor-pointer">
           <summary class="text-surface-500">Raw metadata</summary>
           <pre class="text-xs bg-surface-50 rounded p-2 mt-1 overflow-x-auto">{{ JSON.stringify(transaction.raw_metadata, null, 2) }}</pre>

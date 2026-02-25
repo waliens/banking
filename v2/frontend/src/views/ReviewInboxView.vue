@@ -285,16 +285,19 @@ onMounted(async () => {
         <!-- Amount range -->
         <div class="min-w-0">
           <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('review.amountRange') }}</label>
-          <div class="flex gap-2">
+          <div class="flex gap-3">
             <InputNumber v-model="amountFrom" placeholder="Min" class="flex-1 min-w-0" :minFractionDigits="2" />
             <InputNumber v-model="amountTo" placeholder="Max" class="flex-1 min-w-0" :minFractionDigits="2" />
           </div>
         </div>
-        <!-- Search -->
-        <div class="min-w-0">
-          <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('common.search') }}</label>
-          <InputText v-model="searchQuery" :placeholder="t('common.search')" class="w-full" />
-        </div>
+      </div>
+      <!-- Search (full width) -->
+      <div class="mb-4">
+        <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('common.search') }}</label>
+        <InputText v-model="searchQuery" :placeholder="t('common.search')" class="w-full" />
+      </div>
+      <!-- Second row with account selects -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Source account -->
         <div class="min-w-0">
           <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('review.accountFrom') }}</label>
@@ -460,14 +463,13 @@ onMounted(async () => {
     </div>
 
     <!-- Transaction Detail Drawer -->
-    <Drawer v-model:visible="drawerVisible" position="right" :header="t('review.transactionDetail')" class="w-full md:w-[28rem]">
+    <Drawer v-model:visible="drawerVisible" position="right" :header="t('review.transactionDetail')" class="w-full">
       <div v-if="drawerLoading" class="flex items-center justify-center py-12">
         <i class="pi pi-spinner pi-spin text-2xl text-surface-400"></i>
       </div>
       <TransactionDetail
         v-else-if="selectedTransaction"
         :transaction="selectedTransaction"
-        :showFullDetails="true"
         @categoryChanged="onDrawerCategoryChanged"
       />
     </Drawer>

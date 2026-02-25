@@ -66,7 +66,7 @@ onMounted(async () => {
       />
     </div>
 
-    <Drawer v-model:visible="drawerVisible" position="right" :header="t('flow.transactionDetail')" class="w-full md:w-[28rem]">
+    <Drawer v-model:visible="drawerVisible" position="right" :header="t('flow.transactionDetail')" class="w-full">
       <FlowDetailPanel
         v-if="selectedTx"
         :transactionId="selectedTx"
