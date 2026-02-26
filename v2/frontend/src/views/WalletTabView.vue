@@ -1,11 +1,10 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '../stores/wallets'
 import { useActiveWalletStore } from '../stores/activeWallet'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
-import DatePicker from 'primevue/datepicker'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
@@ -13,6 +12,7 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import IncomeExpenseChart from '../components/analytics/IncomeExpenseChart.vue'
 import CategoryChart from '../components/analytics/CategoryChart.vue'
+import CategoryTable from '../components/analytics/CategoryTable.vue'
 import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
 import AccountDisplay from '../components/common/AccountDisplay.vue'
 
@@ -27,27 +27,8 @@ const walletOptions = computed(() =>
   walletStore.wallets.map((w) => ({ label: w.name, value: w.id })),
 )
 
-const currentYear = new Date().getFullYear()
-const selectedYear = ref(currentYear)
-const yearOptions = computed(() => {
-  const years = []
-  for (let y = currentYear; y >= currentYear - 5; y--) {
-    years.push({ label: String(y), value: y })
-  }
-  return years
-})
-
-const categoryDateFrom = ref(null)
-const categoryDateTo = ref(null)
-const incomeOnly = ref(false)
-
 function onWalletChange(id) {
   activeWalletStore.setActiveWallet(id)
-}
-
-async function loadAllStats() {
-  if (!walletId.value) return
-  await Promise.all([loadBalance(), loadIncomeExpense(), loadPerCategory()])
 }
 
 async function loadBalance() {
@@ -55,38 +36,13 @@ async function loadBalance() {
   await walletStore.fetchBalance(walletId.value)
 }
 
-async function loadIncomeExpense() {
-  if (!walletId.value) return
-  await walletStore.fetchIncomeExpense(walletId.value, { year: selectedYear.value })
-}
-
-async function loadPerCategory() {
-  if (!walletId.value) return
-  const params = { income_only: incomeOnly.value }
-  if (categoryDateFrom.value) {
-    params.date_from = formatDate(categoryDateFrom.value)
-  }
-  if (categoryDateTo.value) {
-    params.date_to = formatDate(categoryDateTo.value)
-  }
-  await walletStore.fetchPerCategory(walletId.value, params)
-}
-
-function formatDate(d) {
-  if (!d) return null
-  const dt = new Date(d)
-  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
-}
-
-watch(walletId, loadAllStats)
-watch(selectedYear, loadIncomeExpense)
-watch([categoryDateFrom, categoryDateTo, incomeOnly], loadPerCategory)
+watch(walletId, loadBalance)
 
 onMounted(async () => {
   if (!walletStore.wallets.length) {
     await walletStore.fetchWallets()
   }
-  await loadAllStats()
+  await loadBalance()
 })
 </script>
 
@@ -130,37 +86,18 @@ onMounted(async () => {
         <TabList>
           <Tab value="income-expense">{{ t('wallet.incomeExpense') }}</Tab>
           <Tab value="per-category">{{ t('wallet.perCategory') }}</Tab>
+          <Tab value="table">{{ t('wallet.table') }}</Tab>
           <Tab value="balance">{{ t('wallet.balance') }}</Tab>
         </TabList>
-        <TabPanels>
+        <TabPanels class="overflow-visible">
           <TabPanel value="income-expense">
-            <div class="flex items-center gap-3 mb-4 mt-2">
-              <label class="text-sm font-medium">{{ t('wallet.year') }}</label>
-              <Select
-                v-model="selectedYear"
-                :options="yearOptions"
-                optionLabel="label"
-                optionValue="value"
-                class="w-32"
-              />
-            </div>
-            <IncomeExpenseChart :data="walletStore.incomeExpense" />
+            <IncomeExpenseChart :walletId="walletId" />
           </TabPanel>
           <TabPanel value="per-category">
-            <div class="flex flex-wrap items-center gap-3 mb-4 mt-2">
-              <label class="text-sm font-medium">{{ t('wallet.dateRange') }}</label>
-              <DatePicker v-model="categoryDateFrom" dateFormat="yy-mm-dd" :placeholder="t('transactions.date')" showIcon class="w-40" />
-              <span class="text-surface-500">-</span>
-              <DatePicker v-model="categoryDateTo" dateFormat="yy-mm-dd" :placeholder="t('transactions.date')" showIcon class="w-40" />
-              <Button
-                :label="incomeOnly ? t('wallet.income') : t('wallet.expense')"
-                :severity="incomeOnly ? 'success' : 'danger'"
-                size="small"
-                outlined
-                @click="incomeOnly = !incomeOnly"
-              />
-            </div>
-            <CategoryChart :data="walletStore.perCategory" />
+            <CategoryChart :walletId="walletId" />
+          </TabPanel>
+          <TabPanel value="table">
+            <CategoryTable :walletId="walletId" />
           </TabPanel>
           <TabPanel value="balance">
             <div class="mt-2">

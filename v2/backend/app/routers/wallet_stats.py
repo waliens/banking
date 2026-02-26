@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -30,6 +31,51 @@ def _get_wallet_or_404(db: Session, wallet_id: int) -> Wallet:
 
 def _wallet_account_ids(wallet_id: int) -> Select[tuple[int]]:
     return select(WalletAccount.id_account).where(WalletAccount.id_wallet == wallet_id)
+
+
+def _get_category_descendants(db: Session, id_category: int) -> list[int]:
+    """BFS over Category table to find all descendants of a category (inclusive)."""
+    result = [id_category]
+    queue = [id_category]
+    while queue:
+        parent_id = queue.pop(0)
+        children = db.execute(
+            select(Category.id).where(Category.id_parent == parent_id)
+        ).scalars().all()
+        for child_id in children:
+            result.append(child_id)
+            queue.append(child_id)
+    return result
+
+
+def _get_category_level_mapping(db: Session, level: int) -> dict[int, int]:
+    """Map each category id to its ancestor at the target depth.
+
+    Level 0 = root categories (no parent), level 1 = their children, etc.
+    If a category is shallower than the target level, it maps to itself.
+    """
+    all_cats = db.execute(select(Category.id, Category.id_parent)).all()
+    parent_map: dict[int, int | None] = {c.id: c.id_parent for c in all_cats}
+
+    def get_depth(cat_id: int) -> int:
+        depth = 0
+        current = cat_id
+        while parent_map.get(current) is not None:
+            current = parent_map[current]
+            depth += 1
+        return depth
+
+    def get_ancestor_at_level(cat_id: int) -> int:
+        depth = get_depth(cat_id)
+        if depth <= level:
+            return cat_id
+        # Walk up (depth - level) steps
+        current = cat_id
+        for _ in range(depth - level):
+            current = parent_map[current]
+        return current
+
+    return {cat_id: get_ancestor_at_level(cat_id) for cat_id in parent_map}
 
 
 @router.get("/{wallet_id}/stats/balance", response_model=WalletBalanceResponse)
@@ -176,6 +222,9 @@ def wallet_per_category(
     date_from: datetime.date | None = None,
     date_to: datetime.date | None = None,
     income_only: bool = False,
+    level: int | None = None,
+    id_category: int | None = None,
+    period_bucket: str | None = None,
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> CategoryStatsResponse:
@@ -210,34 +259,116 @@ def wallet_per_category(
         # Expense: source is in wallet
         filters.append(Transaction.id_source.in_(acct_ids_sq))
 
+    # Filter by category descendants
+    if id_category is not None:
+        descendant_ids = _get_category_descendants(db, id_category)
+        filters.append(Transaction.id_category.in_(descendant_ids))
+
+    # Build SELECT columns and GROUP BY
+    select_cols = [
+        Transaction.id_category,
+        Category.name.label("category_name"),
+        Category.color.label("category_color"),
+        Category.icon.label("category_icon"),
+        Category.id_parent.label("id_parent"),
+        func.sum(effective).label("amount"),
+        Transaction.id_currency,
+    ]
+    group_cols = [
+        Transaction.id_category,
+        Category.name,
+        Category.color,
+        Category.icon,
+        Category.id_parent,
+        Transaction.id_currency,
+    ]
+
+    if period_bucket in ("month", "year"):
+        select_cols.append(extract("year", Transaction.date).label("period_year"))
+        group_cols.append(extract("year", Transaction.date))
+        if period_bucket == "month":
+            select_cols.append(extract("month", Transaction.date).label("period_month"))
+            group_cols.append(extract("month", Transaction.date))
+
     q = (
-        select(
-            Transaction.id_category,
-            Category.name.label("category_name"),
-            Category.color.label("category_color"),
-            func.sum(effective).label("amount"),
-            Transaction.id_currency,
-        )
+        select(*select_cols)
         .outerjoin(Category, Transaction.id_category == Category.id)
         .where(*filters)
-        .group_by(
-            Transaction.id_category,
-            Category.name,
-            Category.color,
-            Transaction.id_currency,
-        )
+        .group_by(*group_cols)
         .order_by(func.sum(effective).desc())
     )
 
     rows = db.execute(q).all()
-    items = [
-        CategoryStatItem(
+
+    # Build raw items
+    raw_items = []
+    for row in rows:
+        item = CategoryStatItem(
             id_category=row.id_category,
             category_name=row.category_name,
             category_color=row.category_color,
+            category_icon=getattr(row, "category_icon", None),
+            id_parent=getattr(row, "id_parent", None),
             amount=row.amount,
             id_currency=row.id_currency,
+            period_year=int(row.period_year) if hasattr(row, "period_year") and row.period_year is not None else None,
+            period_month=int(row.period_month) if hasattr(row, "period_month") and row.period_month is not None else None,
         )
-        for row in rows
-    ]
-    return CategoryStatsResponse(items=items)
+        raw_items.append(item)
+
+    # Level aggregation: remap categories to ancestors at target depth
+    if level is not None:
+        level_map = _get_category_level_mapping(db, level)
+
+        # Load ancestor info
+        ancestor_ids = set(level_map.values())
+        ancestors = {}
+        if ancestor_ids:
+            ancestor_rows = db.execute(
+                select(Category.id, Category.name, Category.color, Category.icon, Category.id_parent)
+                .where(Category.id.in_(ancestor_ids))
+            ).all()
+            for a in ancestor_rows:
+                ancestors[a.id] = a
+
+        # Aggregate amounts by (ancestor_id, currency, period)
+        buckets: dict[tuple, Decimal] = defaultdict(Decimal)
+        for item in raw_items:
+            if item.id_category is not None:
+                ancestor_id = level_map.get(item.id_category, item.id_category)
+            else:
+                ancestor_id = None
+            key = (ancestor_id, item.id_currency, item.period_year, item.period_month)
+            buckets[key] += item.amount
+
+        aggregated = []
+        for (cat_id, id_currency, p_year, p_month), total_amount in buckets.items():
+            if cat_id is not None and cat_id in ancestors:
+                a = ancestors[cat_id]
+                aggregated.append(CategoryStatItem(
+                    id_category=cat_id,
+                    category_name=a.name,
+                    category_color=a.color,
+                    category_icon=a.icon,
+                    id_parent=a.id_parent,
+                    amount=total_amount,
+                    id_currency=id_currency,
+                    period_year=p_year,
+                    period_month=p_month,
+                ))
+            else:
+                aggregated.append(CategoryStatItem(
+                    id_category=cat_id,
+                    category_name=None,
+                    category_color=None,
+                    amount=total_amount,
+                    id_currency=id_currency,
+                    period_year=p_year,
+                    period_month=p_month,
+                ))
+
+        # Sort by amount descending
+        aggregated.sort(key=lambda x: x.amount, reverse=True)
+        return CategoryStatsResponse(items=aggregated)
+
+    return CategoryStatsResponse(items=raw_items)

@@ -235,7 +235,11 @@ class TestRemoveAlias:
         # A new account with the alias name should exist
         from sqlalchemy import select
 
-        new_acc = db.execute(select(Account).where(Account.name == "Promoted Account")).scalar_one_or_none()
+        new_acc = (
+            db.execute(select(Account).where(Account.name == "Promoted Account"))
+            .unique()
+            .scalar_one_or_none()
+        )
         assert new_acc is not None
         assert new_acc.number == "BE9999"
 

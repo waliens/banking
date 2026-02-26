@@ -15,18 +15,33 @@ from app.schemas.transaction_group import (
 router = APIRouter()
 
 
+def _classify_transactions(transactions: list) -> tuple[list, list]:
+    """Classify transactions as outgoing or incoming.
+
+    The largest transaction is assumed to be a payment (outgoing).
+    Its id_source identifies the owner account. Transactions with
+    the same id_source are outgoing; others are incoming.
+    """
+    if not transactions:
+        return [], []
+    ref_tx = max(transactions, key=lambda t: t.amount)
+    owner_account = ref_tx.id_source
+    outgoing = [t for t in transactions if t.id_source == owner_account]
+    incoming = [t for t in transactions if t.id_source != owner_account]
+    return outgoing, incoming
+
+
 def _recompute_effective_amounts(db: Session, group: TransactionGroup) -> None:
     """Auto-compute effective_amount for all transactions in the group.
 
-    Outgoing transactions (id_source set) get proportionally reduced.
+    Outgoing transactions get proportionally reduced.
     Incoming transactions get effective_amount = 0.
     """
     transactions = group.transactions
     if not transactions:
         return
 
-    outgoing = [t for t in transactions if t.id_source is not None]
-    incoming = [t for t in transactions if t.id_source is None]
+    outgoing, incoming = _classify_transactions(transactions)
 
     total_paid = sum(t.amount for t in outgoing)
     total_reimbursed = sum(t.amount for t in incoming)
@@ -47,8 +62,7 @@ def _recompute_effective_amounts(db: Session, group: TransactionGroup) -> None:
 
 def _build_response(group: TransactionGroup) -> TransactionGroupResponse:
     transactions = group.transactions or []
-    outgoing = [t for t in transactions if t.id_source is not None]
-    incoming = [t for t in transactions if t.id_source is None]
+    outgoing, incoming = _classify_transactions(transactions)
 
     total_paid = sum(t.amount for t in outgoing) if outgoing else Decimal(0)
     total_reimbursed = sum(t.amount for t in incoming) if incoming else Decimal(0)

@@ -1,16 +1,20 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useCategoryStore } from '../../stores/categories'
 import InputText from 'primevue/inputtext'
 
 const props = defineProps({
-  modelValue: { type: Number, default: null },
+  modelValue: { type: [Number, Array], default: null },
   placeholder: { type: String, default: 'Select category' },
   showClear: { type: Boolean, default: false },
+  multiple: { type: Boolean, default: false },
+  categories: { type: Array, default: null },
 })
 
 const emit = defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
 const categoryStore = useCategoryStore()
 const isOpen = ref(false)
 const searchQuery = ref('')
@@ -19,15 +23,29 @@ const triggerRef = ref(null)
 const dropdownRef = ref(null)
 const dropdownStyle = ref({})
 
-const selectedCategory = computed(() =>
-  props.modelValue != null ? categoryStore.categoryMap.get(props.modelValue) : null,
-)
+// Single-select: selected category object
+const selectedCategory = computed(() => {
+  if (props.multiple || props.modelValue == null) return null
+  return categoryStore.categoryMap.get(props.modelValue)
+})
+
+// Multi-select: set for fast lookup
+const selectedSet = computed(() => {
+  if (!props.multiple || !Array.isArray(props.modelValue)) return new Set()
+  return new Set(props.modelValue)
+})
+
+// Source tree: use custom categories prop or store tree
+const sourceTree = computed(() => {
+  if (props.categories) return props.categories
+  return categoryStore.categoryTree
+})
 
 // Filtered tree: top-level groups with no matching children are hidden entirely
 const filteredTree = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
-  if (!q) return categoryStore.categoryTree
-  return categoryStore.categoryTree
+  if (!q) return sourceTree.value
+  return sourceTree.value
     .map((parent) => ({
       ...parent,
       children: (parent.children || []).filter((child) =>
@@ -37,13 +55,64 @@ const filteredTree = computed(() => {
     .filter((parent) => parent.children.length > 0)
 })
 
+// All selectable child ids from the current tree
+const allChildIds = computed(() => {
+  const ids = []
+  for (const parent of sourceTree.value) {
+    for (const child of parent.children || []) {
+      ids.push(child.id)
+    }
+  }
+  return ids
+})
+
+// Trigger display text for multi-select
+const triggerDisplay = computed(() => {
+  if (!props.multiple) return null
+  const selected = props.modelValue || []
+  if (selected.length === 0) return props.placeholder
+  if (selected.length <= 2) {
+    return selected
+      .map((id) => categoryStore.categoryMap.get(id)?.name || id)
+      .join(', ')
+  }
+  return t('wallet.categoriesSelected', { n: selected.length })
+})
+
 function select(category) {
-  emit('update:modelValue', category.id)
-  isOpen.value = false
+  if (props.multiple) {
+    toggleMulti(category.id)
+  } else {
+    emit('update:modelValue', category.id)
+    isOpen.value = false
+  }
+}
+
+function toggleMulti(id) {
+  const current = Array.isArray(props.modelValue) ? [...props.modelValue] : []
+  const idx = current.indexOf(id)
+  if (idx >= 0) {
+    current.splice(idx, 1)
+  } else {
+    current.push(id)
+  }
+  emit('update:modelValue', current)
+}
+
+function selectAllCategories() {
+  emit('update:modelValue', [...allChildIds.value])
+}
+
+function deselectAllCategories() {
+  emit('update:modelValue', [])
 }
 
 function clear() {
-  emit('update:modelValue', null)
+  if (props.multiple) {
+    emit('update:modelValue', [])
+  } else {
+    emit('update:modelValue', null)
+  }
 }
 
 async function open() {
@@ -85,19 +154,28 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
              hover:border-surface-300 transition-colors cursor-pointer text-left text-sm"
     >
       <div class="flex items-center gap-2 min-w-0 flex-1 truncate">
-        <i
-          v-if="selectedCategory?.icon"
-          :class="selectedCategory.icon"
-          class="text-sm shrink-0"
-          :style="selectedCategory.color ? { color: selectedCategory.color } : {}"
-        />
-        <span :class="selectedCategory ? 'text-surface-900' : 'text-surface-400'">
-          {{ selectedCategory?.name || placeholder }}
-        </span>
+        <!-- Single-select display -->
+        <template v-if="!multiple">
+          <i
+            v-if="selectedCategory?.icon"
+            :class="selectedCategory.icon"
+            class="text-sm shrink-0"
+            :style="selectedCategory.color ? { color: selectedCategory.color } : {}"
+          />
+          <span :class="selectedCategory ? 'text-surface-900' : 'text-surface-400'">
+            {{ selectedCategory?.name || placeholder }}
+          </span>
+        </template>
+        <!-- Multi-select display -->
+        <template v-else>
+          <span :class="(modelValue && modelValue.length) ? 'text-surface-900' : 'text-surface-400'">
+            {{ triggerDisplay }}
+          </span>
+        </template>
       </div>
       <div class="flex items-center gap-1 shrink-0">
         <button
-          v-if="showClear && modelValue != null"
+          v-if="showClear && (multiple ? modelValue?.length : modelValue != null)"
           @click.stop="clear"
           type="button"
           class="text-surface-400 hover:text-surface-600 transition-colors"
@@ -126,6 +204,25 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
           />
         </div>
 
+        <!-- Select all / Deselect all (multi-select only) -->
+        <div v-if="multiple" class="flex gap-2 px-3 py-1.5 border-b border-surface-100">
+          <button
+            @click="selectAllCategories"
+            type="button"
+            class="text-xs text-primary-600 hover:text-primary-800 transition-colors"
+          >
+            {{ t('wallet.selectAll') }}
+          </button>
+          <span class="text-surface-300">|</span>
+          <button
+            @click="deselectAllCategories"
+            type="button"
+            class="text-xs text-primary-600 hover:text-primary-800 transition-colors"
+          >
+            {{ t('wallet.deselectAll') }}
+          </button>
+        </div>
+
         <!-- Hierarchical list -->
         <div class="overflow-y-auto max-h-72">
           <template v-for="parent in filteredTree" :key="parent.id">
@@ -145,8 +242,14 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
               :key="child.id"
               @click="select(child)"
               class="flex items-center gap-2 pl-5 pr-3 py-2 hover:bg-surface-100 cursor-pointer text-sm transition-colors"
-              :class="modelValue === child.id ? 'bg-primary-50 text-primary-700' : 'text-surface-900'"
+              :class="(!multiple && modelValue === child.id) ? 'bg-primary-50 text-primary-700' : (multiple && selectedSet.has(child.id)) ? 'bg-primary-50 text-primary-700' : 'text-surface-900'"
             >
+              <!-- Multi-select checkbox -->
+              <i
+                v-if="multiple"
+                :class="selectedSet.has(child.id) ? 'pi pi-check-square text-primary-500' : 'pi pi-stop text-surface-300'"
+                class="text-sm shrink-0"
+              />
               <i
                 v-if="child.icon"
                 :class="child.icon"
@@ -154,7 +257,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
                 :style="child.color ? { color: child.color } : {}"
               />
               <span class="flex-1">{{ child.name }}</span>
-              <i v-if="modelValue === child.id" class="pi pi-check text-primary-500 text-xs shrink-0" />
+              <i v-if="!multiple && modelValue === child.id" class="pi pi-check text-primary-500 text-xs shrink-0" />
             </div>
           </template>
 

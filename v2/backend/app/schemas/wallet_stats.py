@@ -34,6 +34,10 @@ class CategoryStatItem(BaseModel):
     category_color: str | None
     amount: Decimal
     id_currency: int
+    id_parent: int | None = None
+    category_icon: str | None = None
+    period_year: int | None = None
+    period_month: int | None = None
 
 
 class CategoryStatsResponse(BaseModel):

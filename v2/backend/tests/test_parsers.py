@@ -9,6 +9,8 @@ import pytest
 from app.parsers import belfius, ing
 from app.parsers.common import sanitize, sanitize_number, parse_date_str
 
+from app.models import ImportRecord, Transaction
+
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
@@ -169,9 +171,18 @@ class TestImportService:
             ),
         ]
 
-        transactions = import_parsed_transactions(db, parsed, "belfius")
+        import_record = import_parsed_transactions(db, parsed, "belfius")
+        assert import_record.new_transactions == 2
+
+        transactions = (
+            db.query(Transaction)
+            .filter_by(id_import=import_record.id)
+            .order_by(Transaction.id)
+            .all()
+        )
         assert len(transactions) == 2
-        assert all(t.id is not None for t in transactions)
+        assert transactions[0].description == "Groceries"
+        assert transactions[1].description == "Coffee"
 
     def test_import_skips_already_imported(self, db, currency_eur, sample_transaction):
         from app.parsers.common import ParsedTransaction
@@ -192,5 +203,5 @@ class TestImportService:
             ),
         ]
 
-        transactions = import_parsed_transactions(db, parsed, "manual")
-        assert len(transactions) == 0
+        import_record = import_parsed_transactions(db, parsed, "manual")
+        assert import_record.new_transactions == 0

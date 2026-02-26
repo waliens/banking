@@ -374,3 +374,334 @@ class TestPerCategory:
     def test_wallet_not_found(self, client, auth_headers):
         r = client.get("/api/v2/wallets/99999/stats/per-category", headers=auth_headers)
         assert r.status_code == 404
+
+    def test_level_aggregation(
+        self,
+        client,
+        auth_headers,
+        db,
+        wallet_with_accounts,
+        account_checking,
+        external_account,
+        currency_eur,
+        category_food,
+        category_child,
+    ):
+        """level=0 should aggregate child categories into parent-level buckets."""
+        # Expense under child category (Groceries, child of Food)
+        db.add(
+            Transaction(
+                external_id="lvl-1",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 3, 1),
+                amount=Decimal("45.00"),
+                id_currency=currency_eur.id,
+                id_category=category_child.id,
+                description="Groceries child",
+            )
+        )
+        # Expense directly under parent (Food)
+        db.add(
+            Transaction(
+                external_id="lvl-2",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 3, 5),
+                amount=Decimal("30.00"),
+                id_currency=currency_eur.id,
+                id_category=category_food.id,
+                description="Food parent",
+            )
+        )
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
+            params={"level": 0},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        items = r.json()["items"]
+        # Both should be aggregated to Food (parent at level 0)
+        assert len(items) == 1
+        assert items[0]["category_name"] == "Food"
+        assert Decimal(str(items[0]["amount"])) == Decimal("75.00")
+
+    def test_level_1_returns_children(
+        self,
+        client,
+        auth_headers,
+        db,
+        wallet_with_accounts,
+        account_checking,
+        external_account,
+        currency_eur,
+        category_food,
+        category_child,
+    ):
+        """level=1 should return child-level items."""
+        db.add(
+            Transaction(
+                external_id="lvl1-1",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 3, 1),
+                amount=Decimal("45.00"),
+                id_currency=currency_eur.id,
+                id_category=category_child.id,
+                description="Groceries child",
+            )
+        )
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
+            params={"level": 1},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        items = r.json()["items"]
+        assert len(items) == 1
+        assert items[0]["category_name"] == "Groceries"
+        assert Decimal(str(items[0]["amount"])) == Decimal("45.00")
+
+    def test_id_category_filter(
+        self,
+        client,
+        auth_headers,
+        db,
+        wallet_with_accounts,
+        account_checking,
+        external_account,
+        currency_eur,
+        category_food,
+        category_child,
+        category_salary,
+    ):
+        """id_category filters to only descendants of given category."""
+        # Expense under Food child
+        db.add(
+            Transaction(
+                external_id="idcat-1",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 3, 1),
+                amount=Decimal("45.00"),
+                id_currency=currency_eur.id,
+                id_category=category_child.id,
+                description="Groceries",
+            )
+        )
+        # Expense under unrelated category (should not appear)
+        db.add(
+            Transaction(
+                external_id="idcat-2",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 3, 5),
+                amount=Decimal("100.00"),
+                id_currency=currency_eur.id,
+                id_category=category_salary.id,
+                description="Other",
+            )
+        )
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
+            params={"id_category": category_food.id},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        items = r.json()["items"]
+        assert len(items) == 1
+        assert items[0]["category_name"] == "Groceries"
+
+    def test_period_bucket_month(
+        self,
+        client,
+        auth_headers,
+        db,
+        wallet_with_accounts,
+        account_checking,
+        external_account,
+        currency_eur,
+        category_food,
+    ):
+        """period_bucket=month groups results by month with period_year and period_month."""
+        db.add(
+            Transaction(
+                external_id="pb-1",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 3, 1),
+                amount=Decimal("45.00"),
+                id_currency=currency_eur.id,
+                id_category=category_food.id,
+                description="March",
+            )
+        )
+        db.add(
+            Transaction(
+                external_id="pb-2",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 4, 1),
+                amount=Decimal("30.00"),
+                id_currency=currency_eur.id,
+                id_category=category_food.id,
+                description="April",
+            )
+        )
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
+            params={"period_bucket": "month"},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        items = r.json()["items"]
+        assert len(items) == 2
+        for item in items:
+            assert item["period_year"] is not None
+            assert item["period_month"] is not None
+        march = next(i for i in items if i["period_month"] == 3)
+        assert Decimal(str(march["amount"])) == Decimal("45.00")
+
+    def test_period_bucket_year(
+        self,
+        client,
+        auth_headers,
+        db,
+        wallet_with_accounts,
+        account_checking,
+        external_account,
+        currency_eur,
+        category_food,
+    ):
+        """period_bucket=year groups results by year with period_year only."""
+        db.add(
+            Transaction(
+                external_id="pby-1",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 3, 1),
+                amount=Decimal("45.00"),
+                id_currency=currency_eur.id,
+                id_category=category_food.id,
+                description="2024",
+            )
+        )
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
+            params={"period_bucket": "year"},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        items = r.json()["items"]
+        assert len(items) == 1
+        assert items[0]["period_year"] == 2024
+        assert items[0]["period_month"] is None
+
+    def test_backward_compatibility_no_new_params(
+        self,
+        client,
+        auth_headers,
+        db,
+        wallet_with_accounts,
+        account_checking,
+        external_account,
+        currency_eur,
+        category_food,
+    ):
+        """Without new params, response shape is identical to before (new fields are null)."""
+        db.add(
+            Transaction(
+                external_id="compat-1",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 3, 1),
+                amount=Decimal("45.00"),
+                id_currency=currency_eur.id,
+                id_category=category_food.id,
+                description="Compat test",
+            )
+        )
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        items = r.json()["items"]
+        assert len(items) == 1
+        item = items[0]
+        # Original fields present
+        assert item["id_category"] == category_food.id
+        assert item["category_name"] == "Food"
+        assert item["amount"] is not None
+        # New fields default to null
+        assert item["period_year"] is None
+        assert item["period_month"] is None
+
+    def test_combination_level_period_id_category(
+        self,
+        client,
+        auth_headers,
+        db,
+        wallet_with_accounts,
+        account_checking,
+        external_account,
+        currency_eur,
+        category_food,
+        category_child,
+    ):
+        """Test combining level + period_bucket + id_category."""
+        db.add(
+            Transaction(
+                external_id="combo-1",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 3, 1),
+                amount=Decimal("45.00"),
+                id_currency=currency_eur.id,
+                id_category=category_child.id,
+                description="Combo March",
+            )
+        )
+        db.add(
+            Transaction(
+                external_id="combo-2",
+                id_source=account_checking.id,
+                id_dest=external_account.id,
+                date=datetime.date(2024, 4, 1),
+                amount=Decimal("30.00"),
+                id_currency=currency_eur.id,
+                id_category=category_child.id,
+                description="Combo April",
+            )
+        )
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
+            params={
+                "level": 0,
+                "period_bucket": "month",
+                "id_category": category_food.id,
+            },
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        items = r.json()["items"]
+        # Two months, aggregated to Food (level 0)
+        assert len(items) == 2
+        for item in items:
+            assert item["category_name"] == "Food"
+            assert item["period_year"] == 2024
+            assert item["period_month"] in [3, 4]

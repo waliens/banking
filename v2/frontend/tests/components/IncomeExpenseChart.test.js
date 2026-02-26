@@ -1,47 +1,56 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
+import { createPinia, setActivePinia } from 'pinia'
 import IncomeExpenseChart from '../../src/components/analytics/IncomeExpenseChart.vue'
 
-const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {} } })
+vi.mock('../../src/services/api', () => ({
+  default: {
+    get: vi.fn().mockResolvedValue({ data: { items: [] } }),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
+}))
+
+const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {
+  wallet: { income: 'Income', expense: 'Expense', noData: 'No data', year: 'Year' },
+} } })
 
 const stubComponents = {
   Chart: { template: '<canvas />', props: ['type', 'data', 'options'] },
+  Select: { template: '<div />', props: ['modelValue', 'options'] },
 }
 
 describe('IncomeExpenseChart', () => {
-  it('renders chart when data is provided', () => {
-    const data = {
-      items: [
-        { year: 2024, month: 3, income: '200', expense: '80', id_currency: 1 },
-        { year: 2024, month: 4, income: '150', expense: '120', id_currency: 1 },
-      ],
-    }
-
-    const wrapper = mount(IncomeExpenseChart, {
-      props: { data },
-      global: { stubs: stubComponents, plugins: [i18n] },
-    })
-
-    expect(wrapper.find('canvas').exists()).toBe(true)
+  beforeEach(() => {
+    setActivePinia(createPinia())
   })
 
-  it('shows no-data message when data is null', () => {
+  it('renders with walletId prop', () => {
     const wrapper = mount(IncomeExpenseChart, {
-      props: { data: null },
+      props: { walletId: 1 },
       global: { stubs: stubComponents, plugins: [i18n] },
     })
 
-    expect(wrapper.find('canvas').exists()).toBe(false)
-    expect(wrapper.find('p').exists()).toBe(true)
+    expect(wrapper.exists()).toBe(true)
   })
 
-  it('shows no-data message when items is empty', () => {
+  it('shows year selector', () => {
     const wrapper = mount(IncomeExpenseChart, {
-      props: { data: { items: [] } },
+      props: { walletId: 1 },
       global: { stubs: stubComponents, plugins: [i18n] },
     })
 
-    expect(wrapper.find('canvas').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Year')
+  })
+
+  it('shows no-data message when no data loaded', () => {
+    const wrapper = mount(IncomeExpenseChart, {
+      props: { walletId: 1 },
+      global: { stubs: stubComponents, plugins: [i18n] },
+    })
+
+    expect(wrapper.text()).toContain('No data')
   })
 })

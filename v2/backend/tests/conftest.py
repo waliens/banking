@@ -2,6 +2,8 @@
 
 import datetime
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from decimal import Decimal
 
 os.environ.setdefault("BANKING_COOKIE_SECURE", "false")
@@ -28,6 +30,16 @@ from app.models import (
     Wallet,
     WalletAccount,
 )
+
+
+# Replace the production lifespan (which runs Alembic migrations and seeds
+# data against the real PostgreSQL engine) with a no-op so tests can run
+# against an in-memory SQLite database without a running PostgreSQL server.
+@asynccontextmanager
+async def _test_lifespan(app) -> AsyncIterator[None]:
+    yield
+
+app.router.lifespan_context = _test_lifespan
 
 
 @pytest.fixture(scope="session")

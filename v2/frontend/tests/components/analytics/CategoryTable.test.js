@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { createPinia, setActivePinia } from 'pinia'
-import CategoryChart from '../../src/components/analytics/CategoryChart.vue'
+import CategoryTable from '../../../src/components/analytics/CategoryTable.vue'
 
-vi.mock('../../src/services/api', () => ({
+vi.mock('../../../src/services/api', () => ({
   default: {
     get: vi.fn().mockResolvedValue({ data: { items: [] } }),
     post: vi.fn(),
@@ -15,46 +15,50 @@ vi.mock('../../src/services/api', () => ({
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {
   wallet: {
-    expense: 'Expense', income: 'Income', noData: 'No data',
+    noData: 'No data', monthly: 'Monthly', yearly: 'Yearly',
     periodYear: 'Year', periodMonth: 'Month', periodRange: 'Range',
-    level: 'Level', levelCoarse: 'Coarse', levelFine: 'Fine',
-    backToParent: 'Back', uncategorized: 'Uncategorized',
+    expandAll: 'Expand all', collapseAll: 'Collapse all',
+    hideEmpty: 'Hide empty', total: 'Total', uncategorized: 'Uncategorized',
     categoriesSelected: '{n} selected', selectAll: 'Select all', deselectAll: 'Deselect all',
   },
   categories: { selectCategory: 'Select category' },
-  transactions: { date: 'Date', uncategorized: 'Uncategorized' },
+  transactions: { category: 'Category', date: 'Date' },
 } } })
 
 const stubComponents = {
-  Chart: { template: '<canvas />', props: ['type', 'data', 'options'] },
   SelectButton: { template: '<div />', props: ['modelValue', 'options'] },
+  Button: { template: '<button>{{ label }}<slot /></button>', props: ['label', 'icon'] },
+  ToggleSwitch: { template: '<input type="checkbox" />', props: ['modelValue'] },
   Select: { template: '<div />', props: ['modelValue', 'options'] },
   DatePicker: { template: '<div />', props: ['modelValue'] },
-  Button: { template: '<button />', props: ['label'] },
 }
 
-describe('CategoryChart', () => {
+describe('CategoryTable', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
   it('renders without errors', () => {
-    const wrapper = mount(CategoryChart, {
+    const wrapper = mount(CategoryTable, {
       props: { walletId: 1 },
       global: { stubs: stubComponents, plugins: [i18n] },
     })
-
     expect(wrapper.exists()).toBe(true)
   })
 
-  it('shows period filter', () => {
-    const wrapper = mount(CategoryChart, {
+  it('shows no data message when empty', () => {
+    const wrapper = mount(CategoryTable, {
       props: { walletId: 1 },
       global: { stubs: stubComponents, plugins: [i18n] },
     })
+    expect(wrapper.text()).toContain('No data')
+  })
 
-    // Should have expense and income titles
-    expect(wrapper.text()).toContain('Expense')
-    expect(wrapper.text()).toContain('Income')
+  it('shows hide empty toggle', () => {
+    const wrapper = mount(CategoryTable, {
+      props: { walletId: 1 },
+      global: { stubs: stubComponents, plugins: [i18n] },
+    })
+    expect(wrapper.text()).toContain('Hide empty')
   })
 })

@@ -8,6 +8,9 @@ export const useWalletStore = defineStore('wallets', () => {
   const balance = ref(null)
   const incomeExpense = ref(null)
   const perCategory = ref(null)
+  const perCategoryExpense = ref(null)
+  const perCategoryIncome = ref(null)
+  const perCategoryTable = ref(null)
 
   async function fetchWallets() {
     loading.value = true
@@ -61,12 +64,41 @@ export const useWalletStore = defineStore('wallets', () => {
     return data
   }
 
+  async function fetchPerCategoryPie(walletId, { date_from, date_to, income_only, level, id_category } = {}) {
+    const params = {}
+    if (date_from) params.date_from = date_from
+    if (date_to) params.date_to = date_to
+    if (income_only != null) params.income_only = income_only
+    if (level != null) params.level = level
+    if (id_category != null) params.id_category = id_category
+    const { data } = await api.get(`/wallets/${walletId}/stats/per-category`, { params })
+    if (income_only) {
+      perCategoryIncome.value = data
+    } else {
+      perCategoryExpense.value = data
+    }
+    return data
+  }
+
+  async function fetchPerCategoryTable(walletId, { date_from, date_to, period_bucket, income_only } = {}) {
+    const params = {}
+    if (date_from) params.date_from = date_from
+    if (date_to) params.date_to = date_to
+    if (period_bucket) params.period_bucket = period_bucket
+    if (income_only != null) params.income_only = income_only
+    const { data } = await api.get(`/wallets/${walletId}/stats/per-category`, { params })
+    return data
+  }
+
   return {
     wallets,
     loading,
     balance,
     incomeExpense,
     perCategory,
+    perCategoryExpense,
+    perCategoryIncome,
+    perCategoryTable,
     fetchWallets,
     createWallet,
     updateWallet,
@@ -74,5 +106,7 @@ export const useWalletStore = defineStore('wallets', () => {
     fetchBalance,
     fetchIncomeExpense,
     fetchPerCategory,
+    fetchPerCategoryPie,
+    fetchPerCategoryTable,
   }
 })
