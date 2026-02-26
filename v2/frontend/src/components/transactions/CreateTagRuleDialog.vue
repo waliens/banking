@@ -67,8 +67,19 @@ function onNameInput() {
   nameManuallyEdited.value = true
 }
 
+const isRegexValid = computed(() => {
+  if (!includeDescription.value || !matchDescription.value) return true
+  try {
+    new RegExp(matchDescription.value)
+    return true
+  } catch {
+    return false
+  }
+})
+
 const canSave = computed(() => {
   return categoryId.value != null &&
+    isRegexValid.value &&
     (includeDescription.value || includeAmount.value || includeAccountFrom.value || includeAccountTo.value)
 })
 
@@ -164,6 +175,7 @@ function close() {
         <InputText
           v-model="matchDescription"
           :disabled="!includeDescription"
+          :invalid="!isRegexValid"
           class="w-full"
           :class="{ 'opacity-50': !includeDescription }"
         />

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import { useTagRuleStore } from '../../stores/tagRules'
@@ -54,6 +54,16 @@ function openEdit(rule) {
   }
   dialogVisible.value = true
 }
+
+const isRegexValid = computed(() => {
+  if (!form.value.match_description) return true
+  try {
+    new RegExp(form.value.match_description)
+    return true
+  } catch {
+    return false
+  }
+})
 
 async function saveRule() {
   const payload = { ...form.value }
@@ -160,7 +170,7 @@ onMounted(async () => {
 
         <div>
           <label class="block text-sm font-medium mb-1">{{ t('rules.pattern') }}</label>
-          <InputText v-model="form.match_description" class="w-full" />
+          <InputText v-model="form.match_description" :invalid="!isRegexValid" class="w-full" />
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -197,7 +207,7 @@ onMounted(async () => {
 
       <template #footer>
         <Button :label="t('common.cancel')" severity="secondary" text @click="dialogVisible = false" />
-        <Button :label="t('common.save')" @click="saveRule" />
+        <Button :label="t('common.save')" :disabled="!isRegexValid" @click="saveRule" />
       </template>
     </Dialog>
   </div>

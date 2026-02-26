@@ -1,5 +1,7 @@
 """Tag rule matching service for auto-categorizing transactions."""
 
+import re
+
 from sqlalchemy.orm import Session
 
 from app.models.tag_rule import TagRule
@@ -36,7 +38,10 @@ def apply_rules(db: Session, transactions: list[Transaction]) -> int:
 def _matches(rule: TagRule, transaction: Transaction) -> bool:
     """Check if a transaction matches all conditions of a rule."""
     if rule.match_description is not None:
-        if rule.match_description.lower() not in transaction.description.lower():
+        try:
+            if not re.search(rule.match_description, transaction.description, re.IGNORECASE):
+                return False
+        except re.error:
             return False
     if rule.match_amount_min is not None:
         if transaction.amount < rule.match_amount_min:
