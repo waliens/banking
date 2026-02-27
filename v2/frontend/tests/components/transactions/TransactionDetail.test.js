@@ -22,6 +22,10 @@ const messages = {
       uncategorized: 'Uncategorized',
       effectiveAmount: 'Effective amount',
     },
+    transactionDetail: {
+      effectiveAmountOverride: 'Custom effective amount',
+      clearOverride: 'Clear override',
+    },
     flow: {
       reviewed: 'Reviewed',
       notReviewed: 'Not reviewed',
@@ -61,9 +65,13 @@ const stubComponents = {
     template: '<div class="create-tag-rule-dialog-stub"></div>',
     props: ['visible', 'transaction'],
   },
+  InputNumber: {
+    template: '<input data-testid="effective-amount-input" :value="modelValue" @input="$emit(\'update:modelValue\', parseFloat($event.target.value))" />',
+    props: ['modelValue', 'minFractionDigits', 'maxFractionDigits'],
+  },
   Button: {
-    template: '<button :class="$attrs.class" @click="$emit(\'click\')">{{ label }}</button>',
-    props: ['label', 'icon', 'severity', 'text', 'size'],
+    template: '<button :class="$attrs.class" :data-testid="$attrs[\'data-testid\']" @click="$emit(\'click\')">{{ label }}</button>',
+    props: ['label', 'icon', 'severity', 'text', 'size', 'title'],
   },
 }
 
@@ -158,5 +166,27 @@ describe('TransactionDetail', () => {
   it('renders a create rule button', () => {
     const wrapper = mountDetail()
     expect(wrapper.text()).toContain('Create rule')
+  })
+
+  it('shows effective amount edit button', () => {
+    const wrapper = mountDetail()
+    expect(wrapper.find('[data-testid="edit-effective-btn"]').exists()).toBe(true)
+  })
+
+  it('shows inline editor when edit button is clicked', async () => {
+    const wrapper = mountDetail()
+    await wrapper.find('[data-testid="edit-effective-btn"]').trigger('click')
+    expect(wrapper.find('[data-testid="effective-amount-input"]').exists()).toBe(true)
+  })
+
+  it('saves effective amount via API', async () => {
+    const api = (await import('../../../src/services/api')).default
+    api.put.mockResolvedValueOnce({ data: { ...mountDetail().props().transaction, effective_amount: '3.00' } })
+
+    const wrapper = mountDetail()
+    await wrapper.find('[data-testid="edit-effective-btn"]').trigger('click')
+    await wrapper.find('[data-testid="save-effective"]').trigger('click')
+
+    expect(api.put).toHaveBeenCalledWith('/transactions/1/effective-amount', { effective_amount: 4.5 })
   })
 })

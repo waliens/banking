@@ -12,6 +12,7 @@ from app.dependencies import get_current_user, get_db
 from app.models import Transaction, User, WalletAccount
 from app.schemas.ml import PredictionItem
 from app.schemas.transaction import (
+    EffectiveAmountUpdate,
     ReviewBatchRequest,
     ReviewBatchResponse,
     ReviewInboxCountResponse,
@@ -255,6 +256,22 @@ def review_transaction(
     if t is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
     t.is_reviewed = True
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.put("/{transaction_id}/effective-amount", response_model=TransactionResponse)
+def set_effective_amount(
+    transaction_id: int,
+    body: EffectiveAmountUpdate,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> Transaction:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+    t.effective_amount = body.effective_amount
     db.commit()
     db.refresh(t)
     return t

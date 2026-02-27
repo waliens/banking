@@ -24,6 +24,11 @@ const routes = [
     component: () => import('../views/TransactionFlowView.vue'),
   },
   {
+    path: '/transactions/:id',
+    name: 'transaction-detail',
+    component: () => import('../views/TransactionDetailView.vue'),
+  },
+  {
     path: '/import',
     name: 'import',
     component: () => import('../views/ImportView.vue'),

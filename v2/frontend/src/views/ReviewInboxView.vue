@@ -14,7 +14,6 @@ import InputNumber from 'primevue/inputnumber'
 import DatePicker from 'primevue/datepicker'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Drawer from 'primevue/drawer'
-import DuplicateCandidates from '../components/transactions/DuplicateCandidates.vue'
 import TransactionDetail from '../components/transactions/TransactionDetail.vue'
 import AccountDisplay from '../components/common/AccountDisplay.vue'
 import MLSuggestion from '../components/MLSuggestion.vue'
@@ -31,7 +30,6 @@ const activeWalletStore = useActiveWalletStore()
 
 const page = ref(0)
 const pageSize = ref(50)
-const expandedRows = ref([])
 const filtersVisible = ref(false)
 
 // Staged (pending) category selections — not yet committed to backend
@@ -177,10 +175,6 @@ async function applyBatchTag() {
 
 async function refreshAfterAction() {
   await Promise.all([loadData(), transactionStore.fetchReviewCount()])
-}
-
-function onDuplicateResolved() {
-  refreshAfterAction()
 }
 
 async function openDrawer(tx) {
@@ -355,7 +349,6 @@ onMounted(async () => {
 
     <div v-else class="bg-surface-0 rounded-xl shadow overflow-hidden">
       <DataTable
-        v-model:expandedRows="expandedRows"
         :value="transactionStore.transactions"
         :loading="transactionStore.loading"
         :lazy="true"
@@ -369,8 +362,6 @@ onMounted(async () => {
         responsiveLayout="scroll"
         class="text-sm cursor-pointer"
       >
-        <Column expander style="width: 3rem" />
-
         <Column field="date" :header="t('transactions.date')" style="width: 110px" />
 
         <Column field="description" :header="t('transactions.description')">
@@ -456,22 +447,23 @@ onMounted(async () => {
           </template>
         </Column>
 
-        <template #expansion="{ data }">
-          <DuplicateCandidates :transactionId="data.id" @resolved="onDuplicateResolved" />
-        </template>
       </DataTable>
     </div>
 
     <!-- Transaction Detail Drawer -->
-    <Drawer v-model:visible="drawerVisible" position="right" :header="t('review.transactionDetail')" class="w-full">
+    <Drawer v-model:visible="drawerVisible" position="right" :header="t('review.transactionDetail')" :style="{ width: '30rem' }">
       <div v-if="drawerLoading" class="flex items-center justify-center py-12">
         <i class="pi pi-spinner pi-spin text-2xl text-surface-400"></i>
       </div>
-      <TransactionDetail
-        v-else-if="selectedTransaction"
-        :transaction="selectedTransaction"
-        @categoryChanged="onDrawerCategoryChanged"
-      />
+      <template v-else-if="selectedTransaction">
+        <router-link :to="`/transactions/${selectedTransaction.id}`" class="block mb-4">
+          <Button :label="t('transactionDetail.openFullPage')" icon="pi pi-external-link" severity="secondary" size="small" text />
+        </router-link>
+        <TransactionDetail
+          :transaction="selectedTransaction"
+          @categoryChanged="onDrawerCategoryChanged"
+        />
+      </template>
     </Drawer>
   </div>
 </template>

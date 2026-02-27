@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import InputNumber from 'primevue/inputnumber'
 import { useCategoryStore } from '../../stores/categories'
 import CategorySelect from '../common/CategorySelect.vue'
 import { useTransactionStore } from '../../stores/transactions'
@@ -34,6 +35,31 @@ async function onCategoryChange(categoryId) {
 }
 
 const ruleDialogVisible = ref(false)
+const editingEffective = ref(false)
+const effectiveAmountInput = ref(null)
+
+function startEditEffective() {
+  effectiveAmountInput.value = props.transaction.effective_amount != null
+    ? parseFloat(props.transaction.effective_amount)
+    : parseFloat(props.transaction.amount)
+  editingEffective.value = true
+}
+
+async function saveEffectiveAmount() {
+  await transactionStore.setEffectiveAmount(props.transaction.id, effectiveAmountInput.value)
+  editingEffective.value = false
+  emit('categoryChanged')
+}
+
+async function clearEffectiveAmount() {
+  await transactionStore.setEffectiveAmount(props.transaction.id, null)
+  editingEffective.value = false
+  emit('categoryChanged')
+}
+
+function cancelEditEffective() {
+  editingEffective.value = false
+}
 
 function onRuleCreated() {
   emit('categoryChanged')
@@ -93,11 +119,44 @@ onMounted(async () => {
           :currencySymbol="transaction.currency.symbol || ''"
         />
       </div>
-      <div v-if="hasEffectiveAmount()" class="text-sm text-surface-500 mt-1">
+      <div v-if="hasEffectiveAmount() && !editingEffective" class="text-sm text-surface-500 mt-1">
         {{ t('transactions.effectiveAmount') }}:
         <CurrencyDisplay
           :amount="transaction.effective_amount"
           :currencySymbol="transaction.currency.symbol || ''"
+        />
+      </div>
+      <!-- Effective amount inline editor -->
+      <div v-if="editingEffective" class="mt-2 flex items-center gap-2">
+        <InputNumber
+          v-model="effectiveAmountInput"
+          :min-fraction-digits="2"
+          :max-fraction-digits="2"
+          class="w-32"
+          data-testid="effective-amount-input"
+        />
+        <Button icon="pi pi-check" severity="success" text size="small" @click="saveEffectiveAmount" data-testid="save-effective" />
+        <Button icon="pi pi-times" severity="secondary" text size="small" @click="cancelEditEffective" />
+        <Button
+          v-if="transaction.effective_amount != null"
+          icon="pi pi-trash"
+          severity="danger"
+          text
+          size="small"
+          :title="t('transactionDetail.clearOverride')"
+          @click="clearEffectiveAmount"
+          data-testid="clear-effective"
+        />
+      </div>
+      <div v-if="!editingEffective" class="mt-1">
+        <Button
+          :label="t('transactionDetail.effectiveAmountOverride')"
+          icon="pi pi-pencil"
+          severity="secondary"
+          text
+          size="small"
+          @click="startEditEffective"
+          data-testid="edit-effective-btn"
         />
       </div>
     </div>

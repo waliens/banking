@@ -71,11 +71,16 @@ export const useTransactionStore = defineStore('transactions', () => {
     return data
   }
 
+  async function setEffectiveAmount(id, amount) {
+    const { data } = await api.put(`/transactions/${id}/effective-amount`, { effective_amount: amount })
+    return data
+  }
+
   return {
     transactions, totalCount, loading, reviewCount,
     fetchTransactions, setCategory, tagBatch,
     reviewTransaction, reviewBatch, fetchReviewCount,
     markDuplicate, fetchDuplicateCandidates,
-    unmarkDuplicate, fetchTransaction,
+    unmarkDuplicate, fetchTransaction, setEffectiveAmount,
   }
 })

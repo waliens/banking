@@ -52,14 +52,18 @@ watch(() => props.transactionId, loadDetail, { immediate: true })
 
 <template>
   <div class="p-4">
-    <Button
-      :label="t('flow.backToFlow')"
-      icon="pi pi-arrow-left"
-      text
-      size="small"
-      class="mb-4"
-      @click="emit('back')"
-    />
+    <div class="flex items-center gap-2 mb-4">
+      <Button
+        :label="t('flow.backToFlow')"
+        icon="pi pi-arrow-left"
+        text
+        size="small"
+        @click="emit('back')"
+      />
+      <router-link v-if="transaction" :to="`/transactions/${transaction.id}`">
+        <Button :label="t('transactionDetail.openFullPage')" icon="pi pi-external-link" severity="secondary" size="small" text />
+      </router-link>
+    </div>
 
     <div v-if="loading" class="flex items-center justify-center py-12">
       <i class="pi pi-spinner pi-spin text-2xl text-surface-400"></i>

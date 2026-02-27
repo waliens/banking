@@ -454,6 +454,37 @@ class TestDuplicates:
         assert r.status_code == 400
 
 
+class TestSetEffectiveAmount:
+    def test_set_effective_amount(self, client, auth_headers, sample_transaction):
+        r = client.put(
+            f"/api/v2/transactions/{sample_transaction.id}/effective-amount",
+            json={"effective_amount": "30.00"},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        assert r.json()["effective_amount"] == "30.00"
+
+    def test_clear_effective_amount(self, client, auth_headers, db, sample_transaction):
+        sample_transaction.effective_amount = Decimal("30.00")
+        db.flush()
+
+        r = client.put(
+            f"/api/v2/transactions/{sample_transaction.id}/effective-amount",
+            json={"effective_amount": None},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        assert r.json()["effective_amount"] is None
+
+    def test_set_effective_amount_not_found(self, client, auth_headers, currency_eur):
+        r = client.put(
+            "/api/v2/transactions/99999/effective-amount",
+            json={"effective_amount": "10.00"},
+            headers=auth_headers,
+        )
+        assert r.status_code == 404
+
+
 class TestImportIdFilter:
     def test_filter_by_import_id(self, client, auth_headers, import_record):
         r = client.get(f"/api/v2/transactions?import_id={import_record.id}", headers=auth_headers)

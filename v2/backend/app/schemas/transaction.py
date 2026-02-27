@@ -76,5 +76,9 @@ class ReviewBatchResponse(BaseModel):
     count: int
 
 
+class EffectiveAmountUpdate(BaseModel):
+    effective_amount: Decimal | None
+
+
 class ReviewInboxCountResponse(BaseModel):
     count: int

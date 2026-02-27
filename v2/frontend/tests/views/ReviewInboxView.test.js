@@ -46,11 +46,10 @@ import ReviewInboxView from '../../src/views/ReviewInboxView.vue'
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {} } })
 
 const stubComponents = {
-  DataTable: { template: '<div><slot /></div>', props: ['value', 'loading', 'lazy', 'paginator', 'rows', 'totalRecords', 'expandedRows', 'dataKey', 'stripedRows', 'responsiveLayout'] },
-  Column: { template: '<div />', props: ['field', 'header', 'expander', 'style'] },
+  DataTable: { template: '<div><slot /></div>', props: ['value', 'loading', 'lazy', 'paginator', 'rows', 'totalRecords', 'dataKey', 'stripedRows', 'responsiveLayout'] },
+  Column: { template: '<div />', props: ['field', 'header', 'style'] },
   Select: { template: '<select />', props: ['modelValue', 'options', 'optionLabel', 'optionValue', 'placeholder'] },
   Button: { template: '<button @click="$emit(\'click\')">{{ label }}</button>', props: ['label', 'severity', 'size', 'icon', 'disabled', 'text', 'outlined'] },
-  DuplicateCandidates: { template: '<div />', props: ['transactionId'] },
   MLSuggestion: { template: '<div />', props: ['categoryName', 'categoryColor', 'probability'] },
   CurrencyDisplay: { template: '<span />', props: ['amount', 'currencySymbol', 'showSign', 'colored'] },
   InputText: { template: '<input />', props: ['modelValue', 'placeholder'] },
@@ -59,6 +58,10 @@ const stubComponents = {
   ToggleSwitch: { template: '<input type="checkbox" />', props: ['modelValue'] },
   Drawer: { template: '<div><slot /></div>', props: ['visible', 'position', 'header'] },
   TransactionDetail: { template: '<div />', props: ['transaction', 'showFullDetails'] },
+  AccountDisplay: { template: '<span />', props: ['account'] },
+  AccountSelect: { template: '<select />', props: ['modelValue', 'placeholder', 'showClear'] },
+  CategorySelect: { template: '<select />', props: ['modelValue', 'placeholder', 'showClear'] },
+  'router-link': { template: '<a><slot /></a>', props: ['to'] },
 }
 
 describe('ReviewInboxView', () => {
