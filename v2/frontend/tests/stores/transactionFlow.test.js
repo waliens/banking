@@ -66,7 +66,7 @@ describe('useTransactionFlowStore', () => {
       await store.fetchPage({})
 
       expect(store.groupCache[99]).toEqual(group)
-      expect(api.get).toHaveBeenCalledWith('/transaction-groups/99')
+      expect(api.get).toHaveBeenCalledWith('/transaction-groups/99', { params: { wallet_id: undefined } })
     })
 
     it('does not refetch already cached groups', async () => {
@@ -128,38 +128,58 @@ describe('isIncome', () => {
 describe('collapseGroups', () => {
   it('replaces first grouped transaction with group placeholder', () => {
     const items = [
-      { id: 1, id_transaction_group: 10 },
-      { id: 2, id_transaction_group: 10 },
-      { id: 3, id_transaction_group: null },
+      { id: 1, id_transaction_group: 10, date: '2024-06-02' },
+      { id: 2, id_transaction_group: 10, date: '2024-06-03' },
+      { id: 3, id_transaction_group: null, date: '2024-06-04' },
     ]
-    const cache = { 10: { id: 10, name: 'Group A' } }
+    const cache = { 10: { id: 10, name: 'Group A', transactions: [
+      { id: 1, date: '2024-06-02' },
+      { id: 2, date: '2024-06-03' },
+    ] } }
 
     const result = collapseGroups(items, cache)
 
     expect(result).toHaveLength(2)
-    expect(result[0]).toEqual({ type: 'group', group: cache[10] })
-    expect(result[1]).toEqual({ type: 'transaction', transaction: items[2] })
+    expect(result[0]).toEqual({ type: 'group', group: cache[10], date: '2024-06-02' })
+    expect(result[1]).toEqual({ type: 'transaction', transaction: items[2], date: '2024-06-04' })
+  })
+
+  it('uses earliest transaction date for group placement', () => {
+    const items = [
+      { id: 1, id_transaction_group: 10, date: '2024-06-05' },
+    ]
+    const cache = { 10: { id: 10, name: 'Group A', transactions: [
+      { id: 1, date: '2024-06-05' },
+      { id: 2, date: '2024-06-01' },
+    ] } }
+
+    const result = collapseGroups(items, cache)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].date).toBe('2024-06-01')
   })
 
   it('falls back to transaction if group not in cache', () => {
-    const items = [{ id: 1, id_transaction_group: 99 }]
+    const items = [{ id: 1, id_transaction_group: 99, date: '2024-06-01' }]
 
     const result = collapseGroups(items, {})
 
     expect(result).toHaveLength(1)
-    expect(result[0]).toEqual({ type: 'transaction', transaction: items[0] })
+    expect(result[0]).toEqual({ type: 'transaction', transaction: items[0], date: '2024-06-01' })
   })
 
   it('handles ungrouped transactions', () => {
     const items = [
-      { id: 1, id_transaction_group: null },
-      { id: 2, id_transaction_group: null },
+      { id: 1, id_transaction_group: null, date: '2024-06-01' },
+      { id: 2, id_transaction_group: null, date: '2024-06-02' },
     ]
 
     const result = collapseGroups(items, {})
 
     expect(result).toHaveLength(2)
     expect(result[0].type).toBe('transaction')
+    expect(result[0].date).toBe('2024-06-01')
     expect(result[1].type).toBe('transaction')
+    expect(result[1].date).toBe('2024-06-02')
   })
 })

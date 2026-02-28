@@ -183,8 +183,13 @@ onMounted(async () => {
       <div class="flex items-center gap-2 text-sm">
         <span class="text-surface-500">{{ t('transactions.category') }}:</span>
       </div>
+      <div v-if="transaction.category_splits && transaction.category_splits.length > 1" class="flex items-center gap-2 text-sm text-surface-600">
+        <i class="pi pi-tags"></i>
+        <span>{{ t('transactionDetail.multiCategory', { count: transaction.category_splits.length }) }}</span>
+      </div>
       <CategorySelect
-        :modelValue="transaction.id_category"
+        v-else
+        :modelValue="transaction.category_splits && transaction.category_splits.length === 1 ? transaction.category_splits[0].id_category : null"
         @update:modelValue="onCategoryChange"
         :placeholder="t('transactions.uncategorized')"
         :showClear="true"

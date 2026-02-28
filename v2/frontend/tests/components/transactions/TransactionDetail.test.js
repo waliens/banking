@@ -25,6 +25,7 @@ const messages = {
     transactionDetail: {
       effectiveAmountOverride: 'Custom effective amount',
       clearOverride: 'Clear override',
+      multiCategory: '{count} categories',
     },
     flow: {
       reviewed: 'Reviewed',
@@ -90,7 +91,7 @@ function mountDetail(transaction = {}) {
         source: { name: 'Checking', number: 'BE1234', institution: null },
         dest: { name: 'Coffee Corp', number: 'BE5678', institution: null },
         category_name: 'Food',
-        id_category: 5,
+        category_splits: [{ id_category: 5, amount: '4.50' }],
         is_reviewed: true,
         notes: null,
         data_source: null,
@@ -177,6 +178,29 @@ describe('TransactionDetail', () => {
     const wrapper = mountDetail()
     await wrapper.find('[data-testid="edit-effective-btn"]').trigger('click')
     expect(wrapper.find('[data-testid="effective-amount-input"]').exists()).toBe(true)
+  })
+
+  it('shows multi-category indicator when multiple splits', () => {
+    const wrapper = mountDetail({
+      category_splits: [
+        { id_category: 5, amount: '3.00' },
+        { id_category: 6, amount: '1.50' },
+      ],
+    })
+    expect(wrapper.text()).toContain('2 categories')
+    expect(wrapper.find('.category-select-stub').exists()).toBe(false)
+  })
+
+  it('shows CategorySelect when single split', () => {
+    const wrapper = mountDetail({
+      category_splits: [{ id_category: 5, amount: '4.50' }],
+    })
+    expect(wrapper.find('.category-select-stub').exists()).toBe(true)
+  })
+
+  it('shows CategorySelect when no splits', () => {
+    const wrapper = mountDetail({ category_splits: [] })
+    expect(wrapper.find('.category-select-stub').exists()).toBe(true)
   })
 
   it('saves effective amount via API', async () => {

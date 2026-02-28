@@ -22,6 +22,7 @@ from app.models import (
     Account,
     AccountAlias,
     Category,
+    CategorySplit,
     Currency,
     ImportRecord,
     Transaction,
@@ -196,6 +197,15 @@ def wallet(db, account_checking) -> Wallet:
     db.add(wa)
     db.flush()
     return w
+
+
+def categorize(db: Session, transaction: Transaction, category: Category) -> CategorySplit:
+    """Helper to create a category split for a transaction (simulates single-category assignment)."""
+    effective = transaction.effective_amount if transaction.effective_amount is not None else transaction.amount
+    cs = CategorySplit(id_transaction=transaction.id, id_category=category.id, amount=effective)
+    db.add(cs)
+    db.flush()
+    return cs
 
 
 @pytest.fixture

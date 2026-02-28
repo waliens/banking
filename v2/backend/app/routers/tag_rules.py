@@ -61,7 +61,9 @@ def delete_tag_rule(rule_id: int, db: Session = Depends(get_db), _user: User = D
 @router.post("/apply", response_model=TagRuleApplyResponse)
 def apply_tag_rules(db: Session = Depends(get_db), _user: User = Depends(get_current_user)) -> TagRuleApplyResponse:
     uncategorized = (
-        db.query(Transaction).filter(Transaction.id_category.is_(None), Transaction.id_duplicate_of.is_(None)).all()
+        db.query(Transaction)
+        .filter(~Transaction.category_splits.any(), Transaction.id_duplicate_of.is_(None))
+        .all()
     )
     count = apply_rules(db, uncategorized)
     return TagRuleApplyResponse(applied_count=count)

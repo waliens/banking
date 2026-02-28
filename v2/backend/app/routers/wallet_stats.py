@@ -7,7 +7,7 @@ from sqlalchemy import Select, case, extract, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
-from app.models import Account, Category, Currency, Transaction, User, Wallet, WalletAccount
+from app.models import Account, Category, CategorySplit, Currency, Transaction, User, Wallet, WalletAccount
 from app.schemas.wallet_stats import (
     AccountBalanceItem,
     CategoryStatItem,
@@ -262,20 +262,24 @@ def wallet_per_category(
     # Filter by category descendants
     if id_category is not None:
         descendant_ids = _get_category_descendants(db, id_category)
-        filters.append(Transaction.id_category.in_(descendant_ids))
+        filters.append(CategorySplit.id_category.in_(descendant_ids))
 
-    # Build SELECT columns and GROUP BY
+    # Join through category_split to get per-category amounts
+    # For standalone transactions: use split amount from category_split joined via id_transaction
+    # We use a LEFT JOIN so uncategorized transactions (no splits) also appear
+    # For uncategorized transactions, fall back to transaction's effective amount
+    split_amount = func.coalesce(CategorySplit.amount, effective)
     select_cols = [
-        Transaction.id_category,
+        CategorySplit.id_category,
         Category.name.label("category_name"),
         Category.color.label("category_color"),
         Category.icon.label("category_icon"),
         Category.id_parent.label("id_parent"),
-        func.sum(effective).label("amount"),
+        func.sum(split_amount).label("amount"),
         Transaction.id_currency,
     ]
     group_cols = [
-        Transaction.id_category,
+        CategorySplit.id_category,
         Category.name,
         Category.color,
         Category.icon,
@@ -290,12 +294,15 @@ def wallet_per_category(
             select_cols.append(extract("month", Transaction.date).label("period_month"))
             group_cols.append(extract("month", Transaction.date))
 
+    # Join: transaction -> category_split (on id_transaction) -> category
+    # Also include uncategorized transactions via outer join
     q = (
         select(*select_cols)
-        .outerjoin(Category, Transaction.id_category == Category.id)
+        .outerjoin(CategorySplit, CategorySplit.id_transaction == Transaction.id)
+        .outerjoin(Category, CategorySplit.id_category == Category.id)
         .where(*filters)
         .group_by(*group_cols)
-        .order_by(func.sum(effective).desc())
+        .order_by(func.sum(split_amount).desc())
     )
 
     rows = db.execute(q).all()
@@ -309,7 +316,7 @@ def wallet_per_category(
             category_color=row.category_color,
             category_icon=getattr(row, "category_icon", None),
             id_parent=getattr(row, "id_parent", None),
-            amount=row.amount,
+            amount=row.amount or Decimal(0),
             id_currency=row.id_currency,
             period_year=int(row.period_year) if hasattr(row, "period_year") and row.period_year is not None else None,
             period_month=int(row.period_month) if hasattr(row, "period_month") and row.period_month is not None else None,

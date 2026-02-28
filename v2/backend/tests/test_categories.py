@@ -2,6 +2,8 @@
 
 import pytest
 
+from tests.conftest import categorize
+
 
 class TestListCategories:
     def test_list_empty(self, client, auth_headers):
@@ -124,17 +126,16 @@ class TestDeleteCategory:
         assert r2.json()["id_parent"] is None
 
     def test_delete_unlinks_transactions(self, client, auth_headers, db, category_food, sample_transaction):
-        # assign category to transaction
-        sample_transaction.id_category = category_food.id
-        db.flush()
+        # assign category to transaction via split
+        categorize(db, sample_transaction, category_food)
 
         r = client.delete(f"/api/v2/categories/{category_food.id}", headers=auth_headers)
         assert r.status_code == 204
 
-        # transaction should have no category
+        # transaction should have no category splits
         db.expire_all()
         r2 = client.get(f"/api/v2/transactions/{sample_transaction.id}", headers=auth_headers)
-        assert r2.json()["id_category"] is None
+        assert r2.json()["category_splits"] == []
 
     def test_delete_not_found(self, client, auth_headers):
         r = client.delete("/api/v2/categories/99999", headers=auth_headers)

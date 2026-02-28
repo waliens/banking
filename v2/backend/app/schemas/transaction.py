@@ -7,6 +7,24 @@ from app.schemas.account import AccountResponse, CurrencyResponse
 from app.schemas.category import CategoryResponse
 
 
+class CategorySplitItem(BaseModel):
+    id_category: int
+    amount: Decimal
+
+
+class CategorySplitResponse(BaseModel):
+    id: int
+    id_category: int
+    amount: Decimal
+    category: CategoryResponse | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class SetCategorySplitsRequest(BaseModel):
+    splits: list[CategorySplitItem]
+
+
 class TransactionResponse(BaseModel):
     id: int
     external_id: str | None
@@ -16,7 +34,6 @@ class TransactionResponse(BaseModel):
     raw_metadata: dict[str, object] | None
     amount: Decimal
     id_currency: int
-    id_category: int | None
     data_source: str | None
     id_duplicate_of: int | None
     description: str
@@ -28,7 +45,7 @@ class TransactionResponse(BaseModel):
     source: AccountResponse | None = None
     dest: AccountResponse | None = None
     currency: CurrencyResponse
-    category: CategoryResponse | None = None
+    category_splits: list[CategorySplitResponse] = []
 
     model_config = {"from_attributes": True}
 
@@ -52,7 +69,6 @@ class TransactionUpdate(BaseModel):
     raw_metadata: dict[str, object] | None = None
     amount: Decimal | None = None
     id_currency: int | None = None
-    id_category: int | None = None
     description: str | None = None
     notes: str | None = None
     is_reviewed: bool | None = None

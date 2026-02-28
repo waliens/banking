@@ -4,7 +4,8 @@ import datetime
 from decimal import Decimal
 
 import pytest
-from app.models import Transaction
+from app.models import CategorySplit, Transaction
+from tests.conftest import categorize
 
 
 class TestListTransactions:
@@ -80,8 +81,7 @@ class TestListTransactions:
         assert len(r2.json()) == 0
 
         # label it
-        sample_transaction.id_category = category_food.id
-        db.flush()
+        categorize(db, sample_transaction, category_food)
 
         r3 = client.get("/api/v2/transactions?labeled=true", headers=auth_headers)
         assert len(r3.json()) == 1
@@ -155,6 +155,7 @@ class TestGetTransaction:
         assert data["amount"] == "50.00"
         assert data["source"] is not None
         assert data["dest"] is not None
+        assert data["category_splits"] == []
 
     def test_get_not_found(self, client, auth_headers, currency_eur):
         r = client.get("/api/v2/transactions/99999", headers=auth_headers)
@@ -180,6 +181,7 @@ class TestCreateTransaction:
         assert data["description"] == "Monthly savings"
         assert data["data_source"] == "manual"
         assert data["external_id"] is not None
+        assert data["category_splits"] == []
 
     def test_create_negative_amount_flips_accounts(
         self, client, auth_headers, account_checking, account_savings, currency_eur
@@ -217,7 +219,11 @@ class TestCreateTransaction:
             headers=auth_headers,
         )
         assert r.status_code == 201
-        assert r.json()["is_reviewed"] is True
+        data = r.json()
+        assert data["is_reviewed"] is True
+        assert len(data["category_splits"]) == 1
+        assert data["category_splits"][0]["id_category"] == category_food.id
+        assert Decimal(data["category_splits"][0]["amount"]) == Decimal("25.00")
 
 
 class TestUpdateTransaction:
@@ -263,7 +269,8 @@ class TestSetCategory:
         )
         assert r.status_code == 200
         data = r.json()
-        assert data["id_category"] == category_food.id
+        assert len(data["category_splits"]) == 1
+        assert data["category_splits"][0]["id_category"] == category_food.id
         assert data["is_reviewed"] is True
 
 
@@ -329,7 +336,7 @@ class TestReview:
         assert data["count"] == 2
 
     def test_review_inbox_count(self, client, auth_headers, db, sample_transaction, currency_eur, account_checking):
-        # sample_transaction: is_reviewed=False, id_category=None, id_duplicate_of=None -> in inbox
+        # sample_transaction: is_reviewed=False, no category_splits, id_duplicate_of=None -> in inbox
         r = client.get("/api/v2/transactions/review-inbox/count", headers=auth_headers)
         assert r.status_code == 200
         assert r.json()["count"] == 1
@@ -365,10 +372,10 @@ class TestReview:
             amount=Decimal("25.00"),
             id_currency=currency_eur.id,
             data_source="manual",
-            id_category=category_food.id,
         )
         db.add_all([t_reviewed, t_dup, t_categorized])
         db.flush()
+        categorize(db, t_categorized, category_food)
 
         r = client.get("/api/v2/transactions/review-inbox/count", headers=auth_headers)
         assert r.json()["count"] == 1  # only sample_transaction
@@ -507,3 +514,114 @@ class TestImportIdFilter:
         data = r.json()
         ids = {t["id"] for t in data}
         assert sample_transaction.id not in ids
+
+
+class TestExcludeGrouped:
+    def test_exclude_grouped_filters_grouped_transactions(
+        self, client, auth_headers, db, sample_transaction, currency_eur, account_checking
+    ):
+        from app.models import TransactionGroup
+
+        ungrouped = Transaction(
+            external_id="tx-ungrouped",
+            id_source=account_checking.id,
+            date=datetime.date(2024, 6, 20),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        db.add(ungrouped)
+        db.flush()
+
+        group = TransactionGroup(name="G1")
+        db.add(group)
+        db.flush()
+        sample_transaction.id_transaction_group = group.id
+        db.flush()
+
+        # Without filter: both transactions
+        r = client.get("/api/v2/transactions", headers=auth_headers)
+        assert len(r.json()) == 2
+
+        # With filter: only ungrouped
+        r2 = client.get("/api/v2/transactions?exclude_grouped=true", headers=auth_headers)
+        assert len(r2.json()) == 1
+        assert r2.json()[0]["id"] == ungrouped.id
+
+    def test_exclude_grouped_count(
+        self, client, auth_headers, db, sample_transaction, currency_eur, account_checking
+    ):
+        from app.models import TransactionGroup
+
+        ungrouped = Transaction(
+            external_id="tx-ungrouped-cnt",
+            id_source=account_checking.id,
+            date=datetime.date(2024, 6, 20),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        db.add(ungrouped)
+        db.flush()
+
+        group = TransactionGroup(name="G1")
+        db.add(group)
+        db.flush()
+        sample_transaction.id_transaction_group = group.id
+        db.flush()
+
+        r = client.get("/api/v2/transactions/count?exclude_grouped=true", headers=auth_headers)
+        assert r.json()["count"] == 1
+
+
+class TestCategorySplits:
+    def test_set_splits(self, client, auth_headers, db, sample_transaction, category_food, category_salary):
+        r = client.put(
+            f"/api/v2/transactions/{sample_transaction.id}/category-splits",
+            json={
+                "splits": [
+                    {"id_category": category_food.id, "amount": "30.00"},
+                    {"id_category": category_salary.id, "amount": "20.00"},
+                ]
+            },
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data["category_splits"]) == 2
+        assert data["is_reviewed"] is True
+
+    def test_set_splits_wrong_total(self, client, auth_headers, db, sample_transaction, category_food, category_salary):
+        r = client.put(
+            f"/api/v2/transactions/{sample_transaction.id}/category-splits",
+            json={
+                "splits": [
+                    {"id_category": category_food.id, "amount": "30.00"},
+                    {"id_category": category_salary.id, "amount": "10.00"},
+                ]
+            },
+            headers=auth_headers,
+        )
+        assert r.status_code == 400
+
+    def test_set_splits_too_few(self, client, auth_headers, db, sample_transaction, category_food):
+        r = client.put(
+            f"/api/v2/transactions/{sample_transaction.id}/category-splits",
+            json={
+                "splits": [
+                    {"id_category": category_food.id, "amount": "50.00"},
+                ]
+            },
+            headers=auth_headers,
+        )
+        assert r.status_code == 400
+
+    def test_clear_splits(self, client, auth_headers, db, sample_transaction, category_food):
+        categorize(db, sample_transaction, category_food)
+
+        r = client.delete(
+            f"/api/v2/transactions/{sample_transaction.id}/category-splits",
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        assert len(r.json()["category_splits"]) == 0

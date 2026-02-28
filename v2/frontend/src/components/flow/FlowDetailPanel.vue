@@ -4,11 +4,15 @@ import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
 import api from '../../services/api'
 import { useTransactionFlowStore } from '../../stores/transactionFlow'
+import { useActiveWalletStore } from '../../stores/activeWallet'
+import { useTransactionGroupStore } from '../../stores/transactionGroups'
 import TransactionDetail from '../transactions/TransactionDetail.vue'
 import TransactionGroupDetail from '../transactions/TransactionGroupDetail.vue'
 
 const { t } = useI18n()
 const flowStore = useTransactionFlowStore()
+const activeWalletStore = useActiveWalletStore()
+const groupStore = useTransactionGroupStore()
 
 const props = defineProps({
   transactionId: { type: Number, required: true },
@@ -29,13 +33,12 @@ async function loadDetail() {
     const { data } = await api.get(`/transactions/${props.transactionId}`)
     transaction.value = data
 
-    if (data.id_transaction_group) {
+    if (data.id_transaction_group && activeWalletStore.activeWalletId) {
       const cached = flowStore.groupCache[data.id_transaction_group]
       if (cached) {
         group.value = cached
       } else {
-        const groupRes = await api.get(`/transaction-groups/${data.id_transaction_group}`)
-        group.value = groupRes.data
+        group.value = await groupStore.fetchGroup(data.id_transaction_group, activeWalletStore.activeWalletId)
       }
     }
   } finally {

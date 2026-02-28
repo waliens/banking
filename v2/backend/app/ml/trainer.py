@@ -59,8 +59,8 @@ def train_model(
     if training is not None:
         raise ModelBeingTrainedError("A model is already being trained")
 
-    # Fetch labeled transactions
-    transactions = db.query(Transaction).filter(Transaction.id_category.is_not(None)).all()
+    # Fetch labeled transactions (those with at least one category split)
+    transactions = db.query(Transaction).filter(Transaction.category_splits.any()).all()
     n_samples_actual = len(transactions)
 
     if n_samples_actual < min_samples:
@@ -78,7 +78,7 @@ def train_model(
         transformer.fit(transactions)
         features = transformer.transform(transactions)
 
-        category_ids = np.array([t.id_category for t in transactions])
+        category_ids = np.array([t.category_splits[0].id_category for t in transactions])
         encoder = CategoryEncoder(db, level=class_level)
         y = encoder.transform(category_ids)
 
@@ -131,7 +131,7 @@ def train_model(
 
 def should_train(db: Session, min_samples: int = 50) -> bool:
     """Check if training is warranted: enough data and something changed since last valid model."""
-    n_labeled = db.query(Transaction).filter(Transaction.id_category.is_not(None)).count()
+    n_labeled = db.query(Transaction).filter(Transaction.category_splits.any()).count()
     if n_labeled < min_samples:
         return False
 

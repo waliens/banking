@@ -4,6 +4,7 @@ import re
 
 from sqlalchemy.orm import Session
 
+from app.models.category_split import CategorySplit
 from app.models.tag_rule import TagRule
 from app.models.transaction import Transaction
 
@@ -20,11 +21,17 @@ def apply_rules(db: Session, transactions: list[Transaction]) -> int:
 
     applied = 0
     for t in transactions:
-        if t.id_category is not None:
+        if len(t.category_splits) > 0:
+            continue
+        # Skip grouped transactions (they can't have individual categories)
+        if t.id_transaction_group is not None:
             continue
         for rule in rules:
             if _matches(rule, t):
-                t.id_category = rule.id_category
+                effective = t.effective_amount if t.effective_amount is not None else t.amount
+                t.category_splits.append(
+                    CategorySplit(id_category=rule.id_category, amount=effective)
+                )
                 t.is_reviewed = True
                 applied += 1
                 break

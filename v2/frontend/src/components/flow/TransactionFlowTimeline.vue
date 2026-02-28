@@ -85,25 +85,29 @@ function periodLabel(key) {
 }
 
 const groupedByPeriod = computed(() => {
+  const collapsed = collapseGroups(flowStore.items, flowStore.groupCache)
   const map = new Map()
 
-  for (const tx of flowStore.items) {
-    const key = periodKey(tx.date)
+  for (const item of collapsed) {
+    const key = periodKey(item.date)
     if (!map.has(key)) {
       map.set(key, { label: periodLabel(key), income: [], expense: [] })
     }
     const entry = map.get(key)
-    if (isIncome(tx, props.contextType, props.contextId, props.walletAccountIds)) {
-      entry.income.push(tx)
-    } else {
-      entry.expense.push(tx)
-    }
-  }
 
-  // Collapse groups within each side
-  for (const [, entry] of map) {
-    entry.income = collapseGroups(entry.income, flowStore.groupCache)
-    entry.expense = collapseGroups(entry.expense, flowStore.groupCache)
+    let itemIsIncome
+    if (item.type === 'group') {
+      // Positive net_expense = expense, zero/negative = income
+      itemIsIncome = Number(item.group.net_expense) <= 0
+    } else {
+      itemIsIncome = isIncome(item.transaction, props.contextType, props.contextId, props.walletAccountIds)
+    }
+
+    if (itemIsIncome) {
+      entry.income.push(item)
+    } else {
+      entry.expense.push(item)
+    }
   }
 
   return map

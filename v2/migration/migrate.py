@@ -180,6 +180,7 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
         if not dry_run:
             for table in [
                 "expense_split_reimbursement", "expense_split",
+                "category_split",
                 "tag_rule", "recurring_pattern", "ml_model",
                 "wallet_account", "wallet",
                 "transaction", "account_alias", "account",
@@ -288,10 +289,10 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
             v2.execute(text(
                 "INSERT INTO transaction "
                 "  (id, external_id, id_source, id_dest, date, raw_metadata, amount, "
-                "   id_currency, id_category, data_source, description, is_reviewed) "
+                "   id_currency, data_source, description, is_reviewed) "
                 "VALUES "
                 "  (:id, :external_id, :id_source, :id_dest, :date, :raw_metadata, :amount, "
-                "   :id_currency, :id_category, :data_source, :description, :is_reviewed)"
+                "   :id_currency, :data_source, :description, :is_reviewed)"
             ), {
                 "id": t.id,
                 "external_id": t.custom_id,
@@ -301,7 +302,6 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
                 "raw_metadata": json.dumps(t.metadata) if t.metadata else None,
                 "amount": t.amount,
                 "id_currency": t.id_currency,
-                "id_category": t.id_category,
                 "data_source": t.data_source,
                 "description": t.description or "",
                 "is_reviewed": t.id_category is not None,
@@ -315,7 +315,16 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
                 "UPDATE transaction SET id_duplicate_of = :dup_id WHERE id = :id"
             ), {"id": tid, "dup_id": dup_id})
         commit_or_dry(v2)
-        print(f"  {len(transactions)} transactions ({len(duplicates)} duplicate links)")
+
+        # Pass 3: create category_split rows for categorized transactions
+        categorized = [(t.id, t.id_category, t.amount) for t in transactions if t.id_category is not None]
+        for tid, cat_id, amount in categorized:
+            v2.execute(text(
+                "INSERT INTO category_split (id_transaction, id_category, amount) "
+                "VALUES (:id_transaction, :id_category, :amount)"
+            ), {"id_transaction": tid, "id_category": cat_id, "amount": abs(amount)})
+        commit_or_dry(v2)
+        print(f"  {len(transactions)} transactions ({len(duplicates)} duplicate links, {len(categorized)} category splits)")
 
         # ── 8. Groups → Wallets ────────────────────────────────────────────
         print("Migrating groups to wallets...")
@@ -363,6 +372,7 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
                 "currency", '"user"', "category",
                 "account", "account_alias",
                 "transaction", "wallet", "ml_model",
+                "category_split",
             ]:
                 v2.execute(text(
                     f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE(MAX(id), 1)) FROM {table}"

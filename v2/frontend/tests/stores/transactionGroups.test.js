@@ -29,9 +29,9 @@ describe('useTransactionGroupStore', () => {
       ]
       api.get.mockResolvedValueOnce({ data: groups })
 
-      await store.fetchGroups()
+      await store.fetchGroups(5)
 
-      expect(api.get).toHaveBeenCalledWith('/transaction-groups')
+      expect(api.get).toHaveBeenCalledWith('/transaction-groups', { params: { wallet_id: 5 } })
       expect(store.groups).toEqual(groups)
       expect(store.loading).toBe(false)
     })
@@ -39,7 +39,7 @@ describe('useTransactionGroupStore', () => {
     it('resets loading on error', async () => {
       api.get.mockRejectedValueOnce(new Error('fail'))
 
-      await expect(store.fetchGroups()).rejects.toThrow()
+      await expect(store.fetchGroups(5)).rejects.toThrow()
       expect(store.loading).toBe(false)
     })
   })
@@ -87,13 +87,13 @@ describe('useTransactionGroupStore', () => {
   })
 
   describe('fetchGroup', () => {
-    it('returns group data', async () => {
+    it('returns group data with wallet_id', async () => {
       const group = { id: 1, name: 'Dinner', transactions: [], total_paid: '100', total_reimbursed: '75', net_expense: '25' }
       api.get.mockResolvedValueOnce({ data: group })
 
-      const result = await store.fetchGroup(1)
+      const result = await store.fetchGroup(1, 5)
 
-      expect(api.get).toHaveBeenCalledWith('/transaction-groups/1')
+      expect(api.get).toHaveBeenCalledWith('/transaction-groups/1', { params: { wallet_id: 5 } })
       expect(result).toEqual(group)
     })
   })

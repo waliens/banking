@@ -49,8 +49,11 @@ export const useTransactionFlowStore = defineStore('transactionFlow', () => {
         ),
       ]
       if (uncachedGroupIds.length > 0) {
+        const walletId = params.wallet
         const groupResults = await Promise.all(
-          uncachedGroupIds.map((id) => api.get(`/transaction-groups/${id}`)),
+          uncachedGroupIds.map((id) =>
+            api.get(`/transaction-groups/${id}`, { params: { wallet_id: walletId } }),
+          ),
         )
         const newCache = { ...groupCache.value }
         groupResults.forEach((res) => {
@@ -101,12 +104,16 @@ export function collapseGroups(items, groupCache) {
       seenGroups.add(tx.id_transaction_group)
       const group = groupCache[tx.id_transaction_group]
       if (group) {
-        result.push({ type: 'group', group })
+        // Use earliest transaction date for period placement
+        const earliestDate = group.transactions
+          ?.map((t) => t.date)
+          .sort()[0] || tx.date
+        result.push({ type: 'group', group, date: earliestDate })
       } else {
-        result.push({ type: 'transaction', transaction: tx })
+        result.push({ type: 'transaction', transaction: tx, date: tx.date })
       }
     } else {
-      result.push({ type: 'transaction', transaction: tx })
+      result.push({ type: 'transaction', transaction: tx, date: tx.date })
     }
   }
 

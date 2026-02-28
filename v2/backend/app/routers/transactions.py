@@ -4,18 +4,19 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import Select, func, or_, select, update
+from sqlalchemy import Select, exists, func, or_, select, update
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from app.dependencies import get_current_user, get_db
-from app.models import Transaction, User, WalletAccount
+from app.models import CategorySplit, Transaction, User, WalletAccount
 from app.schemas.ml import PredictionItem
 from app.schemas.transaction import (
     EffectiveAmountUpdate,
     ReviewBatchRequest,
     ReviewBatchResponse,
     ReviewInboxCountResponse,
+    SetCategorySplitsRequest,
     TransactionCountResponse,
     TransactionCreate,
     TransactionResponse,
@@ -45,6 +46,7 @@ def _build_transaction_query(
     sort_by: str | None = None,
     order: str = "desc",
     import_id: int | None = None,
+    exclude_grouped: bool = False,
 ) -> Select[tuple[Transaction]]:
     q = select(Transaction)
 
@@ -81,9 +83,9 @@ def _build_transaction_query(
             )
 
     if labeled is True:
-        q = q.where(Transaction.id_category.is_not(None))
+        q = q.where(Transaction.category_splits.any())
     elif labeled is False:
-        q = q.where(Transaction.id_category.is_(None))
+        q = q.where(~Transaction.category_splits.any())
 
     if is_reviewed is not None:
         q = q.where(Transaction.is_reviewed == is_reviewed)
@@ -105,6 +107,9 @@ def _build_transaction_query(
 
     if import_id is not None:
         q = q.where(Transaction.id_import == import_id)
+
+    if exclude_grouped:
+        q = q.where(Transaction.id_transaction_group.is_(None))
 
     if search_query and len(search_query) >= 3:
         q = q.where(Transaction.description.ilike(f"%{search_query}%"))
@@ -142,6 +147,7 @@ def list_transactions(
     duplicate_only: bool = False,
     search_query: str | None = None,
     import_id: int | None = None,
+    exclude_grouped: bool = False,
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> list[Transaction]:
@@ -163,6 +169,7 @@ def list_transactions(
         sort_by=sort_by,
         order=order,
         import_id=import_id,
+        exclude_grouped=exclude_grouped,
     )
     results = db.execute(q.offset(start).limit(count)).scalars().unique().all()
     return list(results)
@@ -184,6 +191,7 @@ def count_transactions(
     duplicate_only: bool = False,
     search_query: str | None = None,
     import_id: int | None = None,
+    exclude_grouped: bool = False,
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> TransactionCountResponse:
@@ -203,6 +211,7 @@ def count_transactions(
         duplicate_only=duplicate_only,
         search_query=search_query,
         import_id=import_id,
+        exclude_grouped=exclude_grouped,
     )
     count_q = select(func.count()).select_from(q.subquery())
     return TransactionCountResponse(count=db.execute(count_q).scalar_one())
@@ -213,11 +222,18 @@ def tag_batch(
     body: TransactionTagBatch, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
 ) -> dict[str, str]:
     for item in body.categories:
-        db.execute(
-            update(Transaction)
-            .where(Transaction.id == item["id_transaction"])
-            .values(id_category=item["id_category"], is_reviewed=True)
-        )
+        tx_id = item["id_transaction"]
+        cat_id = item["id_category"]
+        t = db.get(Transaction, tx_id)
+        if t is None:
+            continue
+        # Delete existing splits and create a single new one
+        for cs in list(t.category_splits):
+            db.delete(cs)
+        db.flush()
+        effective = t.effective_amount if t.effective_amount is not None else t.amount
+        t.category_splits.append(CategorySplit(id_category=cat_id, amount=effective))
+        t.is_reviewed = True
     db.commit()
     return {"msg": "success"}
 
@@ -235,11 +251,12 @@ def review_batch(
 def review_inbox_count(
     db: Session = Depends(get_db), _user: User = Depends(get_current_user)
 ) -> ReviewInboxCountResponse:
+    has_split = exists(select(CategorySplit.id).where(CategorySplit.id_transaction == Transaction.id))
     q = select(func.count()).select_from(
         select(Transaction)
         .where(
             Transaction.is_reviewed == False,  # noqa: E712
-            Transaction.id_category.is_(None),
+            ~has_split,
             Transaction.id_duplicate_of.is_(None),
         )
         .subquery()
@@ -272,6 +289,10 @@ def set_effective_amount(
     if t is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
     t.effective_amount = body.effective_amount
+    # Rescale single split if present
+    if len(t.category_splits) == 1:
+        new_amount = body.effective_amount if body.effective_amount is not None else t.amount
+        t.category_splits[0].amount = new_amount
     db.commit()
     db.refresh(t)
     return t
@@ -305,13 +326,17 @@ def create_transaction(
         raw_metadata=body.raw_metadata or {},
         amount=amount,
         id_currency=body.id_currency,
-        id_category=body.id_category,
         data_source="manual",
         description=body.description,
         notes=body.notes,
         is_reviewed=body.id_category is not None,
     )
     db.add(t)
+    db.flush()
+
+    if body.id_category is not None:
+        t.category_splits.append(CategorySplit(id_category=body.id_category, amount=amount))
+
     db.commit()
     db.refresh(t)
     return t
@@ -367,8 +392,63 @@ def set_category(
     if t is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
-    t.id_category = category_id
+    # Delete existing splits and create a single new one
+    for cs in list(t.category_splits):
+        db.delete(cs)
+    db.flush()
+    effective = t.effective_amount if t.effective_amount is not None else t.amount
+    t.category_splits.append(CategorySplit(id_category=category_id, amount=effective))
     t.is_reviewed = True
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.put("/{transaction_id}/category-splits", response_model=TransactionResponse)
+def set_category_splits(
+    transaction_id: int,
+    body: SetCategorySplitsRequest,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> Transaction:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+    if t.id_transaction_group is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Transaction is in a group; set splits on the group instead")
+    if len(body.splits) < 2:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="At least 2 splits required")
+
+    expected = t.effective_amount if t.effective_amount is not None else t.amount
+    total = sum(s.amount for s in body.splits)
+    if total != expected:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Split total {total} does not match expected {expected}",
+        )
+
+    for cs in list(t.category_splits):
+        db.delete(cs)
+    db.flush()
+    for s in body.splits:
+        t.category_splits.append(CategorySplit(id_category=s.id_category, amount=s.amount))
+    t.is_reviewed = True
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.delete("/{transaction_id}/category-splits", response_model=TransactionResponse)
+def clear_category_splits(
+    transaction_id: int,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> Transaction:
+    t = db.get(Transaction, transaction_id)
+    if t is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
+    for cs in list(t.category_splits):
+        db.delete(cs)
     db.commit()
     db.refresh(t)
     return t

@@ -6,6 +6,7 @@ from decimal import Decimal
 import pytest
 
 from app.models import Account, Category, Currency, Transaction, Wallet, WalletAccount
+from tests.conftest import categorize
 
 
 @pytest.fixture
@@ -225,30 +226,32 @@ class TestPerCategory:
         category_salary,
     ):
         # Expense: food
-        db.add(
-            Transaction(
-                external_id="cat-1",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("45.00"),
-                id_currency=currency_eur.id,
-                id_category=category_food.id,
-                description="Groceries",
-            )
+        t1 = Transaction(
+            external_id="cat-1",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("45.00"),
+            id_currency=currency_eur.id,
+            description="Groceries",
         )
-        db.add(
-            Transaction(
-                external_id="cat-2",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 5),
-                amount=Decimal("30.00"),
-                id_currency=currency_eur.id,
-                id_category=category_food.id,
-                description="Restaurant",
-            )
+        db.add(t1)
+        db.flush()
+        categorize(db, t1, category_food)
+
+        t2 = Transaction(
+            external_id="cat-2",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 5),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            description="Restaurant",
         )
+        db.add(t2)
+        db.flush()
+        categorize(db, t2, category_food)
+
         # Uncategorized expense
         db.add(
             Transaction(
@@ -290,18 +293,19 @@ class TestPerCategory:
         category_salary,
     ):
         # Income with salary category
-        db.add(
-            Transaction(
-                external_id="inc-cat-1",
-                id_source=external_account.id,
-                id_dest=account_checking.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("3000.00"),
-                id_currency=currency_eur.id,
-                id_category=category_salary.id,
-                description="Salary",
-            )
+        t = Transaction(
+            external_id="inc-cat-1",
+            id_source=external_account.id,
+            id_dest=account_checking.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("3000.00"),
+            id_currency=currency_eur.id,
+            description="Salary",
         )
+        db.add(t)
+        db.flush()
+        categorize(db, t, category_salary)
+
         # Expense (should not appear with income_only)
         db.add(
             Transaction(
@@ -389,32 +393,32 @@ class TestPerCategory:
     ):
         """level=0 should aggregate child categories into parent-level buckets."""
         # Expense under child category (Groceries, child of Food)
-        db.add(
-            Transaction(
-                external_id="lvl-1",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("45.00"),
-                id_currency=currency_eur.id,
-                id_category=category_child.id,
-                description="Groceries child",
-            )
+        t1 = Transaction(
+            external_id="lvl-1",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("45.00"),
+            id_currency=currency_eur.id,
+            description="Groceries child",
         )
-        # Expense directly under parent (Food)
-        db.add(
-            Transaction(
-                external_id="lvl-2",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 5),
-                amount=Decimal("30.00"),
-                id_currency=currency_eur.id,
-                id_category=category_food.id,
-                description="Food parent",
-            )
-        )
+        db.add(t1)
         db.flush()
+        categorize(db, t1, category_child)
+
+        # Expense directly under parent (Food)
+        t2 = Transaction(
+            external_id="lvl-2",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 5),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            description="Food parent",
+        )
+        db.add(t2)
+        db.flush()
+        categorize(db, t2, category_food)
 
         r = client.get(
             f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
@@ -441,19 +445,18 @@ class TestPerCategory:
         category_child,
     ):
         """level=1 should return child-level items."""
-        db.add(
-            Transaction(
-                external_id="lvl1-1",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("45.00"),
-                id_currency=currency_eur.id,
-                id_category=category_child.id,
-                description="Groceries child",
-            )
+        t = Transaction(
+            external_id="lvl1-1",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("45.00"),
+            id_currency=currency_eur.id,
+            description="Groceries child",
         )
+        db.add(t)
         db.flush()
+        categorize(db, t, category_child)
 
         r = client.get(
             f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
@@ -481,32 +484,32 @@ class TestPerCategory:
     ):
         """id_category filters to only descendants of given category."""
         # Expense under Food child
-        db.add(
-            Transaction(
-                external_id="idcat-1",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("45.00"),
-                id_currency=currency_eur.id,
-                id_category=category_child.id,
-                description="Groceries",
-            )
+        t1 = Transaction(
+            external_id="idcat-1",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("45.00"),
+            id_currency=currency_eur.id,
+            description="Groceries",
         )
-        # Expense under unrelated category (should not appear)
-        db.add(
-            Transaction(
-                external_id="idcat-2",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 5),
-                amount=Decimal("100.00"),
-                id_currency=currency_eur.id,
-                id_category=category_salary.id,
-                description="Other",
-            )
-        )
+        db.add(t1)
         db.flush()
+        categorize(db, t1, category_child)
+
+        # Expense under unrelated category (should not appear)
+        t2 = Transaction(
+            external_id="idcat-2",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 5),
+            amount=Decimal("100.00"),
+            id_currency=currency_eur.id,
+            description="Other",
+        )
+        db.add(t2)
+        db.flush()
+        categorize(db, t2, category_salary)
 
         r = client.get(
             f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
@@ -530,31 +533,31 @@ class TestPerCategory:
         category_food,
     ):
         """period_bucket=month groups results by month with period_year and period_month."""
-        db.add(
-            Transaction(
-                external_id="pb-1",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("45.00"),
-                id_currency=currency_eur.id,
-                id_category=category_food.id,
-                description="March",
-            )
+        t1 = Transaction(
+            external_id="pb-1",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("45.00"),
+            id_currency=currency_eur.id,
+            description="March",
         )
-        db.add(
-            Transaction(
-                external_id="pb-2",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 4, 1),
-                amount=Decimal("30.00"),
-                id_currency=currency_eur.id,
-                id_category=category_food.id,
-                description="April",
-            )
-        )
+        db.add(t1)
         db.flush()
+        categorize(db, t1, category_food)
+
+        t2 = Transaction(
+            external_id="pb-2",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 4, 1),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            description="April",
+        )
+        db.add(t2)
+        db.flush()
+        categorize(db, t2, category_food)
 
         r = client.get(
             f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
@@ -582,19 +585,18 @@ class TestPerCategory:
         category_food,
     ):
         """period_bucket=year groups results by year with period_year only."""
-        db.add(
-            Transaction(
-                external_id="pby-1",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("45.00"),
-                id_currency=currency_eur.id,
-                id_category=category_food.id,
-                description="2024",
-            )
+        t = Transaction(
+            external_id="pby-1",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("45.00"),
+            id_currency=currency_eur.id,
+            description="2024",
         )
+        db.add(t)
         db.flush()
+        categorize(db, t, category_food)
 
         r = client.get(
             f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
@@ -619,19 +621,18 @@ class TestPerCategory:
         category_food,
     ):
         """Without new params, response shape is identical to before (new fields are null)."""
-        db.add(
-            Transaction(
-                external_id="compat-1",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("45.00"),
-                id_currency=currency_eur.id,
-                id_category=category_food.id,
-                description="Compat test",
-            )
+        t = Transaction(
+            external_id="compat-1",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("45.00"),
+            id_currency=currency_eur.id,
+            description="Compat test",
         )
+        db.add(t)
         db.flush()
+        categorize(db, t, category_food)
 
         r = client.get(
             f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",
@@ -662,31 +663,31 @@ class TestPerCategory:
         category_child,
     ):
         """Test combining level + period_bucket + id_category."""
-        db.add(
-            Transaction(
-                external_id="combo-1",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("45.00"),
-                id_currency=currency_eur.id,
-                id_category=category_child.id,
-                description="Combo March",
-            )
+        t1 = Transaction(
+            external_id="combo-1",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("45.00"),
+            id_currency=currency_eur.id,
+            description="Combo March",
         )
-        db.add(
-            Transaction(
-                external_id="combo-2",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 4, 1),
-                amount=Decimal("30.00"),
-                id_currency=currency_eur.id,
-                id_category=category_child.id,
-                description="Combo April",
-            )
-        )
+        db.add(t1)
         db.flush()
+        categorize(db, t1, category_child)
+
+        t2 = Transaction(
+            external_id="combo-2",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 4, 1),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            description="Combo April",
+        )
+        db.add(t2)
+        db.flush()
+        categorize(db, t2, category_child)
 
         r = client.get(
             f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",

@@ -14,9 +14,8 @@ const props = defineProps({
 const emit = defineEmits(['select'])
 
 const displayAmount = computed(() => {
-  if (!props.group.transactions) return 0
-  const amount = props.group.transactions.reduce((sum, tx) => sum + Number(tx.effective_amount ?? tx.amount), 0)
-  return props.direction === 'expense' ? -amount : amount
+  const net = Number(props.group.net_expense ?? 0)
+  return props.direction === 'expense' ? -net : Math.abs(net)
 })
 
 </script>

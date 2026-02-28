@@ -158,7 +158,6 @@ def import_parsed_transactions(
             raw_metadata=p.raw_metadata,
             amount=p.amount,
             id_currency=currency_id,
-            id_category=None,
             data_source=data_source,
             description=p.description,
             is_reviewed=False,

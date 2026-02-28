@@ -9,21 +9,9 @@ const props = defineProps({
   group: { type: Object, required: true },
 })
 
-const totalPaid = computed(() => {
-  if (!props.group.transactions) return 0
-  return props.group.transactions
-    .filter((tx) => Number(tx.amount) < 0)
-    .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0)
-})
-
-const totalReimbursed = computed(() => {
-  if (!props.group.transactions) return 0
-  return props.group.transactions
-    .filter((tx) => Number(tx.amount) > 0)
-    .reduce((sum, tx) => sum + Number(tx.amount), 0)
-})
-
-const netExpense = computed(() => totalPaid.value - totalReimbursed.value)
+const totalPaid = computed(() => Number(props.group.total_paid || 0))
+const totalReimbursed = computed(() => Number(props.group.total_reimbursed || 0))
+const netExpense = computed(() => Number(props.group.net_expense || 0))
 </script>
 
 <template>

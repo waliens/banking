@@ -6,18 +6,18 @@ export const useTransactionGroupStore = defineStore('transactionGroups', () => {
   const groups = ref([])
   const loading = ref(false)
 
-  async function fetchGroups() {
+  async function fetchGroups(walletId) {
     loading.value = true
     try {
-      const { data } = await api.get('/transaction-groups')
+      const { data } = await api.get('/transaction-groups', { params: { wallet_id: walletId } })
       groups.value = data
     } finally {
       loading.value = false
     }
   }
 
-  async function fetchGroup(id) {
-    const { data } = await api.get(`/transaction-groups/${id}`)
+  async function fetchGroup(id, walletId) {
+    const { data } = await api.get(`/transaction-groups/${id}`, { params: { wallet_id: walletId } })
     return data
   }
 
@@ -39,6 +39,23 @@ export const useTransactionGroupStore = defineStore('transactionGroups', () => {
     groups.value = groups.value.filter((g) => g.id !== id)
   }
 
+  async function setGroupCategorySplits(groupId, splits, walletId) {
+    const { data } = await api.put(
+      `/transaction-groups/${groupId}/category-splits`,
+      { splits },
+      { params: { wallet_id: walletId } },
+    )
+    return data
+  }
+
+  async function clearGroupCategorySplits(groupId, walletId) {
+    const { data } = await api.delete(
+      `/transaction-groups/${groupId}/category-splits`,
+      { params: { wallet_id: walletId } },
+    )
+    return data
+  }
+
   return {
     groups,
     loading,
@@ -47,5 +64,7 @@ export const useTransactionGroupStore = defineStore('transactionGroups', () => {
     createGroup,
     updateGroup,
     deleteGroup,
+    setGroupCategorySplits,
+    clearGroupCategorySplits,
   }
 })

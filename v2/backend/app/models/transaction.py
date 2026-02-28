@@ -36,7 +36,6 @@ class Transaction(Base):
     raw_metadata: Mapped[dict[str, object] | None] = mapped_column("raw_metadata", JSON)
     amount: Mapped[Decimal] = mapped_column(Numeric(20, 2))
     id_currency: Mapped[int] = mapped_column(ForeignKey("currency.id"))
-    id_category: Mapped[int | None] = mapped_column(ForeignKey("category.id", ondelete="SET NULL"))
     data_source: Mapped[str | None] = mapped_column(String(50))
     id_duplicate_of: Mapped[int | None] = mapped_column(ForeignKey("transaction.id"))
     description: Mapped[str] = mapped_column(String, default="", server_default="")
@@ -53,14 +52,20 @@ class Transaction(Base):
     source: Mapped["Account | None"] = relationship(foreign_keys=[id_source], lazy="joined")
     dest: Mapped["Account | None"] = relationship(foreign_keys=[id_dest], lazy="joined")
     currency: Mapped["Currency"] = relationship(lazy="joined")
-    category: Mapped["Category | None"] = relationship(lazy="joined")
     duplicate_of: Mapped["Transaction | None"] = relationship(remote_side=[id])
     transaction_group: Mapped["TransactionGroup | None"] = relationship(back_populates="transactions", lazy="joined")
+    category_splits: Mapped[list["CategorySplit"]] = relationship(
+        foreign_keys="CategorySplit.id_transaction",
+        back_populates="transaction",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (Index("ix_transaction_date", "date"),)
 
 
 from app.models.account import Account  # noqa: E402
 from app.models.category import Category  # noqa: E402
+from app.models.category_split import CategorySplit  # noqa: E402
 from app.models.currency import Currency  # noqa: E402
 from app.models.transaction_group import TransactionGroup  # noqa: E402

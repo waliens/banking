@@ -40,7 +40,12 @@ function isPending(txId) {
 }
 
 function displayCategoryId(data) {
-  return isPending(data.id) ? pendingCategories.value[data.id] : data.id_category
+  if (isPending(data.id)) return pendingCategories.value[data.id]
+  return data.category_splits && data.category_splits.length === 1 ? data.category_splits[0].id_category : null
+}
+
+function isMultiCategory(data) {
+  return !isPending(data.id) && data.category_splits && data.category_splits.length > 1
 }
 
 // Filters
@@ -411,24 +416,32 @@ onMounted(async () => {
         <Column field="category" :header="t('transactions.category')" style="width: 210px">
           <template #body="{ data }">
             <div @click.stop class="flex items-center gap-1">
-              <CategorySelect
-                :modelValue="displayCategoryId(data)"
-                @update:modelValue="(v) => onCategoryStaged(data.id, v)"
-                :placeholder="t('transactions.uncategorized')"
-                :showClear="!!displayCategoryId(data)"
-                class="flex-1"
-                :class="isPending(data.id) ? 'ring-1 ring-amber-400 rounded-lg' : ''"
-              />
-              <Button
-                v-if="isPending(data.id)"
-                icon="pi pi-check"
-                severity="success"
-                size="small"
-                text
-                rounded
-                @click="commitCategory(data.id)"
-                v-tooltip.top="t('review.saveTag')"
-              />
+              <template v-if="isMultiCategory(data)">
+                <div class="flex items-center gap-2 text-sm text-surface-600">
+                  <i class="pi pi-tags"></i>
+                  <span>{{ t('transactionDetail.multiCategory', { count: data.category_splits.length }) }}</span>
+                </div>
+              </template>
+              <template v-else>
+                <CategorySelect
+                  :modelValue="displayCategoryId(data)"
+                  @update:modelValue="(v) => onCategoryStaged(data.id, v)"
+                  :placeholder="t('transactions.uncategorized')"
+                  :showClear="!!displayCategoryId(data)"
+                  class="flex-1"
+                  :class="isPending(data.id) ? 'ring-1 ring-amber-400 rounded-lg' : ''"
+                />
+                <Button
+                  v-if="isPending(data.id)"
+                  icon="pi pi-check"
+                  severity="success"
+                  size="small"
+                  text
+                  rounded
+                  @click="commitCategory(data.id)"
+                  v-tooltip.top="t('review.saveTag')"
+                />
+              </template>
             </div>
           </template>
         </Column>
@@ -451,7 +464,7 @@ onMounted(async () => {
     </div>
 
     <!-- Transaction Detail Drawer -->
-    <Drawer v-model:visible="drawerVisible" position="right" :header="t('review.transactionDetail')" :style="{ width: '30rem' }">
+    <Drawer v-model:visible="drawerVisible" position="right" :header="t('review.transactionDetail')" :style="{ width: '36rem' }">
       <div v-if="drawerLoading" class="flex items-center justify-center py-12">
         <i class="pi pi-spinner pi-spin text-2xl text-surface-400"></i>
       </div>

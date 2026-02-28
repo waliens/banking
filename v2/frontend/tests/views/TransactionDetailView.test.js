@@ -25,6 +25,16 @@ vi.mock('../../src/stores/ml', () => ({
   })),
 }))
 
+let mockActiveWalletId = null
+let mockWalletAccountIds = []
+
+vi.mock('../../src/stores/activeWallet', () => ({
+  useActiveWalletStore: vi.fn(() => ({
+    get activeWalletId() { return mockActiveWalletId },
+    get walletAccountIds() { return mockWalletAccountIds },
+  })),
+}))
+
 const mockRoute = { params: { id: '42' } }
 const mockRouter = { back: vi.fn() }
 
@@ -38,22 +48,30 @@ import TransactionDetailView from '../../src/views/TransactionDetailView.vue'
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {} } })
 
+let mockFetchGroup = vi.fn().mockResolvedValue({})
+
 vi.mock('../../src/stores/transactionGroups', () => ({
   useTransactionGroupStore: vi.fn(() => ({
+    fetchGroup: (...args) => mockFetchGroup(...args),
     createGroup: vi.fn().mockResolvedValue({}),
     updateGroup: vi.fn().mockResolvedValue({}),
     deleteGroup: vi.fn().mockResolvedValue({}),
+    setGroupCategorySplits: vi.fn().mockResolvedValue({}),
+    clearGroupCategorySplits: vi.fn().mockResolvedValue({}),
   })),
 }))
 
 const stubComponents = {
-  Button: { template: '<button @click="$emit(\'click\')" :data-testid="$attrs[\'data-testid\']"><slot />{{ label }}</button>', props: ['label', 'severity', 'size', 'icon', 'text'] },
+  Button: { template: '<button @click="$emit(\'click\')" :data-testid="$attrs[\'data-testid\']" :disabled="disabled"><slot />{{ label }}</button>', props: ['label', 'severity', 'size', 'icon', 'text', 'disabled'] },
   TransactionDetail: { template: '<div data-testid="transaction-detail" />', props: ['transaction'] },
   TransactionGroupDetail: { template: '<div data-testid="transaction-group-detail" />', props: ['group'] },
-  TransactionGroupDialog: { template: '<div data-testid="transaction-group-dialog" v-if="visible" />', props: ['visible', 'group', 'initialTransaction'] },
+  TransactionGroupDialog: { template: '<div data-testid="transaction-group-dialog" v-if="visible" :data-wallet-id="walletId" :data-wallet-account-ids="JSON.stringify(walletAccountIds)" />', props: ['visible', 'group', 'initialTransaction', 'walletId', 'walletAccountIds'] },
   DuplicateCandidates: { template: '<div data-testid="duplicate-candidates" />', props: ['transactionId'] },
   CurrencyDisplay: { template: '<span />', props: ['amount', 'currencySymbol'] },
   AccountDisplay: { template: '<span />', props: ['account'] },
+  CategorySelect: { template: '<div class="category-select-stub" />', props: ['modelValue', 'placeholder', 'showClear'] },
+  InputNumber: { template: '<input />', props: ['modelValue', 'minFractionDigits', 'maxFractionDigits'] },
+  SelectButton: { template: '<div />', props: ['modelValue', 'options'] },
   'router-link': { template: '<a :href="to"><slot /></a>', props: ['to'] },
 }
 
@@ -66,7 +84,7 @@ function makeTx(overrides = {}) {
     currency: { symbol: '$', short_name: 'USD' },
     source: { id: 1, name: 'Checking' },
     dest: null,
-    id_category: null,
+    category_splits: [],
     id_duplicate_of: null,
     id_transaction_group: null,
     is_reviewed: false,
@@ -78,7 +96,10 @@ describe('TransactionDetailView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    mockFetchGroup = vi.fn().mockResolvedValue({})
     mockRoute.params.id = '42'
+    mockActiveWalletId = 1
+    mockWalletAccountIds = [10, 20]
   })
 
   it('fetches transaction on mount using route param', async () => {
@@ -149,14 +170,14 @@ describe('TransactionDetailView', () => {
     const tx = makeTx({ id_transaction_group: 5 })
     const groupData = { id: 5, name: 'Trip', transactions: [] }
 
-    api.get
-      .mockResolvedValueOnce({ data: tx })            // fetch transaction
-      .mockResolvedValueOnce({ data: groupData })      // fetch group
+    api.get.mockResolvedValueOnce({ data: tx })
+    mockFetchGroup.mockResolvedValueOnce(groupData)
 
     const wrapper = mount(TransactionDetailView, { global: { stubs: stubComponents, plugins: [i18n] } })
     await flushPromises()
 
     expect(wrapper.find('[data-testid="transaction-group-detail"]').exists()).toBe(true)
+    expect(mockFetchGroup).toHaveBeenCalledWith(5, 1)
   })
 
   it('hides group section when no group', async () => {
@@ -194,9 +215,8 @@ describe('TransactionDetailView', () => {
     const tx = makeTx({ id_transaction_group: 5 })
     const groupData = { id: 5, name: 'Trip', transactions: [{ id: 42, amount: '50.00', id_source: 1 }] }
 
-    api.get
-      .mockResolvedValueOnce({ data: tx })
-      .mockResolvedValueOnce({ data: groupData })
+    api.get.mockResolvedValueOnce({ data: tx })
+    mockFetchGroup.mockResolvedValueOnce(groupData)
 
     const wrapper = mount(TransactionDetailView, { global: { stubs: stubComponents, plugins: [i18n] } })
     await flushPromises()
@@ -218,5 +238,36 @@ describe('TransactionDetailView', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-testid="transaction-group-dialog"]').exists()).toBe(true)
+  })
+
+  it('disables "Link transactions" button when no wallet is active', async () => {
+    mockActiveWalletId = null
+    mockWalletAccountIds = []
+    api.get.mockResolvedValueOnce({ data: makeTx() })
+
+    const wrapper = mount(TransactionDetailView, { global: { stubs: stubComponents, plugins: [i18n] } })
+    await flushPromises()
+
+    const linkBtn = wrapper.find('[data-testid="link-transactions-btn"]')
+    expect(linkBtn.exists()).toBe(true)
+    expect(linkBtn.attributes('disabled')).toBeDefined()
+  })
+
+  it('passes wallet context to TransactionGroupDialog', async () => {
+    mockActiveWalletId = 7
+    mockWalletAccountIds = [10, 20, 30]
+    api.get.mockResolvedValueOnce({ data: makeTx() })
+
+    const wrapper = mount(TransactionDetailView, { global: { stubs: stubComponents, plugins: [i18n] } })
+    await flushPromises()
+
+    // Open the dialog
+    await wrapper.find('[data-testid="link-transactions-btn"]').trigger('click')
+    await flushPromises()
+
+    const dialog = wrapper.find('[data-testid="transaction-group-dialog"]')
+    expect(dialog.exists()).toBe(true)
+    expect(dialog.attributes('data-wallet-id')).toBe('7')
+    expect(dialog.attributes('data-wallet-account-ids')).toBe('[10,20,30]')
   })
 })

@@ -76,11 +76,22 @@ export const useTransactionStore = defineStore('transactions', () => {
     return data
   }
 
+  async function setCategorySplits(id, splits) {
+    const { data } = await api.put(`/transactions/${id}/category-splits`, { splits })
+    return data
+  }
+
+  async function clearCategorySplits(id) {
+    const { data } = await api.delete(`/transactions/${id}/category-splits`)
+    return data
+  }
+
   return {
     transactions, totalCount, loading, reviewCount,
     fetchTransactions, setCategory, tagBatch,
     reviewTransaction, reviewBatch, fetchReviewCount,
     markDuplicate, fetchDuplicateCandidates,
     unmarkDuplicate, fetchTransaction, setEffectiveAmount,
+    setCategorySplits, clearCategorySplits,
   }
 })

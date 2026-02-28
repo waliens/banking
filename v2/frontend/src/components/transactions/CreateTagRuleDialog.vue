@@ -99,7 +99,7 @@ watch(() => props.visible, (val) => {
     matchAccountFrom.value = tx.id_source || null
     matchAccountTo.value = tx.id_dest || null
 
-    categoryId.value = tx.id_category || null
+    categoryId.value = tx.category_splits?.[0]?.id_category || null
     nameManuallyEdited.value = false
     ruleName.value = ''
     applyAfterCreate.value = true

@@ -8,7 +8,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy.orm import Session
 
-from app.models import Account, Category, Currency, MLModel, Transaction
+from app.models import Account, Category, CategorySplit, Currency, MLModel, Transaction
+from tests.conftest import categorize
 
 
 @pytest.fixture
@@ -179,19 +180,18 @@ class TestShouldTrain:
         from app.ml.trainer import should_train
 
         for i in range(50):
-            db.add(
-                Transaction(
-                    external_id=f"st-{i}",
-                    id_source=account_checking.id,
-                    date=datetime.date(2024, 1, 1),
-                    amount=Decimal("10.00"),
-                    id_currency=currency_eur.id,
-                    description=f"Transaction {i}",
-                    id_category=category_food.id,
-                    is_reviewed=True,
-                )
+            t = Transaction(
+                external_id=f"st-{i}",
+                id_source=account_checking.id,
+                date=datetime.date(2024, 1, 1),
+                amount=Decimal("10.00"),
+                id_currency=currency_eur.id,
+                description=f"Transaction {i}",
+                is_reviewed=True,
             )
-        db.flush()
+            db.add(t)
+            db.flush()
+            categorize(db, t, category_food)
 
         assert should_train(db) is True
 
@@ -199,19 +199,18 @@ class TestShouldTrain:
         from app.ml.trainer import category_fingerprint, should_train
 
         for i in range(50):
-            db.add(
-                Transaction(
-                    external_id=f"su-{i}",
-                    id_source=account_checking.id,
-                    date=datetime.date(2024, 1, 1),
-                    amount=Decimal("10.00"),
-                    id_currency=currency_eur.id,
-                    description=f"Transaction {i}",
-                    id_category=category_food.id,
-                    is_reviewed=True,
-                )
+            t = Transaction(
+                external_id=f"su-{i}",
+                id_source=account_checking.id,
+                date=datetime.date(2024, 1, 1),
+                amount=Decimal("10.00"),
+                id_currency=currency_eur.id,
+                description=f"Transaction {i}",
+                is_reviewed=True,
             )
-        db.flush()
+            db.add(t)
+            db.flush()
+            categorize(db, t, category_food)
 
         m = MLModel(
             filename="existing.pkl",
@@ -227,19 +226,18 @@ class TestShouldTrain:
         from app.ml.trainer import category_fingerprint, should_train
 
         for i in range(50):
-            db.add(
-                Transaction(
-                    external_id=f"rn-{i}",
-                    id_source=account_checking.id,
-                    date=datetime.date(2024, 1, 1),
-                    amount=Decimal("10.00"),
-                    id_currency=currency_eur.id,
-                    description=f"Transaction {i}",
-                    id_category=category_food.id,
-                    is_reviewed=True,
-                )
+            t = Transaction(
+                external_id=f"rn-{i}",
+                id_source=account_checking.id,
+                date=datetime.date(2024, 1, 1),
+                amount=Decimal("10.00"),
+                id_currency=currency_eur.id,
+                description=f"Transaction {i}",
+                is_reviewed=True,
             )
-        db.flush()
+            db.add(t)
+            db.flush()
+            categorize(db, t, category_food)
 
         m = MLModel(
             filename="old.pkl",
@@ -255,19 +253,18 @@ class TestShouldTrain:
         from app.ml.trainer import should_train
 
         for i in range(50):
-            db.add(
-                Transaction(
-                    external_id=f"rc-{i}",
-                    id_source=account_checking.id,
-                    date=datetime.date(2024, 1, 1),
-                    amount=Decimal("10.00"),
-                    id_currency=currency_eur.id,
-                    description=f"Transaction {i}",
-                    id_category=category_food.id,
-                    is_reviewed=True,
-                )
+            t = Transaction(
+                external_id=f"rc-{i}",
+                id_source=account_checking.id,
+                date=datetime.date(2024, 1, 1),
+                amount=Decimal("10.00"),
+                id_currency=currency_eur.id,
+                description=f"Transaction {i}",
+                is_reviewed=True,
             )
-        db.flush()
+            db.add(t)
+            db.flush()
+            categorize(db, t, category_food)
 
         m = MLModel(
             filename="old.pkl",

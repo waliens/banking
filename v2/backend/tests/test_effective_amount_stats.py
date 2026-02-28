@@ -5,7 +5,8 @@ from decimal import Decimal
 
 import pytest
 
-from app.models import Account, Category, Currency, Transaction, Wallet, WalletAccount
+from app.models import Account, Category, CategorySplit, Currency, Transaction, Wallet, WalletAccount
+from tests.conftest import categorize
 
 
 @pytest.fixture
@@ -131,20 +132,19 @@ class TestPerCategoryUsesEffectiveAmount:
     def test_per_category_uses_effective_amount(
         self, client, auth_headers, db, wallet_with_accounts, account_checking, external_account, currency_eur, category_food
     ):
-        db.add(
-            Transaction(
-                external_id="cat-eff-1",
-                id_source=account_checking.id,
-                id_dest=external_account.id,
-                date=datetime.date(2024, 3, 1),
-                amount=Decimal("100.00"),
-                effective_amount=Decimal("25.00"),
-                id_currency=currency_eur.id,
-                id_category=category_food.id,
-                description="Group dinner",
-            )
+        t = Transaction(
+            external_id="cat-eff-1",
+            id_source=account_checking.id,
+            id_dest=external_account.id,
+            date=datetime.date(2024, 3, 1),
+            amount=Decimal("100.00"),
+            effective_amount=Decimal("25.00"),
+            id_currency=currency_eur.id,
+            description="Group dinner",
         )
+        db.add(t)
         db.flush()
+        categorize(db, t, category_food)
 
         r = client.get(
             f"/api/v2/wallets/{wallet_with_accounts.id}/stats/per-category",

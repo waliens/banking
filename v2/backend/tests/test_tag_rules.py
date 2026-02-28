@@ -6,7 +6,8 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.orm import Session
 
-from app.models import Account, Category, Currency, TagRule, Transaction, User
+from app.models import Account, Category, CategorySplit, Currency, TagRule, Transaction, User
+from tests.conftest import categorize
 
 
 @pytest.fixture
@@ -172,7 +173,8 @@ class TestApplyTagRules:
         assert resp.json()["applied_count"] == 1
 
         db.refresh(t)
-        assert t.id_category == tag_rule.id_category
+        assert len(t.category_splits) == 1
+        assert t.category_splits[0].id_category == tag_rule.id_category
         assert t.is_reviewed is True
 
     def test_apply_skips_categorized(
@@ -185,11 +187,11 @@ class TestApplyTagRules:
             amount=Decimal("10.00"),
             id_currency=currency_eur.id,
             description="Colruyt supermarket",
-            id_category=category_salary.id,
             is_reviewed=True,
         )
         db.add(t)
         db.flush()
+        categorize(db, t, category_salary)
 
         resp = client.post("/api/v2/tag-rules/apply", headers=auth_headers)
         assert resp.json()["applied_count"] == 0
@@ -232,8 +234,9 @@ class TestApplyTagRules:
 
         db.refresh(t_match)
         db.refresh(t_no_match)
-        assert t_match.id_category == category_food.id
-        assert t_no_match.id_category is None
+        assert len(t_match.category_splits) == 1
+        assert t_match.category_splits[0].id_category == category_food.id
+        assert len(t_no_match.category_splits) == 0
 
     def test_apply_account_match(
         self, client, auth_headers, db, category_food, account_checking, account_savings, currency_eur
@@ -308,7 +311,8 @@ class TestApplyTagRules:
         assert resp.json()["applied_count"] == 1
 
         db.refresh(t)
-        assert t.id_category == category_transport.id  # high priority wins
+        assert len(t.category_splits) == 1
+        assert t.category_splits[0].id_category == category_transport.id  # high priority wins
 
     def test_apply_regex_anchored(self, client, auth_headers, db, category_food, account_checking, currency_eur):
         rule = TagRule(
@@ -347,8 +351,9 @@ class TestApplyTagRules:
 
         db.refresh(t_match)
         db.refresh(t_no_match)
-        assert t_match.id_category == category_food.id
-        assert t_no_match.id_category is None
+        assert len(t_match.category_splits) == 1
+        assert t_match.category_splits[0].id_category == category_food.id
+        assert len(t_no_match.category_splits) == 0
 
     def test_apply_plain_string_backward_compat(
         self, client, auth_headers, db, tag_rule, account_checking, currency_eur
@@ -370,4 +375,5 @@ class TestApplyTagRules:
         assert resp.json()["applied_count"] == 1
 
         db.refresh(t)
-        assert t.id_category == tag_rule.id_category
+        assert len(t.category_splits) == 1
+        assert t.category_splits[0].id_category == tag_rule.id_category
