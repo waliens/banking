@@ -30,7 +30,6 @@ const allDone = ref(false)
 
 const currentTx = computed(() => batch.value[currentIndex.value] || null)
 const currentPrediction = computed(() => currentTx.value ? mlStore.predictions[currentTx.value.id] : null)
-const remaining = computed(() => batch.value.length - currentIndex.value)
 
 const parentCategories = computed(() => categoryStore.categoryTree)
 const childCategories = computed(() => {
@@ -196,7 +195,7 @@ onMounted(async () => {
         <span>{{ t('tagger.back') }}</span>
       </router-link>
       <span class="text-sm text-surface-500">
-        {{ processedCount }} {{ t('tagger.processed') }} / {{ remaining }} remaining
+        {{ processedCount }} {{ t('tagger.processed') }} &middot; {{ transactionStore.reviewCount }} {{ t('tagger.remaining') }}
       </span>
     </div>
 
