@@ -201,6 +201,12 @@ function onDrawerCategoryChanged() {
   }
 }
 
+// Negate for expenses (wallet account is source), keep positive for income (wallet account is dest)
+function displayAmount(tx) {
+  if (isWalletAccount(tx.dest)) return tx.amount
+  return -tx.amount
+}
+
 function isWalletAccount(account) {
   if (!account) return false
   return activeWalletStore.walletAccountIds.includes(account.id)
@@ -395,7 +401,7 @@ onMounted(async () => {
         <Column field="amount" :header="t('transactions.amount')" style="width: 120px">
           <template #body="{ data }">
             <CurrencyDisplay
-              :amount="data.amount"
+              :amount="displayAmount(data)"
               :currencySymbol="data.currency.symbol || ''"
               :showSign="true"
               colored
