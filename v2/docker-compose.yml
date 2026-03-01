@@ -12,6 +12,7 @@ services:
       - "5432:5432"
 
   backend:
+    image: rmormont/banking-v2-backend:latest
     build: ./backend
     restart: unless-stopped
     depends_on:
@@ -25,6 +26,7 @@ services:
       - models:/data/models
 
   frontend:
+    image: rmormont/banking-v2-frontend:latest
     build: ./frontend
     restart: unless-stopped
     depends_on:
