@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import { useTagRuleStore } from '../../stores/tagRules'
 import { useCategoryStore } from '../../stores/categories'
+import { contrastText } from '../../utils/color'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
@@ -114,7 +115,7 @@ onMounted(async () => {
             <span
               v-if="data.category"
               class="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
-              :style="{ backgroundColor: data.category.color + '20', color: data.category.color }"
+              :style="{ backgroundColor: data.category.color + '20', color: contrastText(data.category.color) }"
             >
               {{ data.category.name }}
             </span>

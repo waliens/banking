@@ -9,7 +9,6 @@ import { useSwipeGesture } from '../composables/useSwipeGesture'
 import CategoryGrid from '../components/tagger/CategoryGrid.vue'
 import MLSuggestion from '../components/MLSuggestion.vue'
 import TransactionDetail from '../components/transactions/TransactionDetail.vue'
-import Button from 'primevue/button'
 import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
 
 const { t } = useI18n()
@@ -189,11 +188,7 @@ onMounted(async () => {
 <template>
   <div class="h-full bg-surface-50 flex flex-col overflow-hidden">
     <!-- Header -->
-    <div class="flex items-center justify-between p-4 bg-surface-0 border-b border-surface-200">
-      <router-link to="/review" class="text-primary-500 flex items-center gap-1">
-        <i class="pi pi-arrow-left text-sm" />
-        <span>{{ t('tagger.back') }}</span>
-      </router-link>
+    <div class="flex items-center justify-end p-4 bg-surface-0 border-b border-surface-200">
       <span class="text-sm text-surface-500">
         {{ processedCount }} {{ t('tagger.processed') }} &middot; {{ transactionStore.reviewCount }} {{ t('tagger.remaining') }}
       </span>
@@ -205,10 +200,7 @@ onMounted(async () => {
       <div v-if="allDone" class="text-center">
         <i class="pi pi-check-circle text-5xl text-green-500 mb-4 block" />
         <h2 class="text-xl font-bold mb-2">{{ t('tagger.allDone') }}</h2>
-        <p class="text-surface-500 mb-6">{{ t('tagger.allDoneDesc') }}</p>
-        <router-link to="/review">
-          <Button :label="t('tagger.backToReview')" icon="pi pi-arrow-left" />
-        </router-link>
+        <p class="text-surface-500">{{ t('tagger.allDoneDesc') }}</p>
       </div>
 
       <!-- Card mode -->

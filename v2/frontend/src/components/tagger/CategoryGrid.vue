@@ -1,4 +1,6 @@
 <script setup>
+import { contrastText } from '../../utils/color'
+
 defineProps({
   categories: { type: Array, required: true },
   transaction: { type: Object, default: null },
@@ -11,6 +13,7 @@ function categoryStyle(cat) {
   return {
     borderLeftColor: color,
     backgroundColor: color + '10',
+    color: contrastText(color),
   }
 }
 </script>

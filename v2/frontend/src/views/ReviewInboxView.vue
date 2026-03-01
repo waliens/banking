@@ -16,10 +16,10 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import Drawer from 'primevue/drawer'
 import TransactionDetail from '../components/transactions/TransactionDetail.vue'
 import AccountDisplay from '../components/common/AccountDisplay.vue'
-import MLSuggestion from '../components/MLSuggestion.vue'
 import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
 import AccountSelect from '../components/common/AccountSelect.vue'
 import CategorySelect from '../components/common/CategorySelect.vue'
+import { contrastText } from '../utils/color'
 
 const { t } = useI18n()
 const transactionStore = useTransactionStore()
@@ -201,6 +201,11 @@ function onDrawerCategoryChanged() {
   }
 }
 
+function isWalletAccount(account) {
+  if (!account) return false
+  return activeWalletStore.walletAccountIds.includes(account.id)
+}
+
 function debouncedReload() {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
@@ -377,7 +382,13 @@ onMounted(async () => {
 
         <Column field="source" :header="t('transactions.source')" style="width: 150px">
           <template #body="{ data }">
-            <AccountDisplay :account="data.source" />
+            <AccountDisplay :account="data.source" :highlight="isWalletAccount(data.source)" />
+          </template>
+        </Column>
+
+        <Column field="dest" :header="t('transactions.dest')" style="width: 150px">
+          <template #body="{ data }">
+            <AccountDisplay :account="data.dest" :highlight="isWalletAccount(data.dest)" />
           </template>
         </Column>
 
@@ -399,21 +410,7 @@ onMounted(async () => {
           </template>
         </Column>
 
-        <Column :header="t('ml.suggestion')" style="width: 140px">
-          <template #body="{ data }">
-            <div @click.stop>
-              <MLSuggestion
-                v-if="mlStore.predictions[data.id]"
-                :categoryName="mlStore.predictions[data.id].category_name"
-                :categoryColor="mlStore.predictions[data.id].category_color"
-                :probability="mlStore.predictions[data.id].probability"
-                @accept="acceptSuggestion(data.id, mlStore.predictions[data.id].category_id)"
-              />
-            </div>
-          </template>
-        </Column>
-
-        <Column field="category" :header="t('transactions.category')" style="width: 210px">
+        <Column field="category" :header="t('transactions.category')" style="width: 240px">
           <template #body="{ data }">
             <div @click.stop class="flex items-center gap-1">
               <template v-if="isMultiCategory(data)">
@@ -423,24 +420,43 @@ onMounted(async () => {
                 </div>
               </template>
               <template v-else>
-                <CategorySelect
-                  :modelValue="displayCategoryId(data)"
-                  @update:modelValue="(v) => onCategoryStaged(data.id, v)"
-                  :placeholder="t('transactions.uncategorized')"
-                  :showClear="!!displayCategoryId(data)"
-                  class="flex-1"
-                  :class="isPending(data.id) ? 'ring-1 ring-amber-400 rounded-lg' : ''"
-                />
-                <Button
-                  v-if="isPending(data.id)"
-                  icon="pi pi-check"
-                  severity="success"
-                  size="small"
-                  text
-                  rounded
-                  @click="commitCategory(data.id)"
-                  v-tooltip.top="t('review.saveTag')"
-                />
+                <div class="flex-1">
+                  <div class="flex items-center gap-1">
+                    <CategorySelect
+                      :modelValue="displayCategoryId(data)"
+                      @update:modelValue="(v) => onCategoryStaged(data.id, v)"
+                      :placeholder="t('transactions.uncategorized')"
+                      :showClear="!!displayCategoryId(data)"
+                      class="flex-1"
+                      :class="isPending(data.id) ? 'ring-1 ring-amber-400 rounded-lg' : ''"
+                    />
+                    <Button
+                      v-if="isPending(data.id)"
+                      icon="pi pi-check"
+                      severity="success"
+                      size="small"
+                      text
+                      rounded
+                      @click="commitCategory(data.id)"
+                      v-tooltip.top="t('review.saveTag')"
+                    />
+                  </div>
+                  <div v-if="mlStore.predictions[data.id] && !displayCategoryId(data)" class="mt-1">
+                    <button
+                      class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity"
+                      :style="{
+                        backgroundColor: (mlStore.predictions[data.id].category_color || '#6366f1') + '20',
+                        color: contrastText(mlStore.predictions[data.id].category_color || '#6366f1'),
+                        border: `1px solid ${mlStore.predictions[data.id].category_color || '#6366f1'}40`,
+                      }"
+                      @click="acceptSuggestion(data.id, mlStore.predictions[data.id].category_id)"
+                    >
+                      <i class="pi pi-sparkles text-[10px]" />
+                      <span>AI: {{ mlStore.predictions[data.id].category_name }}</span>
+                      <span class="opacity-60">{{ Math.round(mlStore.predictions[data.id].probability * 100) }}%</span>
+                    </button>
+                  </div>
+                </div>
               </template>
             </div>
           </template>

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCategoryStore } from '../../stores/categories'
+import { contrastText } from '../../utils/color'
 import InputText from 'primevue/inputtext'
 
 const props = defineProps({
@@ -160,7 +161,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
             v-if="selectedCategory?.icon"
             :class="selectedCategory.icon"
             class="text-sm shrink-0"
-            :style="selectedCategory.color ? { color: selectedCategory.color } : {}"
+            :style="selectedCategory.color ? { color: contrastText(selectedCategory.color) } : {}"
           />
           <span :class="selectedCategory ? 'text-surface-900' : 'text-surface-400'">
             {{ selectedCategory?.name || placeholder }}
@@ -232,7 +233,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
                 v-if="parent.icon"
                 :class="parent.icon"
                 class="text-sm"
-                :style="parent.color ? { color: parent.color } : {}"
+                :style="parent.color ? { color: contrastText(parent.color) } : {}"
               />
               {{ parent.name }}
             </div>
@@ -254,7 +255,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
                 v-if="child.icon"
                 :class="child.icon"
                 class="text-sm shrink-0"
-                :style="child.color ? { color: child.color } : {}"
+                :style="child.color ? { color: contrastText(child.color) } : {}"
               />
               <span class="flex-1">{{ child.name }}</span>
               <i v-if="!multiple && modelValue === child.id" class="pi pi-check text-primary-500 text-xs shrink-0" />
