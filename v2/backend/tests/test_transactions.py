@@ -574,6 +574,73 @@ class TestExcludeGrouped:
         assert r.json()["count"] == 1
 
 
+class TestCategoryFilter:
+    def test_filter_by_leaf_category(
+        self, client, auth_headers, db, sample_transaction, category_food, currency_eur, account_checking
+    ):
+        # Categorize sample_transaction as Food
+        categorize(db, sample_transaction, category_food)
+
+        # Create another transaction without category
+        t2 = Transaction(
+            external_id="tx-nocat",
+            id_source=account_checking.id,
+            date=datetime.date(2024, 6, 20),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        db.add(t2)
+        db.flush()
+
+        r = client.get(f"/api/v2/transactions?category={category_food.id}", headers=auth_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 1
+        assert data[0]["id"] == sample_transaction.id
+
+    def test_filter_by_parent_category_includes_descendants(
+        self, client, auth_headers, db, sample_transaction, category_food, category_child, currency_eur, account_checking
+    ):
+        # Categorize sample_transaction under child category (Groceries, child of Food)
+        categorize(db, sample_transaction, category_child)
+
+        # Create another transaction under parent category directly
+        t2 = Transaction(
+            external_id="tx-parent-cat",
+            id_source=account_checking.id,
+            date=datetime.date(2024, 6, 20),
+            amount=Decimal("25.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        db.add(t2)
+        db.flush()
+        categorize(db, t2, category_food)
+
+        # Filter by parent (Food) should return both
+        r = client.get(f"/api/v2/transactions?category={category_food.id}", headers=auth_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 2
+
+        # Filter by child (Groceries) should return only sample_transaction
+        r2 = client.get(f"/api/v2/transactions?category={category_child.id}", headers=auth_headers)
+        assert r2.status_code == 200
+        data2 = r2.json()
+        assert len(data2) == 1
+        assert data2[0]["id"] == sample_transaction.id
+
+    def test_category_filter_count(
+        self, client, auth_headers, db, sample_transaction, category_food
+    ):
+        categorize(db, sample_transaction, category_food)
+
+        r = client.get(f"/api/v2/transactions/count?category={category_food.id}", headers=auth_headers)
+        assert r.status_code == 200
+        assert r.json()["count"] == 1
+
+
 class TestCategorySplits:
     def test_set_splits(self, client, auth_headers, db, sample_transaction, category_food, category_salary):
         r = client.put(

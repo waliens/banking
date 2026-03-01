@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useWalletStore } from '../../stores/wallets'
 import { useCategoryStore } from '../../stores/categories'
 import SelectButton from 'primevue/selectbutton'
@@ -15,6 +16,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+const router = useRouter()
 const walletStore = useWalletStore()
 const categoryStore = useCategoryStore()
 
@@ -268,6 +270,38 @@ function onPeriodChange() {
 function onBucketChange() {
   loadData()
 }
+
+function periodDateRange(period) {
+  if (periodBucket.value === 'month') {
+    // period = "2024-06"
+    const [y, m] = period.split('-').map(Number)
+    const lastDay = new Date(y, m, 0).getDate()
+    return {
+      date_from: `${y}-${String(m).padStart(2, '0')}-01`,
+      date_to: `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`,
+    }
+  }
+  // period = "2024"
+  return { date_from: `${period}-01-01`, date_to: `${period}-12-31` }
+}
+
+function navigateToCategory(categoryId, categoryName, period, amount) {
+  if (amount == null || amount === 0) return
+  const { date_from, date_to } = periodDateRange(period)
+  const query = {
+    wallet: props.walletId,
+    date_from,
+    date_to,
+    period_label: period,
+  }
+  if (categoryId !== '__uncategorized__' && categoryId != null) {
+    query.category = categoryId
+    query.category_name = categoryName
+  } else {
+    query.category_name = t('wallet.uncategorized')
+  }
+  router.push({ name: 'category-transactions', query })
+}
 </script>
 
 <template>
@@ -361,7 +395,8 @@ function onBucketChange() {
                 v-for="period in periods"
                 :key="row.id + '-' + period"
                 class="text-right px-3 py-2 border-b border-surface-100"
-                :class="amountClass(row.amounts.get(period) || 0)"
+                :class="[amountClass(row.amounts.get(period) || 0), (row.amounts.get(period) || 0) !== 0 ? 'cursor-pointer hover:bg-surface-100' : '']"
+                @click.stop="navigateToCategory(row.id, row.name, period, row.amounts.get(period) || 0)"
               >
                 {{ formatAmount(row.amounts.get(period) || 0) }}
               </td>
@@ -384,7 +419,8 @@ function onBucketChange() {
                   v-for="period in periods"
                   :key="child.id + '-' + period"
                   class="text-right px-3 py-1.5 border-b border-surface-100"
-                  :class="amountClass(child.amounts.get(period) || 0)"
+                  :class="[amountClass(child.amounts.get(period) || 0), (child.amounts.get(period) || 0) !== 0 ? 'cursor-pointer hover:bg-surface-100' : '']"
+                  @click="navigateToCategory(child.id, child.name, period, child.amounts.get(period) || 0)"
                 >
                   {{ formatAmount(child.amounts.get(period) || 0) }}
                 </td>
@@ -400,7 +436,8 @@ function onBucketChange() {
                 v-for="period in periods"
                 :key="row.id + '-' + period"
                 class="text-right px-3 py-2 border-b border-surface-100"
-                :class="amountClass(row.amounts.get(period) || 0)"
+                :class="[amountClass(row.amounts.get(period) || 0), (row.amounts.get(period) || 0) !== 0 ? 'cursor-pointer hover:bg-surface-100' : '']"
+                @click="navigateToCategory(row.id, row.name, period, row.amounts.get(period) || 0)"
               >
                 {{ formatAmount(row.amounts.get(period) || 0) }}
               </td>

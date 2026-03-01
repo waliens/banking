@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from app.dependencies import get_current_user, get_db
-from app.models import CategorySplit, Transaction, User, WalletAccount
+from app.models import Category, CategorySplit, Transaction, User, WalletAccount
 from app.schemas.ml import PredictionItem
 from app.schemas.transaction import (
     EffectiveAmountUpdate,
@@ -25,6 +25,21 @@ from app.schemas.transaction import (
 )
 
 router = APIRouter()
+
+
+def _get_category_descendants(db: Session, id_category: int) -> list[int]:
+    """BFS over Category table to find all descendants of a category (inclusive)."""
+    result = [id_category]
+    queue = [id_category]
+    while queue:
+        parent_id = queue.pop(0)
+        children = db.execute(
+            select(Category.id).where(Category.id_parent == parent_id)
+        ).scalars().all()
+        for child_id in children:
+            result.append(child_id)
+            queue.append(child_id)
+    return result
 
 
 def _build_transaction_query(
@@ -47,6 +62,7 @@ def _build_transaction_query(
     order: str = "desc",
     import_id: int | None = None,
     exclude_grouped: bool = False,
+    category: int | None = None,
 ) -> Select[tuple[Transaction]]:
     q = select(Transaction)
 
@@ -111,6 +127,12 @@ def _build_transaction_query(
     if exclude_grouped:
         q = q.where(Transaction.id_transaction_group.is_(None))
 
+    if category is not None:
+        descendant_ids = _get_category_descendants(db, category)
+        q = q.join(CategorySplit, CategorySplit.id_transaction == Transaction.id).where(
+            CategorySplit.id_category.in_(descendant_ids)
+        )
+
     if search_query and len(search_query) >= 3:
         q = q.where(Transaction.description.ilike(f"%{search_query}%"))
 
@@ -148,6 +170,7 @@ def list_transactions(
     search_query: str | None = None,
     import_id: int | None = None,
     exclude_grouped: bool = False,
+    category: int | None = None,
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> list[Transaction]:
@@ -170,6 +193,7 @@ def list_transactions(
         order=order,
         import_id=import_id,
         exclude_grouped=exclude_grouped,
+        category=category,
     )
     results = db.execute(q.offset(start).limit(count)).scalars().unique().all()
     return list(results)
@@ -192,6 +216,7 @@ def count_transactions(
     search_query: str | None = None,
     import_id: int | None = None,
     exclude_grouped: bool = False,
+    category: int | None = None,
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> TransactionCountResponse:
@@ -212,6 +237,7 @@ def count_transactions(
         search_query=search_query,
         import_id=import_id,
         exclude_grouped=exclude_grouped,
+        category=category,
     )
     count_q = select(func.count()).select_from(q.subquery())
     return TransactionCountResponse(count=db.execute(count_q).scalar_one())

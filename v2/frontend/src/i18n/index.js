@@ -224,6 +224,8 @@ const messages = {
       net: 'Net',
       selectAll: 'Select all',
       deselectAll: 'Deselect all',
+      categoryTransactions: 'Transactions for {category}',
+      backToWallet: 'Back to wallet',
     },
     import: {
       complete: 'Import complete',
@@ -516,6 +518,8 @@ const messages = {
       net: 'Net',
       selectAll: 'Tout sélectionner',
       deselectAll: 'Tout désélectionner',
+      categoryTransactions: 'Transactions pour {category}',
+      backToWallet: 'Retour au portefeuille',
     },
     import: {
       complete: 'Import terminé',
