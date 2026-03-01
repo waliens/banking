@@ -188,6 +188,10 @@ def import_parsed_transactions(
     rules_applied = apply_rules(db, non_duplicate)
     if rules_applied:
         logger.info("Auto-applied tag rules to %d transaction(s)", rules_applied)
+        # Mark auto-tagged transactions for frozen-in-time import view
+        for t in non_duplicate:
+            if len(t.category_splits) > 0:
+                t.auto_tagged_at_import = True
 
     # Compute date range
     dates = [t.date for t in transactions]

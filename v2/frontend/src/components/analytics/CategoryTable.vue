@@ -261,7 +261,12 @@ function amountClass(val) {
 }
 
 watch(() => props.walletId, loadData)
-onMounted(loadData)
+onMounted(async () => {
+  if (!categoryStore.categories.length) {
+    await categoryStore.fetchCategories()
+  }
+  await loadData()
+})
 
 function onPeriodChange() {
   loadData()

@@ -6,7 +6,10 @@ import CategoryTable from '../../../src/components/analytics/CategoryTable.vue'
 
 vi.mock('../../../src/services/api', () => ({
   default: {
-    get: vi.fn().mockResolvedValue({ data: { items: [] } }),
+    get: vi.fn((url) => {
+      if (url === '/categories') return Promise.resolve({ data: [] })
+      return Promise.resolve({ data: { items: [] } })
+    }),
     post: vi.fn(),
     put: vi.fn(),
     delete: vi.fn(),

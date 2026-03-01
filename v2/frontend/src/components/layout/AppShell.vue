@@ -73,7 +73,15 @@ async function logout() {
         </router-link>
       </nav>
 
-      <div class="p-2">
+      <div class="p-2 flex flex-col gap-1">
+        <router-link
+          to="/help"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-700 transition-colors"
+          active-class="bg-surface-700"
+        >
+          <i class="pi pi-question-circle" />
+          <span v-if="!sidebarCollapsed">{{ t('nav.help') }}</span>
+        </router-link>
         <button
           @click="logout"
           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-700 transition-colors w-full"

@@ -48,6 +48,7 @@ class Transaction(Base):
     )
     effective_amount: Mapped[Decimal | None] = mapped_column(Numeric(20, 2), nullable=True)
     id_import: Mapped[int | None] = mapped_column(ForeignKey("import_record.id"), nullable=True)
+    auto_tagged_at_import: Mapped[bool] = mapped_column(default=False, server_default="false")
 
     source: Mapped["Account | None"] = relationship(foreign_keys=[id_source], lazy="joined")
     dest: Mapped["Account | None"] = relationship(foreign_keys=[id_dest], lazy="joined")

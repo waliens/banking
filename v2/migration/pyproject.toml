@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "banking-migration"
+version = "0.1.0"
+description = "Data migration script for banking v1 to v2 database migration"
+readme = "README.md"
+requires-python = ">=3.9"
+package-mode = false
+dependencies = [
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",
+    "docker>=7.0.0",
+    "bcrypt (>=5.0.0,<6.0.0)",
+]
+
+[project.scripts]
+migrate = "migrate:main"
+
+[tool.setuptools]
+packages = ["migration"]

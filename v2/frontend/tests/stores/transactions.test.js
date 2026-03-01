@@ -79,13 +79,14 @@ describe('useTransactionStore', () => {
     it('sends batch tag request', async () => {
       api.put.mockResolvedValueOnce({})
 
-      const categories = [
-        { id_transaction: 1, id_category: 2 },
-        { id_transaction: 3, id_category: 4 },
-      ]
-      await store.tagBatch(categories)
+      await store.tagBatch({ 1: 2, 3: 4 })
 
-      expect(api.put).toHaveBeenCalledWith('/transactions/tag', { categories })
+      expect(api.put).toHaveBeenCalledWith('/transactions/tag', {
+        categories: [
+          { id_transaction: 1, id_category: 2 },
+          { id_transaction: 3, id_category: 4 },
+        ],
+      })
     })
   })
 

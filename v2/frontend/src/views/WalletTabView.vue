@@ -1,6 +1,7 @@
 <script setup>
-import { computed, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useWalletStore } from '../stores/wallets'
 import { useActiveWalletStore } from '../stores/activeWallet'
 import Select from 'primevue/select'
@@ -17,8 +18,11 @@ import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
 import AccountDisplay from '../components/common/AccountDisplay.vue'
 
 const { t } = useI18n()
+const route = useRoute()
 const walletStore = useWalletStore()
 const activeWalletStore = useActiveWalletStore()
+
+const initialTab = route.query.tab || 'income-expense'
 
 const walletId = computed(() => activeWalletStore.activeWalletId)
 const wallet = computed(() => activeWalletStore.activeWallet)
@@ -82,7 +86,7 @@ onMounted(async () => {
 
     <template v-else>
       <!-- Stats tabs -->
-      <Tabs value="income-expense">
+      <Tabs :value="initialTab">
         <TabList>
           <Tab value="income-expense">{{ t('wallet.incomeExpense') }}</Tab>
           <Tab value="per-category">{{ t('wallet.perCategory') }}</Tab>

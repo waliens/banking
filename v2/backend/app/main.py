@@ -1,13 +1,16 @@
 import logging
+import traceback
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database import Base, engine
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -85,6 +88,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def log_errors(request: Request, call_next):
+    try:
+        response = await call_next(request)
+    except Exception:
+        logger.error(
+            "%s %s - unhandled exception:\n%s",
+            request.method,
+            request.url.path,
+            traceback.format_exc(),
+        )
+        return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+    if response.status_code >= 500:
+        logger.error("%s %s - %d", request.method, request.url.path, response.status_code)
+    elif response.status_code >= 400:
+        logger.warning("%s %s - %d", request.method, request.url.path, response.status_code)
+
+    return response
+
 
 from app.routers import (
     auth,

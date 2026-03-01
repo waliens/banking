@@ -30,7 +30,11 @@ export const useTransactionStore = defineStore('transactions', () => {
   }
 
   async function tagBatch(categories) {
-    await api.put('/transactions/tag', { categories })
+    const items = Object.entries(categories).map(([txId, catId]) => ({
+      id_transaction: Number(txId),
+      id_category: catId,
+    }))
+    await api.put('/transactions/tag', { categories: items })
   }
 
   async function reviewTransaction(id) {

@@ -15,6 +15,7 @@ const messages = {
       settings: 'Settings',
       logout: 'Logout',
       tagger: 'Tagger',
+      help: 'Help',
     },
     auth: {
       login: 'Login',
@@ -247,6 +248,9 @@ const messages = {
       backToImports: 'Back to imports',
       dateRange: 'Date range',
       newAccounts: 'New accounts',
+      duplicateOf: 'Duplicate of',
+      noDuplicates: 'No duplicates detected in this import.',
+      noAutoTagged: 'No transactions were auto-tagged in this import.',
     },
     transactionDetail: {
       openFullPage: 'Open full page',
@@ -294,6 +298,46 @@ const messages = {
       reviewed: 'Reviewed',
       notReviewed: 'Not reviewed',
     },
+    help: {
+      title: 'Help & FAQ',
+      subtitle: 'Learn how the app works and what each concept means.',
+      transactions: {
+        question: 'What is a transaction?',
+        answer: 'A transaction represents money moving from one account to another. Each transaction has a date, amount, currency, and optional description. Transactions are typically imported from bank statements but can also be created manually.\n\nEvery transaction has a source account (where money comes from) and/or a destination account (where money goes to). When both accounts belong to your wallet, it\'s an internal transfer. When one account is outside your wallet, it\'s income or expense.',
+      },
+      wallets: {
+        question: 'What is a wallet?',
+        answer: 'A wallet groups one or more bank accounts together for analysis. For example, you might create a "Personal" wallet containing your checking and savings accounts.\n\nWallets determine which transactions count as income vs. expense: money entering a wallet account from outside is income, money leaving is expense. Transfers between accounts within the same wallet are internal and excluded from income/expense stats.\n\nYou can have multiple wallets — one for personal finances, another for a shared household budget, etc.',
+      },
+      categories: {
+        question: 'What are categories?',
+        answer: 'Categories let you classify transactions (e.g., "Food", "Rent", "Salary"). Categories are hierarchical: a parent category like "Food" can have children like "Groceries" and "Restaurants".\n\nEach category has a name, color, and optional icon. When viewing stats, you can choose to see data at the parent level (aggregated) or child level (detailed).\n\nA transaction can be split across multiple categories if needed (e.g., a supermarket purchase split between "Groceries" and "Household").',
+      },
+      tagging: {
+        question: 'How does tagging work?',
+        answer: 'Tagging means assigning a category to a transaction. You can tag transactions:\n\n- During review: open a transaction and pick a category.\n- With the swipe tagger: quickly swipe through unreviewed transactions on mobile.\n- Automatically: tag rules and ML models can auto-tag during import.\n\nOnce tagged, a transaction is usually also marked as "reviewed" to indicate it has been processed.',
+      },
+      tagRules: {
+        question: 'What are tag rules?',
+        answer: 'Tag rules automatically categorize transactions based on criteria you define. A rule can match on:\n\n- Description pattern (regex): e.g., "CARREFOUR" matches grocery store purchases.\n- Amount range: e.g., between 0 and 10.\n- Source or destination account.\n\nRules have a priority — higher priority rules are checked first. When a rule matches, it assigns the configured category. Rules are applied automatically during import and can also be applied manually to existing transactions.',
+      },
+      transactionGroups: {
+        question: 'What are transaction groups?',
+        answer: 'Transaction groups link related transactions together — typically an initial payment and its reimbursements. For example: you pay a restaurant bill, then friends reimburse you.\n\nThe group calculates your net expense automatically: total paid minus total reimbursed. This "effective amount" is what appears in your stats.\n\nGroups can have their own category splits, separate from individual transactions. In stats, a group is treated as a single entity rather than counting each transaction separately.',
+      },
+      duplicates: {
+        question: 'How does duplicate detection work?',
+        answer: 'During import, the app detects potential duplicates by comparing: source account, destination account, date, and amount. If an existing transaction matches on all four fields, the new one is marked as a duplicate.\n\nDuplicates are kept in the database (for audit) but excluded from stats and the main transaction list. You can review detected duplicates in the import detail view and manually unmark false positives in Settings > Duplicates.',
+      },
+      importProcess: {
+        question: 'How does the import process work?',
+        answer: 'The import process takes bank statement files and creates transactions:\n\n1. Upload: select files and choose the format (Belfius, ING, or MasterCard).\n2. Parsing: the app reads the file and extracts transaction data.\n3. Account resolution: accounts are matched by number or name, or created if new.\n4. Duplicate detection: transactions matching existing ones are flagged.\n5. Auto-tagging: tag rules are applied to new, non-duplicate transactions.\n\nAfter import, you can review the results: how many transactions were new, how many duplicates were found, and how many were auto-tagged.',
+      },
+      aiTagging: {
+        question: 'How does AI-aided tagging work?',
+        answer: 'The app can train a machine learning model on your categorized transactions. Once trained, it suggests categories for new uncategorized transactions.\n\nThe model uses transaction features like description text, amount, and accounts to predict categories. It requires at least 50 labeled transactions to train.\n\nYou can train models manually from Settings > ML Models. The model\'s suggestions appear as hints during the review process — you always have the final say on which category to assign.',
+      },
+    },
   },
   fr: {
     nav: {
@@ -309,6 +353,7 @@ const messages = {
       settings: 'Paramètres',
       logout: 'Déconnexion',
       tagger: 'Tagger',
+      help: 'Aide',
     },
     auth: {
       login: 'Connexion',
@@ -541,6 +586,9 @@ const messages = {
       backToImports: 'Retour aux imports',
       dateRange: 'Période',
       newAccounts: 'Nouveaux comptes',
+      duplicateOf: 'Doublon de',
+      noDuplicates: 'Aucun doublon détecté dans cet import.',
+      noAutoTagged: 'Aucune transaction auto-taggée dans cet import.',
     },
     transactionDetail: {
       openFullPage: 'Ouvrir la page complète',
@@ -587,6 +635,46 @@ const messages = {
       transactionsCount: '{count} transactions',
       reviewed: 'Revu',
       notReviewed: 'Non revu',
+    },
+    help: {
+      title: 'Aide & FAQ',
+      subtitle: 'Découvrez le fonctionnement de l\'application et la signification de chaque concept.',
+      transactions: {
+        question: 'Qu\'est-ce qu\'une transaction ?',
+        answer: 'Une transaction représente un mouvement d\'argent d\'un compte à un autre. Chaque transaction a une date, un montant, une devise et une description optionnelle. Les transactions sont généralement importées depuis des relevés bancaires mais peuvent aussi être créées manuellement.\n\nChaque transaction a un compte source (d\'où vient l\'argent) et/ou un compte destination (où va l\'argent). Quand les deux comptes appartiennent à votre portefeuille, c\'est un transfert interne. Quand un compte est hors du portefeuille, c\'est un revenu ou une dépense.',
+      },
+      wallets: {
+        question: 'Qu\'est-ce qu\'un portefeuille ?',
+        answer: 'Un portefeuille regroupe un ou plusieurs comptes bancaires pour l\'analyse. Par exemple, vous pouvez créer un portefeuille "Personnel" contenant vos comptes courant et épargne.\n\nLes portefeuilles déterminent ce qui est revenu ou dépense : l\'argent entrant dans un compte du portefeuille depuis l\'extérieur est un revenu, l\'argent sortant est une dépense. Les transferts entre comptes du même portefeuille sont internes et exclus des statistiques.\n\nVous pouvez avoir plusieurs portefeuilles — un pour les finances personnelles, un autre pour un budget partagé, etc.',
+      },
+      categories: {
+        question: 'Que sont les catégories ?',
+        answer: 'Les catégories permettent de classifier les transactions (ex. "Alimentation", "Loyer", "Salaire"). Les catégories sont hiérarchiques : une catégorie parente comme "Alimentation" peut avoir des enfants comme "Courses" et "Restaurants".\n\nChaque catégorie a un nom, une couleur et une icône optionnelle. Dans les statistiques, vous pouvez voir les données au niveau parent (agrégé) ou enfant (détaillé).\n\nUne transaction peut être répartie entre plusieurs catégories si nécessaire (ex. un achat au supermarché réparti entre "Courses" et "Ménage").',
+      },
+      tagging: {
+        question: 'Comment fonctionne la catégorisation ?',
+        answer: 'Catégoriser signifie assigner une catégorie à une transaction. Vous pouvez catégoriser :\n\n- Pendant la revue : ouvrez une transaction et choisissez une catégorie.\n- Avec le tagger par glissement : passez rapidement en revue les transactions non revues sur mobile.\n- Automatiquement : les règles et les modèles ML peuvent auto-catégoriser lors de l\'import.\n\nUne fois catégorisée, une transaction est généralement aussi marquée comme "revue".',
+      },
+      tagRules: {
+        question: 'Que sont les règles de catégorisation ?',
+        answer: 'Les règles catégorisent automatiquement les transactions selon des critères que vous définissez. Une règle peut correspondre à :\n\n- Un motif de description (regex) : ex. "CARREFOUR" pour les achats en supermarché.\n- Une fourchette de montant : ex. entre 0 et 10.\n- Un compte source ou destination.\n\nLes règles ont une priorité — les règles de priorité supérieure sont vérifiées en premier. Quand une règle correspond, elle assigne la catégorie configurée. Les règles sont appliquées automatiquement lors de l\'import et peuvent aussi être appliquées manuellement.',
+      },
+      transactionGroups: {
+        question: 'Que sont les groupes de transactions ?',
+        answer: 'Les groupes de transactions lient des transactions connexes — typiquement un paiement initial et ses remboursements. Par exemple : vous payez l\'addition au restaurant, puis vos amis vous remboursent.\n\nLe groupe calcule automatiquement votre dépense nette : total payé moins total remboursé. Ce "montant effectif" est celui qui apparaît dans vos statistiques.\n\nLes groupes peuvent avoir leurs propres répartitions par catégorie. Dans les statistiques, un groupe est traité comme une entité unique plutôt que de compter chaque transaction séparément.',
+      },
+      duplicates: {
+        question: 'Comment fonctionne la détection de doublons ?',
+        answer: 'Lors de l\'import, l\'application détecte les doublons potentiels en comparant : compte source, compte destination, date et montant. Si une transaction existante correspond sur ces quatre critères, la nouvelle est marquée comme doublon.\n\nLes doublons sont conservés en base (pour l\'audit) mais exclus des statistiques et de la liste principale. Vous pouvez revoir les doublons détectés dans le détail de l\'import et dé-marquer manuellement les faux positifs dans Paramètres > Doublons.',
+      },
+      importProcess: {
+        question: 'Comment fonctionne le processus d\'import ?',
+        answer: 'Le processus d\'import prend des fichiers de relevés bancaires et crée des transactions :\n\n1. Envoi : sélectionnez les fichiers et choisissez le format (Belfius, ING ou MasterCard).\n2. Analyse : l\'application lit le fichier et extrait les données.\n3. Résolution des comptes : les comptes sont identifiés par numéro ou nom, ou créés si nouveaux.\n4. Détection des doublons : les transactions correspondant à des existantes sont signalées.\n5. Auto-catégorisation : les règles sont appliquées aux nouvelles transactions non-doublons.\n\nAprès l\'import, vous pouvez consulter les résultats : combien de transactions nouvelles, de doublons détectés et d\'auto-catégorisations.',
+      },
+      aiTagging: {
+        question: 'Comment fonctionne la catégorisation assistée par IA ?',
+        answer: 'L\'application peut entraîner un modèle de machine learning sur vos transactions catégorisées. Une fois entraîné, il suggère des catégories pour les nouvelles transactions non catégorisées.\n\nLe modèle utilise les caractéristiques des transactions comme le texte de description, le montant et les comptes pour prédire les catégories. Il nécessite au moins 50 transactions catégorisées pour l\'entraînement.\n\nVous pouvez entraîner les modèles manuellement depuis Paramètres > Modèles ML. Les suggestions du modèle apparaissent comme des indices pendant la revue — vous avez toujours le dernier mot.',
+      },
     },
   },
 }

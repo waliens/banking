@@ -6,7 +6,8 @@ import Button from 'primevue/button'
 import Drawer from 'primevue/drawer'
 import api from '../services/api'
 import { useInfiniteScroll } from '../composables/useInfiniteScroll'
-import { collapseGroups } from '../stores/transactionFlow'
+import { collapseGroups, isIncome } from '../stores/transactionFlow'
+import { useActiveWalletStore } from '../stores/activeWallet'
 import FlowTransactionCard from '../components/flow/FlowTransactionCard.vue'
 import FlowGroupCard from '../components/flow/FlowGroupCard.vue'
 import FlowDetailPanel from '../components/flow/FlowDetailPanel.vue'
@@ -15,7 +16,10 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
+const activeWalletStore = useActiveWalletStore()
+
 const walletId = computed(() => route.query.wallet ? Number(route.query.wallet) : null)
+const walletAccountIds = computed(() => activeWalletStore.walletAccountIds)
 const categoryId = computed(() => route.query.category ? Number(route.query.category) : null)
 const dateFrom = computed(() => route.query.date_from || null)
 const dateTo = computed(() => route.query.date_to || null)
@@ -105,7 +109,7 @@ useInfiniteScroll(sentinel, loadMore, { enabled: hasMore })
 const collapsedItems = computed(() => collapseGroups(transactions.value, groupCache.value))
 
 function goBack() {
-  router.push({ name: 'wallet' })
+  router.push({ name: 'wallet', query: { tab: 'table' } })
 }
 
 function selectItem(id) {
@@ -135,13 +139,13 @@ onMounted(loadInitial)
         <FlowGroupCard
           v-if="item.type === 'group'"
           :group="item.group"
-          direction="expense"
+          :direction="Number(item.group.net_expense) <= 0 ? 'income' : 'expense'"
           @select="selectItem"
         />
         <FlowTransactionCard
           v-else
           :transaction="item.transaction"
-          :direction="item.transaction.id_dest ? 'income' : 'expense'"
+          :direction="isIncome(item.transaction, 'wallet', walletId, walletAccountIds) ? 'income' : 'expense'"
           @select="selectItem"
         />
       </div>

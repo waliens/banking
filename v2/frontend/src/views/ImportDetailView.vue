@@ -1,9 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useImportStore } from '../stores/imports'
-import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
@@ -12,8 +11,10 @@ import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
-import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
-import AccountDisplay from '../components/common/AccountDisplay.vue'
+import Drawer from 'primevue/drawer'
+import ImportTransactionTable from '../components/imports/ImportTransactionTable.vue'
+import FlowDetailPanel from '../components/flow/FlowDetailPanel.vue'
+import DataTable from 'primevue/datatable'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -21,10 +22,19 @@ const router = useRouter()
 const importStore = useImportStore()
 
 const loading = ref(true)
+const selectedTx = ref(null)
+const drawerVisible = computed({
+  get: () => selectedTx.value !== null,
+  set: (v) => { if (!v) selectedTx.value = null },
+})
 
 function formatDateTime(dt) {
   if (!dt) return '—'
   return new Date(dt).toLocaleString()
+}
+
+function selectTransaction(txId) {
+  selectedTx.value = txId
 }
 
 onMounted(async () => {
@@ -33,6 +43,8 @@ onMounted(async () => {
     await Promise.all([
       importStore.fetchImport(id),
       importStore.fetchImportTransactions(id),
+      importStore.fetchImportDuplicates(id),
+      importStore.fetchImportAutoTagged(id),
       importStore.fetchImportAccounts(id),
     ])
   } finally {
@@ -92,43 +104,41 @@ onMounted(async () => {
       <Tabs value="transactions">
         <TabList>
           <Tab value="transactions">{{ t('transactions.title') }} ({{ importStore.importTransactions.length }})</Tab>
+          <Tab value="duplicates">{{ t('import.duplicates') }} ({{ importStore.importDuplicates.length }})</Tab>
+          <Tab value="autotagged">{{ t('import.autoTagged') }} ({{ importStore.importAutoTagged.length }})</Tab>
           <Tab value="accounts">{{ t('accounts.title') }} ({{ importStore.importAccounts.length }})</Tab>
           <Tab value="files">{{ t('import.files') }} ({{ importStore.currentImport.filenames?.length || 0 }})</Tab>
         </TabList>
         <TabPanels>
           <TabPanel value="transactions">
-            <div class="bg-surface-0 rounded-xl shadow overflow-hidden">
-              <DataTable
-                :value="importStore.importTransactions"
-                stripedRows
-                class="text-sm"
-              >
-                <Column field="date" :header="t('transactions.date')" style="width: 110px" />
-                <Column field="description" :header="t('transactions.description')" />
-                <Column :header="t('transactions.source')" style="width: 150px">
-                  <template #body="{ data }">
-                    <AccountDisplay :account="data.source" />
-                  </template>
-                </Column>
-                <Column :header="t('transactions.amount')" style="width: 120px">
-                  <template #body="{ data }">
-                    <CurrencyDisplay
-                      :amount="data.amount"
-                      :currencySymbol="data.currency?.symbol || ''"
-                      :showSign="true"
-                      colored
-                      class="font-medium"
-                    />
-                  </template>
-                </Column>
-                <Column :header="t('transactions.category')" style="width: 140px">
-                  <template #body="{ data }">
-                    <Tag v-if="data.category" :value="data.category.name" :style="{ backgroundColor: data.category.color, color: '#fff' }" />
-                    <span v-else class="text-surface-400">—</span>
-                  </template>
-                </Column>
-              </DataTable>
-            </div>
+            <ImportTransactionTable :transactions="importStore.importTransactions" @select="selectTransaction">
+              <Column :header="t('transactions.category')" style="width: 140px">
+                <template #body="{ data }">
+                  <Tag v-if="data.category_splits?.length" :value="data.category_splits[0].category?.name" :style="{ backgroundColor: data.category_splits[0].category?.color, color: '#fff' }" />
+                  <span v-else class="text-surface-400">—</span>
+                </template>
+              </Column>
+            </ImportTransactionTable>
+          </TabPanel>
+          <TabPanel value="duplicates">
+            <ImportTransactionTable :transactions="importStore.importDuplicates" :emptyMessage="t('import.noDuplicates')" @select="selectTransaction">
+              <Column :header="t('import.duplicateOf')" style="width: 120px">
+                <template #body="{ data }">
+                  <span v-if="data.id_duplicate_of" class="text-sm text-surface-500">#{{ data.id_duplicate_of }}</span>
+                  <span v-else class="text-surface-400">—</span>
+                </template>
+              </Column>
+            </ImportTransactionTable>
+          </TabPanel>
+          <TabPanel value="autotagged">
+            <ImportTransactionTable :transactions="importStore.importAutoTagged" :emptyMessage="t('import.noAutoTagged')" @select="selectTransaction">
+              <Column :header="t('transactions.category')" style="width: 140px">
+                <template #body="{ data }">
+                  <Tag v-if="data.category_splits?.length" :value="data.category_splits[0].category?.name" :style="{ backgroundColor: data.category_splits[0].category?.color, color: '#fff' }" />
+                  <span v-else class="text-surface-400">—</span>
+                </template>
+              </Column>
+            </ImportTransactionTable>
           </TabPanel>
           <TabPanel value="accounts">
             <div class="bg-surface-0 rounded-xl shadow overflow-hidden">
@@ -165,5 +175,13 @@ onMounted(async () => {
         </TabPanels>
       </Tabs>
     </template>
+
+    <Drawer v-model:visible="drawerVisible" position="right" :header="t('flow.transactionDetail')" :style="{ width: '36rem' }">
+      <FlowDetailPanel
+        v-if="selectedTx"
+        :transactionId="selectedTx"
+        @back="selectedTx = null"
+      />
+    </Drawer>
   </div>
 </template>

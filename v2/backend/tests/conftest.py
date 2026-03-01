@@ -208,6 +208,50 @@ def categorize(db: Session, transaction: Transaction, category: Category) -> Cat
     return cs
 
 
+def create_group(
+    db: Session,
+    name: str,
+    transactions: list[Transaction],
+    wallet_account_ids: set[int],
+) -> TransactionGroup:
+    """Create a transaction group: clear individual splits, set effective amounts."""
+    from decimal import ROUND_HALF_UP
+
+    group = TransactionGroup(name=name)
+    db.add(group)
+    db.flush()
+
+    for t in transactions:
+        for cs in list(t.category_splits):
+            db.delete(cs)
+        t.id_transaction_group = group.id
+    db.flush()
+
+    outgoing = [t for t in transactions if t.id_source in wallet_account_ids]
+    incoming = [t for t in transactions if t.id_source not in wallet_account_ids]
+
+    total_paid = sum(t.amount for t in outgoing) if outgoing else Decimal(0)
+    total_reimbursed = sum(t.amount for t in incoming) if incoming else Decimal(0)
+
+    ratio = total_reimbursed / total_paid if total_paid > 0 else Decimal(0)
+
+    for t in outgoing:
+        t.effective_amount = (t.amount * (1 - ratio)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    for t in incoming:
+        t.effective_amount = Decimal(0)
+
+    db.flush()
+    return group
+
+
+def categorize_group(db: Session, group: TransactionGroup, category: Category, amount: Decimal) -> CategorySplit:
+    """Add a single category split to a transaction group."""
+    cs = CategorySplit(id_group=group.id, id_category=category.id, amount=amount)
+    db.add(cs)
+    db.flush()
+    return cs
+
+
 @pytest.fixture
 def import_record(db, account_checking, account_savings, currency_eur) -> ImportRecord:
     ir = ImportRecord(

@@ -6,6 +6,8 @@ export const useImportStore = defineStore('imports', () => {
   const imports = ref([])
   const currentImport = ref(null)
   const importTransactions = ref([])
+  const importDuplicates = ref([])
+  const importAutoTagged = ref([])
   const importAccounts = ref([])
   const loading = ref(false)
 
@@ -31,6 +33,18 @@ export const useImportStore = defineStore('imports', () => {
     return data
   }
 
+  async function fetchImportDuplicates(id) {
+    const { data } = await api.get(`/imports/${id}/transactions`, { params: { duplicate_only: true } })
+    importDuplicates.value = data
+    return data
+  }
+
+  async function fetchImportAutoTagged(id) {
+    const { data } = await api.get(`/imports/${id}/transactions`, { params: { auto_tagged_only: true } })
+    importAutoTagged.value = data
+    return data
+  }
+
   async function fetchImportAccounts(id) {
     const { data } = await api.get(`/imports/${id}/accounts`)
     importAccounts.value = data
@@ -41,11 +55,15 @@ export const useImportStore = defineStore('imports', () => {
     imports,
     currentImport,
     importTransactions,
+    importDuplicates,
+    importAutoTagged,
     importAccounts,
     loading,
     fetchImports,
     fetchImport,
     fetchImportTransactions,
+    fetchImportDuplicates,
+    fetchImportAutoTagged,
     fetchImportAccounts,
   }
 })

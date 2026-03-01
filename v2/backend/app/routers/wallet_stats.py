@@ -7,7 +7,8 @@ from sqlalchemy import Select, case, extract, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
-from app.models import Account, Category, CategorySplit, Currency, Transaction, User, Wallet, WalletAccount
+from app.models import Account, Category, CategorySplit, Currency, Transaction, TransactionGroup, User, Wallet, WalletAccount
+from app.services.category_service import get_category_descendants
 from app.schemas.wallet_stats import (
     AccountBalanceItem,
     CategoryStatItem,
@@ -32,20 +33,6 @@ def _get_wallet_or_404(db: Session, wallet_id: int) -> Wallet:
 def _wallet_account_ids(wallet_id: int) -> Select[tuple[int]]:
     return select(WalletAccount.id_account).where(WalletAccount.id_wallet == wallet_id)
 
-
-def _get_category_descendants(db: Session, id_category: int) -> list[int]:
-    """BFS over Category table to find all descendants of a category (inclusive)."""
-    result = [id_category]
-    queue = [id_category]
-    while queue:
-        parent_id = queue.pop(0)
-        children = db.execute(
-            select(Category.id).where(Category.id_parent == parent_id)
-        ).scalars().all()
-        for child_id in children:
-            result.append(child_id)
-            queue.append(child_id)
-    return result
 
 
 def _get_category_level_mapping(db: Session, level: int) -> dict[int, int]:
@@ -231,9 +218,10 @@ def wallet_per_category(
     wallet = _get_wallet_or_404(db, wallet_id)
 
     acct_ids_sq = _wallet_account_ids(wallet_id)
+    wallet_acct_set = set(db.execute(acct_ids_sq).scalars().all())
 
-    # External-only
-    filters = [
+    # Base filters: non-duplicate, external-only
+    base_filters = [
         Transaction.id_duplicate_of.is_(None),
         or_(
             Transaction.id_source.in_(acct_ids_sq),
@@ -248,26 +236,31 @@ def wallet_per_category(
     ]
 
     if date_from is not None:
-        filters.append(Transaction.date >= date_from)
+        base_filters.append(Transaction.date >= date_from)
     if date_to is not None:
-        filters.append(Transaction.date <= date_to)
+        base_filters.append(Transaction.date <= date_to)
 
+    # Direction filter
+    direction_filter = []
     if income_only:
-        # Income: dest is in wallet
-        filters.append(Transaction.id_dest.in_(acct_ids_sq))
+        direction_filter.append(Transaction.id_dest.in_(acct_ids_sq))
     else:
-        # Expense: source is in wallet
-        filters.append(Transaction.id_source.in_(acct_ids_sq))
+        direction_filter.append(Transaction.id_source.in_(acct_ids_sq))
 
-    # Filter by category descendants
+    # Category descendant filter (for individual transactions only; groups handled separately)
+    descendant_ids = None
     if id_category is not None:
-        descendant_ids = _get_category_descendants(db, id_category)
-        filters.append(CategorySplit.id_category.in_(descendant_ids))
+        descendant_ids = get_category_descendants(db, id_category)
 
-    # Join through category_split to get per-category amounts
-    # For standalone transactions: use split amount from category_split joined via id_transaction
-    # We use a LEFT JOIN so uncategorized transactions (no splits) also appear
-    # For uncategorized transactions, fall back to transaction's effective amount
+    # ===== Part 1: Individual (non-grouped) transactions =====
+    individual_filters = [
+        *base_filters,
+        *direction_filter,
+        Transaction.id_transaction_group.is_(None),
+    ]
+    if descendant_ids is not None:
+        individual_filters.append(CategorySplit.id_category.in_(descendant_ids))
+
     split_amount = func.coalesce(CategorySplit.amount, effective)
     select_cols = [
         CategorySplit.id_category,
@@ -294,23 +287,20 @@ def wallet_per_category(
             select_cols.append(extract("month", Transaction.date).label("period_month"))
             group_cols.append(extract("month", Transaction.date))
 
-    # Join: transaction -> category_split (on id_transaction) -> category
-    # Also include uncategorized transactions via outer join
     q = (
         select(*select_cols)
         .outerjoin(CategorySplit, CategorySplit.id_transaction == Transaction.id)
         .outerjoin(Category, CategorySplit.id_category == Category.id)
-        .where(*filters)
+        .where(*individual_filters)
         .group_by(*group_cols)
         .order_by(func.sum(split_amount).desc())
     )
 
     rows = db.execute(q).all()
 
-    # Build raw items
     raw_items = []
     for row in rows:
-        item = CategoryStatItem(
+        raw_items.append(CategoryStatItem(
             id_category=row.id_category,
             category_name=row.category_name,
             category_color=row.category_color,
@@ -320,8 +310,98 @@ def wallet_per_category(
             id_currency=row.id_currency,
             period_year=int(row.period_year) if hasattr(row, "period_year") and row.period_year is not None else None,
             period_month=int(row.period_month) if hasattr(row, "period_month") and row.period_month is not None else None,
+        ))
+
+    # ===== Part 2: Transaction groups =====
+    # Find groups that have at least one member transaction matching base filters
+    group_q = (
+        select(
+            Transaction.id_transaction_group,
+            func.min(Transaction.date).label("earliest_date"),
+            Transaction.id_currency,
         )
-        raw_items.append(item)
+        .where(
+            Transaction.id_transaction_group.is_not(None),
+            *base_filters,
+        )
+        .group_by(Transaction.id_transaction_group, Transaction.id_currency)
+    )
+    group_rows = db.execute(group_q).all()
+
+    for grow in group_rows:
+        group = db.get(TransactionGroup, grow.id_transaction_group)
+        if group is None:
+            continue
+
+        # Compute net expense from ALL member transactions
+        txs = group.transactions
+        total_paid = sum(
+            t.amount for t in txs if t.id_source in wallet_acct_set
+        )
+        total_reimbursed = sum(
+            t.amount for t in txs if t.id_source not in wallet_acct_set
+        )
+        net = total_paid - total_reimbursed
+
+        # Direction check
+        if income_only and net >= 0:
+            continue  # not income
+        if not income_only and net <= 0:
+            continue  # not expense
+
+        amount = abs(net)
+
+        # Period assignment: use earliest transaction date
+        p_year = None
+        p_month = None
+        if period_bucket in ("month", "year"):
+            p_year = grow.earliest_date.year if grow.earliest_date else None
+            if period_bucket == "month":
+                p_month = grow.earliest_date.month if grow.earliest_date else None
+
+        if group.category_splits:
+            # Filter by category if requested
+            splits = group.category_splits
+            if descendant_ids is not None:
+                splits = [cs for cs in splits if cs.id_category in descendant_ids]
+
+            for cs in splits:
+                cat = cs.category
+                raw_items.append(CategoryStatItem(
+                    id_category=cs.id_category,
+                    category_name=cat.name if cat else None,
+                    category_color=cat.color if cat else None,
+                    category_icon=cat.icon if cat else None,
+                    id_parent=cat.id_parent if cat else None,
+                    amount=cs.amount,
+                    id_currency=grow.id_currency,
+                    period_year=p_year,
+                    period_month=p_month,
+                ))
+        else:
+            # Uncategorized group — skip if category filter is set
+            if descendant_ids is not None:
+                continue
+            raw_items.append(CategoryStatItem(
+                id_category=None,
+                category_name=None,
+                category_color=None,
+                amount=amount,
+                id_currency=grow.id_currency,
+                period_year=p_year,
+                period_month=p_month,
+            ))
+
+    # Merge items by (category, currency, period)
+    merged: dict[tuple, CategoryStatItem] = {}
+    for item in raw_items:
+        key = (item.id_category, item.id_currency, item.period_year, item.period_month)
+        if key in merged:
+            merged[key].amount += item.amount
+        else:
+            merged[key] = item
+    raw_items = list(merged.values())
+    raw_items.sort(key=lambda x: x.amount, reverse=True)
 
     # Level aggregation: remap categories to ancestors at target depth
     if level is not None:
@@ -374,7 +454,6 @@ def wallet_per_category(
                     period_month=p_month,
                 ))
 
-        # Sort by amount descending
         aggregated.sort(key=lambda x: x.amount, reverse=True)
         return CategoryStatsResponse(items=aggregated)
 

@@ -205,15 +205,17 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
         print(f"  {len(currencies)} currencies")
 
         # ── 3. Users ───────────────────────────────────────────────────────
-        print("Migrating users...")
-        users = v1.execute(text('SELECT id, username, password FROM "user"')).fetchall()
-        for u in users:
-            v2.execute(text(
-                'INSERT INTO "user" (id, username, password_hash) '
-                "VALUES (:id, :username, :password_hash)"
-            ), {"id": u.id, "username": u.username, "password_hash": u.password})
+        # v1 password hashes are incompatible with v2's bcrypt scheme.
+        # Instead of copying v1 users, create a single admin user.
+        print("Creating admin user...")
+        import bcrypt
+        password_hash = bcrypt.hashpw(b"password", bcrypt.gensalt()).decode("utf-8")
+        v2.execute(text(
+            'INSERT INTO "user" (id, username, password_hash) '
+            "VALUES (1, :username, :password_hash)"
+        ), {"username": "admin", "password_hash": password_hash})
         commit_or_dry(v2)
-        print(f"  {len(users)} users")
+        print("  1 admin user (username: admin, password: password)")
 
         # ── 4. Categories ──────────────────────────────────────────────────
         print("Migrating categories...")
@@ -383,7 +385,6 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
         print("\nVerification:")
         table_pairs = [
             ("currency",       "currency"),
-            ('"user"',         '"user"'),
             ("category",       "category"),
             ("account",        "account"),
             ("account_alias",  "account_alias"),
@@ -400,6 +401,13 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
             if status != "OK":
                 all_ok = False
             print(f"  {v1_table:20s} -> {v2_table:20s}: {c1:>6} -> {c2:>6}  [{status}]")
+
+        # Users: verify single admin user was created
+        user_count = v2.execute(text('SELECT COUNT(*) FROM "user"')).scalar()
+        user_status = "OK" if user_count == 1 else "MISMATCH"
+        if user_status != "OK":
+            all_ok = False
+        print(f"  {'(admin user)':20s} -> {'user':20s}: {'1':>6} -> {user_count:>6}  [{user_status}]")
 
         if dry_run:
             print("\nDry-run complete — no data was written.")

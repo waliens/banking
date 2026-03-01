@@ -15,10 +15,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Existing tables were created by Base.metadata.create_all().
+    """All tables are created by Base.metadata.create_all() before Alembic runs.
 
-    This migration exists so that subsequent migrations have a base to build on.
-    For a fresh database, run create_all first, then stamp this revision.
+    This single baseline migration exists so Alembic can track schema state.
+    For a fresh database, create_all runs first, then this revision is stamped.
     """
     pass
 

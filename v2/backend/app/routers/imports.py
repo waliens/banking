@@ -135,6 +135,7 @@ def get_import_transactions(
     start: int = 0,
     count: int = 50,
     duplicate_only: bool = False,
+    auto_tagged_only: bool = False,
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> list[Transaction]:
@@ -145,6 +146,8 @@ def get_import_transactions(
     q = select(Transaction).where(Transaction.id_import == import_id)
     if duplicate_only:
         q = q.where(Transaction.id_duplicate_of.is_not(None))
+    elif auto_tagged_only:
+        q = q.where(Transaction.auto_tagged_at_import.is_(True), Transaction.id_duplicate_of.is_(None))
     else:
         q = q.where(Transaction.id_duplicate_of.is_(None))
     q = q.order_by(Transaction.date.desc(), Transaction.id.desc()).offset(start).limit(count)

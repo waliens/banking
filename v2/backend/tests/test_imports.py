@@ -108,6 +108,53 @@ class TestImportTransactions:
         assert len(data) == 2
         assert all(t["description"] != "Unlinked" for t in data)
 
+    def test_duplicate_only_filter(
+        self, client, auth_headers, db, import_record, account_checking, account_savings, currency_eur
+    ):
+        """duplicate_only=true returns only transactions marked as duplicates at import time."""
+        # Create a duplicate transaction linked to the import
+        dup = Transaction(
+            external_id="dup-tx",
+            id_source=account_checking.id,
+            id_dest=account_savings.id,
+            date=datetime.date(2024, 6, 15),
+            amount=Decimal("25.00"),
+            id_currency=currency_eur.id,
+            data_source="belfius",
+            description="Duplicate",
+            id_import=import_record.id,
+            id_duplicate_of=1,
+        )
+        db.add(dup)
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/imports/{import_record.id}/transactions?duplicate_only=true",
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 1
+        assert data[0]["description"] == "Duplicate"
+
+    def test_auto_tagged_only_filter(
+        self, client, auth_headers, db, import_record, account_checking, account_savings, currency_eur
+    ):
+        """auto_tagged_only=true returns only transactions auto-tagged at import time."""
+        # Mark one existing import transaction as auto-tagged
+        txs = db.query(Transaction).filter(Transaction.id_import == import_record.id).all()
+        txs[0].auto_tagged_at_import = True
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/imports/{import_record.id}/transactions?auto_tagged_only=true",
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 1
+        assert data[0]["description"] == txs[0].description
+
 
 class TestImportAccounts:
     def test_returns_accounts(self, client, auth_headers, import_record, account_checking, account_savings):

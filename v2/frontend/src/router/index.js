@@ -54,6 +54,11 @@ const routes = [
     component: () => import('../views/SwipeTaggerView.vue'),
   },
   {
+    path: '/help',
+    name: 'help',
+    component: () => import('../views/HelpView.vue'),
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },

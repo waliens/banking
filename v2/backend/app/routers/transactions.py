@@ -11,6 +11,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from app.dependencies import get_current_user, get_db
 from app.models import Category, CategorySplit, Transaction, User, WalletAccount
 from app.schemas.ml import PredictionItem
+from app.services.category_service import get_category_descendants
 from app.schemas.transaction import (
     EffectiveAmountUpdate,
     ReviewBatchRequest,
@@ -25,21 +26,6 @@ from app.schemas.transaction import (
 )
 
 router = APIRouter()
-
-
-def _get_category_descendants(db: Session, id_category: int) -> list[int]:
-    """BFS over Category table to find all descendants of a category (inclusive)."""
-    result = [id_category]
-    queue = [id_category]
-    while queue:
-        parent_id = queue.pop(0)
-        children = db.execute(
-            select(Category.id).where(Category.id_parent == parent_id)
-        ).scalars().all()
-        for child_id in children:
-            result.append(child_id)
-            queue.append(child_id)
-    return result
 
 
 def _build_transaction_query(
@@ -128,7 +114,7 @@ def _build_transaction_query(
         q = q.where(Transaction.id_transaction_group.is_(None))
 
     if category is not None:
-        descendant_ids = _get_category_descendants(db, category)
+        descendant_ids = get_category_descendants(db, category)
         q = q.join(CategorySplit, CategorySplit.id_transaction == Transaction.id).where(
             CategorySplit.id_category.in_(descendant_ids)
         )
