@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 
 export function useSwipeGesture(elementRef, { onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, threshold = 100 } = {}) {
   const offsetX = ref(0)
@@ -10,6 +10,7 @@ export function useSwipeGesture(elementRef, { onSwipeLeft, onSwipeRight, onSwipe
   let startY = 0
   let lockedAxis = null // 'horizontal' | 'vertical' | null
   let mouseDown = false
+  let currentEl = null
 
   function handleStart(clientX, clientY) {
     startX = clientX
@@ -101,26 +102,35 @@ export function useSwipeGesture(elementRef, { onSwipeLeft, onSwipeRight, onSwipe
     handleEnd()
   }
 
-  onMounted(() => {
-    const el = elementRef.value
-    if (!el) return
+  function attach(el) {
     el.addEventListener('touchstart', onTouchStart, { passive: true })
     el.addEventListener('touchmove', onTouchMove, { passive: false })
     el.addEventListener('touchend', onTouchEnd)
     el.addEventListener('mousedown', onMouseDown)
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
-  })
+    currentEl = el
+  }
 
-  onUnmounted(() => {
-    const el = elementRef.value
-    if (!el) return
+  function detach(el) {
     el.removeEventListener('touchstart', onTouchStart)
     el.removeEventListener('touchmove', onTouchMove)
     el.removeEventListener('touchend', onTouchEnd)
     el.removeEventListener('mousedown', onMouseDown)
     window.removeEventListener('mousemove', onMouseMove)
     window.removeEventListener('mouseup', onMouseUp)
+    currentEl = null
+  }
+
+  // Watch the ref so we attach/detach when the element appears/disappears
+  // (e.g. conditionally rendered with v-if)
+  watch(elementRef, (newEl, oldEl) => {
+    if (oldEl) detach(oldEl)
+    if (newEl) attach(newEl)
+  }, { immediate: true, flush: 'post' })
+
+  onUnmounted(() => {
+    if (currentEl) detach(currentEl)
   })
 
   return { offsetX, offsetY, isSwiping, swipeDirection }
