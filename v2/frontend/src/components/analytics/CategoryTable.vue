@@ -10,6 +10,7 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import PeriodFilter from './PeriodFilter.vue'
 import CategorySelect from '../common/CategorySelect.vue'
 import CurrencyDisplay from '../common/CurrencyDisplay.vue'
+import { formatDate, getDateRange } from '../../utils/date'
 
 const props = defineProps({
   walletId: { type: Number, required: true },
@@ -42,29 +43,19 @@ const bucketOptions = [
   { label: t('wallet.yearly'), value: 'year' },
 ]
 
-function formatDate(d) {
-  if (!d) return null
-  const dt = new Date(d)
-  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
-}
-
-function getDateRange() {
-  if (periodType.value === 'year') {
-    return { date_from: `${year.value}-01-01`, date_to: `${year.value}-12-31` }
-  }
-  if (periodType.value === 'month') {
-    const lastDay = new Date(year.value, month.value, 0).getDate()
-    return {
-      date_from: `${year.value}-${String(month.value).padStart(2, '0')}-01`,
-      date_to: `${year.value}-${String(month.value).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`,
-    }
-  }
-  return { date_from: formatDate(dateFrom.value), date_to: formatDate(dateTo.value) }
+function computeDateRange() {
+  return getDateRange({
+    periodType: periodType.value,
+    year: year.value,
+    month: month.value,
+    dateFrom: dateFrom.value,
+    dateTo: dateTo.value,
+  })
 }
 
 async function loadData() {
   if (!props.walletId) return
-  const { date_from, date_to } = getDateRange()
+  const { date_from, date_to } = computeDateRange()
   const params = { date_from, date_to, period_bucket: periodBucket.value }
   const [expense, income] = await Promise.all([
     walletStore.fetchPerCategoryTable(props.walletId, { ...params, income_only: false }),

@@ -40,6 +40,89 @@ class TestCommonUtils:
     def test_parse_date_two_digit_year(self):
         assert parse_date_str("01/06/24") == date(2024, 6, 1)
 
+    def test_sanitize_handles_tabs_and_newlines(self):
+        assert sanitize("hello\t\n  world") == "hello world"
+
+    def test_sanitize_preserves_normal_string(self):
+        assert sanitize("hello world") == "hello world"
+
+    def test_sanitize_number_preserves_number_without_spaces(self):
+        assert sanitize_number("BE1234567890") == "BE1234567890"
+
+    def test_sanitize_number_strips_leading_trailing(self):
+        assert sanitize_number("  BE1234  ") == "BE1234"
+
+    def test_parse_date_with_surrounding_whitespace(self):
+        assert parse_date_str("  01/06/2024  ") == date(2024, 6, 1)
+
+    def test_parse_date_raises_on_empty(self):
+        with pytest.raises(AssertionError):
+            parse_date_str("")
+
+
+class TestParsedTransactionDataclass:
+    def test_has_expected_fields(self):
+        from app.parsers.common import ParsedTransaction
+
+        pt = ParsedTransaction(
+            external_id="ext-001",
+            source_number="BE1234",
+            source_name="Source",
+            dest_number="BE5678",
+            dest_name="Dest",
+            date=date(2024, 6, 15),
+            amount=Decimal("42.50"),
+            currency="EUR",
+            description="Test payment",
+            data_source="belfius",
+        )
+        assert pt.external_id == "ext-001"
+        assert pt.source_number == "BE1234"
+        assert pt.source_name == "Source"
+        assert pt.dest_number == "BE5678"
+        assert pt.dest_name == "Dest"
+        assert pt.date == date(2024, 6, 15)
+        assert pt.amount == Decimal("42.50")
+        assert pt.currency == "EUR"
+        assert pt.description == "Test payment"
+        assert pt.data_source == "belfius"
+
+    def test_raw_metadata_defaults_to_empty_dict(self):
+        from app.parsers.common import ParsedTransaction
+
+        pt = ParsedTransaction(
+            external_id="ext-002",
+            source_number=None,
+            source_name=None,
+            dest_number=None,
+            dest_name=None,
+            date=date(2024, 1, 1),
+            amount=Decimal("0"),
+            currency="EUR",
+            description="",
+            data_source="test",
+        )
+        assert pt.raw_metadata == {}
+
+    def test_raw_metadata_can_be_set(self):
+        from app.parsers.common import ParsedTransaction
+
+        metadata = {"key": "value", "nested": {"a": 1}}
+        pt = ParsedTransaction(
+            external_id="ext-003",
+            source_number=None,
+            source_name=None,
+            dest_number=None,
+            dest_name=None,
+            date=date(2024, 1, 1),
+            amount=Decimal("10"),
+            currency="EUR",
+            description="With metadata",
+            data_source="test",
+            raw_metadata=metadata,
+        )
+        assert pt.raw_metadata == metadata
+
 
 class TestBelfiusParser:
     def test_parse_file(self):

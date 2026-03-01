@@ -1,7 +1,8 @@
 import { watch, onUnmounted } from 'vue'
 
-export function useInfiniteScroll(sentinelRef, callback, { rootMargin = '400px', enabled } = {}) {
+export function useInfiniteScroll(sentinelRef, callback, { rootMargin = '400px', enabled, root } = {}) {
   let observer = null
+  let loading = false
 
   function cleanup() {
     if (observer) {
@@ -17,12 +18,17 @@ export function useInfiniteScroll(sentinelRef, callback, { rootMargin = '400px',
     if (enabled && !enabled.value) return
 
     observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          callback()
+      async (entries) => {
+        if (entries[0].isIntersecting && !loading) {
+          loading = true
+          try {
+            await callback()
+          } finally {
+            loading = false
+          }
         }
       },
-      { rootMargin },
+      { rootMargin, root: root?.value || null },
     )
     observer.observe(el)
   }

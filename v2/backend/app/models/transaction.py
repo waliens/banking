@@ -1,28 +1,10 @@
 import datetime
 from decimal import Decimal
 
-from typing import Any
-
-from sqlalchemy import Date, ForeignKey, Index, JSON, Numeric, String, Text
-from sqlalchemy import types as sa_types
-from sqlalchemy.engine.interfaces import Dialect
+from sqlalchemy import Date, ForeignKey, Index, JSON, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-
-
-class TSVector(sa_types.TypeDecorator[str]):
-    """A type that renders as TSVECTOR on PostgreSQL and TEXT elsewhere (e.g. SQLite for tests)."""
-
-    impl = Text
-    cache_ok = True
-
-    def load_dialect_impl(self, dialect: Dialect) -> sa_types.TypeEngine[Any]:
-        if dialect.name == "postgresql":
-            from sqlalchemy.dialects.postgresql import TSVECTOR
-
-            return dialect.type_descriptor(TSVECTOR())
-        return dialect.type_descriptor(Text())
 
 
 class Transaction(Base):
@@ -41,8 +23,6 @@ class Transaction(Base):
     description: Mapped[str] = mapped_column(String, default="", server_default="")
     is_reviewed: Mapped[bool] = mapped_column(default=False, server_default="false")
     notes: Mapped[str | None] = mapped_column(String)
-    search_text: Mapped[str | None] = mapped_column(TSVector())
-    id_recurring: Mapped[int | None] = mapped_column(ForeignKey("recurring_pattern.id"))
     id_transaction_group: Mapped[int | None] = mapped_column(
         ForeignKey("transaction_group.id", ondelete="SET NULL"), nullable=True
     )

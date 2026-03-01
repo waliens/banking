@@ -37,4 +37,26 @@ describe('contrastText', () => {
     const result = contrastText('#fff')
     expect(result).toMatch(/^rgb\(/)
   })
+
+  it('returns pure black (#000000) as-is', () => {
+    // Black has luminance 0 — well below the 0.4 threshold
+    expect(contrastText('#000000')).toBe('#000000')
+  })
+
+  it('darkens pure white (#ffffff)', () => {
+    // White has luminance 1.0 — well above the 0.4 threshold
+    const result = contrastText('#ffffff')
+    expect(result).not.toBe('#ffffff')
+    expect(result).toMatch(/^rgb\(/)
+  })
+
+  it('keeps orange (#f97316) as-is (luminance below threshold)', () => {
+    // Orange #f97316: R=249 G=115 B=22
+    // Luminance ~0.29, which is below 0.4 threshold
+    expect(contrastText('#f97316')).toBe('#f97316')
+  })
+
+  it('returns undefined for empty string', () => {
+    expect(contrastText('')).toBeUndefined()
+  })
 })

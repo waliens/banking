@@ -20,6 +20,7 @@ import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
 import AccountSelect from '../components/common/AccountSelect.vue'
 import CategorySelect from '../components/common/CategorySelect.vue'
 import { contrastText } from '../utils/color'
+import { formatDate } from '../utils/date'
 
 const { t } = useI18n()
 const transactionStore = useTransactionStore()
@@ -97,12 +98,6 @@ function buildParams() {
   if (accountTo.value != null) params.account_to = accountTo.value
 
   return params
-}
-
-function formatDate(d) {
-  if (!d) return null
-  const dt = new Date(d)
-  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
 }
 
 async function loadData() {

@@ -124,14 +124,12 @@ describe('TransactionGroupDialog', () => {
     mountComponent({ initialTransaction: tx })
     await flushPromises()
 
-    // Should have made 2 API calls: one for before, one for after
+    // Should have made 2 API calls: older (date_to = anchor, desc) and newer (date_from > anchor, asc)
     const getCalls = api.get.mock.calls.filter(([url]) => url === '/transactions')
     expect(getCalls.length).toBe(2)
-
-    // One call with date_to (before), one with date_from (after)
     const params = getCalls.map(([, opts]) => opts.params)
-    expect(params.some((p) => p.date_to === '2024-06-15')).toBe(true)
-    expect(params.some((p) => p.date_from === '2024-06-15')).toBe(true)
+    expect(params.some((p) => p.date_to === '2024-06-15' && p.order === 'desc')).toBe(true)
+    expect(params.some((p) => p.date_from === '2024-06-16' && p.order === 'asc')).toBe(true)
   })
 
   it('uses wallet scoping in API calls', async () => {

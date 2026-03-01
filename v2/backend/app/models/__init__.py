@@ -7,8 +7,6 @@ from app.models.transaction_group import TransactionGroup
 from app.models.category_split import CategorySplit
 from app.models.wallet import Wallet, WalletAccount
 from app.models.tag_rule import TagRule
-from app.models.expense_split import ExpenseSplit, ExpenseSplitReimbursement
-from app.models.recurring_pattern import RecurringPattern
 from app.models.ml_model import MLModel
 from app.models.import_record import ImportRecord
 
@@ -24,9 +22,6 @@ __all__ = [
     "Wallet",
     "WalletAccount",
     "TagRule",
-    "ExpenseSplit",
-    "ExpenseSplitReimbursement",
-    "RecurringPattern",
     "MLModel",
     "ImportRecord",
 ]

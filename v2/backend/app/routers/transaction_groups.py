@@ -4,9 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+
 from app.dependencies import get_current_user, get_db
-from app.models import CategorySplit, Transaction, TransactionGroup, User, Wallet, WalletAccount
+from app.models import CategorySplit, Transaction, TransactionGroup, User
 from app.schemas.transaction import CategorySplitResponse, SetCategorySplitsRequest
+from app.utils.wallet import get_wallet_account_ids as _get_wallet_account_ids
 from app.schemas.transaction_group import (
     TransactionGroupCreate,
     TransactionGroupResponse,
@@ -14,17 +16,6 @@ from app.schemas.transaction_group import (
 )
 
 router = APIRouter()
-
-
-def _get_wallet_account_ids(db: Session, wallet_id: int) -> set[int]:
-    """Get account IDs for a wallet, raising 404 if wallet not found."""
-    wallet = db.get(Wallet, wallet_id)
-    if wallet is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wallet not found")
-    rows = db.execute(
-        select(WalletAccount.id_account).where(WalletAccount.id_wallet == wallet_id)
-    ).scalars().all()
-    return set(rows)
 
 
 def _classify_transactions(transactions: list, wallet_account_ids: set[int]) -> tuple[list, list]:

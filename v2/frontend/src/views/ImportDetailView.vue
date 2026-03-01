@@ -13,6 +13,7 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import Drawer from 'primevue/drawer'
 import ImportTransactionTable from '../components/imports/ImportTransactionTable.vue'
+import { formatDateTime } from '../utils/date'
 import FlowDetailPanel from '../components/flow/FlowDetailPanel.vue'
 import DataTable from 'primevue/datatable'
 
@@ -27,11 +28,6 @@ const drawerVisible = computed({
   get: () => selectedTx.value !== null,
   set: (v) => { if (!v) selectedTx.value = null },
 })
-
-function formatDateTime(dt) {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleString()
-}
 
 function selectTransaction(txId) {
   selectedTx.value = txId

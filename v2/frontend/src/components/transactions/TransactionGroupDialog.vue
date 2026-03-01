@@ -27,12 +27,16 @@ const name = ref('')
 const linkedTransactions = ref([])
 const searchQuery = ref('')
 
-// Timeline state
+// Timeline state — single list, newest first (date DESC)
+// Two independent paginated streams: "older" (date <= anchor) and "newer" (date > anchor)
+// Each uses offset-based pagination against the /transactions endpoint
 const anchorDate = ref(null)
-const itemsBefore = ref([]) // older than anchor, ordered date DESC
-const itemsAfter = ref([])  // newer than anchor, ordered date ASC
-const hasMoreBefore = ref(true)
-const hasMoreAfter = ref(true)
+const items = ref([])          // older items (anchor date and before), newest first
+const newerItems = ref([])     // newer items (after anchor date), newest first
+const olderOffset = ref(0)
+const newerOffset = ref(0)
+const hasMoreOlder = ref(true)
+const hasMoreNewer = ref(true)
 
 // Sentinel refs for infinite scroll
 const topSentinelRef = ref(null)
@@ -41,10 +45,8 @@ const scrollContainerRef = ref(null)
 
 const linkedIds = computed(() => new Set(linkedTransactions.value.map((t) => t.id)))
 
-const allTimelineItems = computed(() => {
-  // After items are newest-first when reversed, before items are already date DESC
-  return [...itemsAfter.value.slice().reverse(), ...itemsBefore.value]
-})
+// Combined list: newer (newest first) then older (newest first) = full timeline newest first
+const allTimelineItems = computed(() => [...newerItems.value, ...items.value])
 
 // Group by date for display
 const groupedTimeline = computed(() => {
@@ -87,7 +89,6 @@ function buildParams(extra = {}) {
     wallet: props.walletId,
     wallet_external_only: true,
     count: PAGE_SIZE,
-    start: 0,
     duplicate_only: false,
     exclude_grouped: true,
     ...extra,
@@ -98,70 +99,82 @@ function buildParams(extra = {}) {
   return params
 }
 
-async function loadBefore() {
-  if (!hasMoreBefore.value) return
-  const oldestDate = itemsBefore.value.length
-    ? itemsBefore.value[itemsBefore.value.length - 1].date
-    : anchorDate.value
-  const existingIds = new Set([
-    ...itemsBefore.value.map((t) => t.id),
-    ...itemsAfter.value.map((t) => t.id),
-  ])
-  const { data } = await api.get('/transactions', {
-    params: buildParams({ date_to: oldestDate, order: 'desc' }),
-  })
-  const newItems = data.filter((t) => !existingIds.has(t.id))
-  itemsBefore.value = [...itemsBefore.value, ...newItems]
-  hasMoreBefore.value = data.length === PAGE_SIZE
+// Helper: get the next calendar day as YYYY-MM-DD string
+function nextDay(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const date = new Date(Date.UTC(y, m - 1, d + 1))
+  return date.toISOString().slice(0, 10)
 }
 
-async function loadAfter() {
-  if (!hasMoreAfter.value) return
-  const newestDate = itemsAfter.value.length
-    ? itemsAfter.value[itemsAfter.value.length - 1].date
-    : anchorDate.value
-  const existingIds = new Set([
-    ...itemsBefore.value.map((t) => t.id),
-    ...itemsAfter.value.map((t) => t.id),
-  ])
-  const { data } = await api.get('/transactions', {
-    params: buildParams({ date_from: newestDate, order: 'asc' }),
-  })
-  const newItems = data.filter((t) => !existingIds.has(t.id))
-  itemsAfter.value = [...itemsAfter.value, ...newItems]
-  hasMoreAfter.value = data.length === PAGE_SIZE
+// Load older transactions (anchor date and before, date DESC, offset-based)
+let loadingOlder = false
+async function loadOlder() {
+  if (!hasMoreOlder.value || loadingOlder) return
+  loadingOlder = true
+  try {
+    const { data } = await api.get('/transactions', {
+      params: buildParams({ date_to: anchorDate.value, order: 'desc', start: olderOffset.value }),
+    })
+    if (data.length > 0) {
+      items.value = [...items.value, ...data]
+      olderOffset.value += data.length
+    }
+    hasMoreOlder.value = data.length === PAGE_SIZE
+  } finally {
+    loadingOlder = false
+  }
+}
+
+// Load newer transactions (strictly after anchor date, date ASC then reversed)
+let loadingNewer = false
+async function loadNewer() {
+  if (!hasMoreNewer.value || loadingNewer) return
+  loadingNewer = true
+  try {
+    const { data } = await api.get('/transactions', {
+      params: buildParams({ date_from: nextDay(anchorDate.value), order: 'asc', start: newerOffset.value }),
+    })
+    if (data.length > 0) {
+      // data is date ASC; reverse so newest is first, then prepend
+      // (later pages have more recent items that belong at the top)
+      newerItems.value = [...data.reverse(), ...newerItems.value]
+      newerOffset.value += data.length
+    }
+    hasMoreNewer.value = data.length === PAGE_SIZE
+  } finally {
+    loadingNewer = false
+  }
 }
 
 async function initialLoad() {
-  itemsBefore.value = []
-  itemsAfter.value = []
-  hasMoreBefore.value = true
-  hasMoreAfter.value = true
+  items.value = []
+  newerItems.value = []
+  olderOffset.value = 0
+  newerOffset.value = 0
+  hasMoreOlder.value = true
+  hasMoreNewer.value = true
 
-  // Run sequentially so loadAfter's dedup set includes loadBefore's results
-  // (prevents duplicate anchor-date transactions)
-  await loadBefore()
-  await loadAfter()
+  // Load anchor date and older, then newer
+  await loadOlder()
+  await loadNewer()
 
   // When editing an existing group, inject its transactions back
   // (they were excluded by exclude_grouped filter)
   if (props.group?.transactions) {
-    const existingIds = new Set([
-      ...itemsBefore.value.map((t) => t.id),
-      ...itemsAfter.value.map((t) => t.id),
-    ])
-    for (const tx of props.group.transactions) {
-      if (existingIds.has(tx.id)) continue
-      // Insert into the correct list based on date relative to anchor
-      if (tx.date <= anchorDate.value) {
-        itemsBefore.value.push(tx)
+    const existingIds = new Set(allTimelineItems.value.map((t) => t.id))
+    const toInject = props.group.transactions.filter((tx) => !existingIds.has(tx.id))
+    for (const tx of toInject) {
+      if (tx.date > anchorDate.value) {
+        newerItems.value.push(tx)
       } else {
-        itemsAfter.value.push(tx)
+        items.value.push(tx)
       }
     }
-    // Re-sort: itemsBefore is date DESC, itemsAfter is date ASC
-    itemsBefore.value.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
-    itemsAfter.value.sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id)
+    if (toInject.length > 0) {
+      // Re-sort both arrays: newest first
+      items.value.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
+      newerItems.value.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
+    }
   }
 
   // Scroll to anchor transaction
@@ -176,8 +189,8 @@ async function initialLoad() {
 
 // Setup bidirectional scroll
 useBidirectionalScroll(topSentinelRef, bottomSentinelRef, {
-  onLoadBefore: loadAfter,   // top sentinel = load more future (after)
-  onLoadAfter: loadBefore,   // bottom sentinel = load more past (before)
+  onLoadBefore: loadNewer,   // top sentinel = load more future (newer)
+  onLoadAfter: loadOlder,    // bottom sentinel = load more past (older)
   root: scrollContainerRef,
 })
 

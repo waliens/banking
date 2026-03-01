@@ -11,6 +11,7 @@ import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import { formatDateTime } from '../utils/date'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -57,11 +58,6 @@ async function onUpload(event) {
 
 function goToImportDetail(id) {
   router.push(`/imports/${id}`)
-}
-
-function formatDateTime(dt) {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleString()
 }
 
 onMounted(() => {

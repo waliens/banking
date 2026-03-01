@@ -2,13 +2,14 @@ import datetime
 from collections import defaultdict
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy import Select, case, extract, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
-from app.models import Account, Category, CategorySplit, Currency, Transaction, TransactionGroup, User, Wallet, WalletAccount
+from app.models import Account, Category, CategorySplit, Currency, Transaction, TransactionGroup, User, WalletAccount
 from app.services.category_service import get_category_descendants
+from app.utils.wallet import get_wallet_or_404 as _get_wallet_or_404
 from app.schemas.wallet_stats import (
     AccountBalanceItem,
     CategoryStatItem,
@@ -21,13 +22,6 @@ from app.schemas.wallet_stats import (
 router = APIRouter()
 
 effective = func.coalesce(Transaction.effective_amount, Transaction.amount)
-
-
-def _get_wallet_or_404(db: Session, wallet_id: int) -> Wallet:
-    wallet = db.get(Wallet, wallet_id)
-    if wallet is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wallet not found")
-    return wallet
 
 
 def _wallet_account_ids(wallet_id: int) -> Select[tuple[int]]:

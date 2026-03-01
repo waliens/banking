@@ -59,8 +59,9 @@ export function useBidirectionalScroll(topSentinel, bottomSentinel, { onLoadBefo
     bottomObserver = null
   }
 
-  // Watch for sentinel elements becoming available (v-if / nextTick)
-  watch([topSentinel, bottomSentinel], () => {
+  // Watch for sentinel elements and root becoming available (v-if / nextTick)
+  const watchSources = root ? [topSentinel, bottomSentinel, root] : [topSentinel, bottomSentinel]
+  watch(watchSources, () => {
     createObservers()
   })
 
