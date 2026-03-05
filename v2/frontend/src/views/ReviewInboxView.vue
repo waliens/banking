@@ -14,6 +14,7 @@ import InputNumber from 'primevue/inputnumber'
 import DatePicker from 'primevue/datepicker'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Drawer from 'primevue/drawer'
+import Tag from 'primevue/tag'
 import TransactionDetail from '../components/transactions/TransactionDetail.vue'
 import AccountDisplay from '../components/common/AccountDisplay.vue'
 import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
@@ -33,20 +34,32 @@ const page = ref(0)
 const pageSize = ref(50)
 const filtersVisible = ref(false)
 
+// Mixed list of transactions and groups for the table
+const tableRows = ref([])
+
 // Staged (pending) category selections — not yet committed to backend
 const pendingCategories = ref({})
 
-function isPending(txId) {
-  return txId in pendingCategories.value
+function isPending(rowKey) {
+  return rowKey in pendingCategories.value
 }
 
-function displayCategoryId(data) {
-  if (isPending(data.id)) return pendingCategories.value[data.id]
-  return data.category_splits && data.category_splits.length === 1 ? data.category_splits[0].id_category : null
+function displayCategoryId(row) {
+  const key = rowKey(row)
+  if (isPending(key)) return pendingCategories.value[key]
+  const splits = row._type === 'group' ? row.category_splits : row.category_splits
+  return splits && splits.length === 1 ? splits[0].id_category : null
 }
 
-function isMultiCategory(data) {
-  return !isPending(data.id) && data.category_splits && data.category_splits.length > 1
+function isMultiCategory(row) {
+  const key = rowKey(row)
+  if (isPending(key)) return false
+  const splits = row._type === 'group' ? row.category_splits : row.category_splits
+  return splits && splits.length > 1
+}
+
+function rowKey(row) {
+  return row._type === 'group' ? `g-${row.id}` : `t-${row.id}`
 }
 
 // Filters
@@ -75,6 +88,7 @@ function buildParams() {
     start: page.value * pageSize.value,
     count: pageSize.value,
     order: 'desc',
+    exclude_grouped: true,
   }
 
   // Wallet scoping
@@ -101,7 +115,40 @@ function buildParams() {
 }
 
 async function loadData() {
-  await transactionStore.fetchTransactions(buildParams())
+  const walletId = activeWalletStore.activeWalletId
+
+  // Fetch transactions and unreviewed groups in parallel
+  const promises = [transactionStore.fetchTransactions(buildParams())]
+  if (walletId && !showReviewed.value && !showLabeled.value) {
+    promises.push(transactionStore.fetchUnreviewedGroups(walletId))
+  } else {
+    promises.push(Promise.resolve([]))
+  }
+
+  const [, groups] = await Promise.all(promises)
+
+  // Build mixed table rows
+  const txRows = transactionStore.transactions.map(tx => ({
+    ...tx,
+    _type: 'transaction',
+    _key: `t-${tx.id}`,
+    _displayDate: tx.date,
+    _displayDescription: tx.description || '—',
+  }))
+
+  const groupRows = (groups || []).map(g => ({
+    ...g,
+    _type: 'group',
+    _key: `g-${g.id}`,
+    _displayDate: g.transactions?.length > 0
+      ? g.transactions.map(tx => tx.date).sort().reverse()[0]
+      : '',
+    _displayDescription: g.name || t('review.groupBadge'),
+  }))
+
+  // Groups first, then transactions
+  tableRows.value = [...groupRows, ...txRows]
+
   // Fetch ML predictions for visible transactions
   const ids = transactionStore.transactions.map((t) => t.id)
   if (ids.length > 0) {
@@ -125,50 +172,107 @@ function onPage(event) {
   loadData()
 }
 
-function onCategoryStaged(txId, categoryId) {
+function onCategoryStaged(row, categoryId) {
+  const key = rowKey(row)
   if (categoryId === null) {
-    // Clearing is deliberate — commit immediately, clear any pending
-    transactionStore.setCategory(txId, null).then(() => refreshAfterAction())
-    delete pendingCategories.value[txId]
+    if (row._type === 'transaction') {
+      transactionStore.setCategory(row.id, null).then(() => refreshAfterAction())
+    }
+    delete pendingCategories.value[key]
   } else {
-    pendingCategories.value[txId] = categoryId
+    pendingCategories.value[key] = categoryId
   }
 }
 
-async function commitCategory(txId) {
-  await transactionStore.setCategory(txId, pendingCategories.value[txId])
-  delete pendingCategories.value[txId]
+async function commitCategory(row) {
+  const key = rowKey(row)
+  const categoryId = pendingCategories.value[key]
+  if (row._type === 'group') {
+    const walletId = activeWalletStore.activeWalletId
+    if (walletId) await transactionStore.setGroupCategory(row.id, categoryId, walletId)
+  } else {
+    await transactionStore.setCategory(row.id, categoryId)
+  }
+  delete pendingCategories.value[key]
   await refreshAfterAction()
 }
 
 async function commitAllPending() {
   const entries = Object.entries(pendingCategories.value)
   if (!entries.length) return
-  const categories = Object.fromEntries(entries.filter(([, v]) => v !== null))
-  if (Object.keys(categories).length) await transactionStore.tagBatch(categories)
+
+  // Separate transaction and group entries
+  const txEntries = entries.filter(([k]) => k.startsWith('t-'))
+  const groupEntries = entries.filter(([k]) => k.startsWith('g-'))
+
+  // Batch commit transactions
+  if (txEntries.length > 0) {
+    const categories = Object.fromEntries(
+      txEntries.map(([k, v]) => [k.slice(2), v]).filter(([, v]) => v !== null)
+    )
+    if (Object.keys(categories).length) await transactionStore.tagBatch(categories)
+  }
+
+  // Commit groups one by one
+  const walletId = activeWalletStore.activeWalletId
+  for (const [k, v] of groupEntries) {
+    if (v !== null && walletId) {
+      const groupId = Number(k.slice(2))
+      await transactionStore.setGroupCategory(groupId, v, walletId)
+    }
+  }
+
   pendingCategories.value = {}
   await refreshAfterAction()
 }
 
-async function markReviewed(id) {
-  await transactionStore.reviewTransaction(id)
+async function markReviewed(row) {
+  if (row._type === 'group') {
+    const walletId = activeWalletStore.activeWalletId
+    if (walletId) await transactionStore.reviewGroup(row.id, walletId)
+  } else {
+    await transactionStore.reviewTransaction(row.id)
+  }
   await refreshAfterAction()
 }
 
 async function markAllReviewed() {
-  const ids = transactionStore.transactions.map((t) => t.id)
-  if (ids.length === 0) return
-  await transactionStore.reviewBatch(ids)
+  // Mark all transactions
+  const txIds = tableRows.value.filter(r => r._type === 'transaction').map(r => r.id)
+  if (txIds.length > 0) {
+    await transactionStore.reviewBatch(txIds)
+  }
+
+  // Mark all groups
+  const walletId = activeWalletStore.activeWalletId
+  const groupRows = tableRows.value.filter(r => r._type === 'group')
+  for (const g of groupRows) {
+    if (walletId) await transactionStore.reviewGroup(g.id, walletId)
+  }
+
   await refreshAfterAction()
 }
 
 async function applyBatchTag() {
   if (!batchCategoryId.value) return
-  const categories = {}
-  transactionStore.transactions.forEach((tx) => {
-    categories[tx.id] = batchCategoryId.value
+
+  const walletId = activeWalletStore.activeWalletId
+
+  // Batch tag transactions
+  const txCategories = {}
+  tableRows.value.filter(r => r._type === 'transaction').forEach((row) => {
+    txCategories[row.id] = batchCategoryId.value
   })
-  await transactionStore.tagBatch(categories)
+  if (Object.keys(txCategories).length > 0) {
+    await transactionStore.tagBatch(txCategories)
+  }
+
+  // Tag groups
+  const groupRows = tableRows.value.filter(r => r._type === 'group')
+  for (const g of groupRows) {
+    if (walletId) await transactionStore.setGroupCategory(g.id, batchCategoryId.value, walletId)
+  }
+
   batchCategoryId.value = null
   await refreshAfterAction()
 }
@@ -177,11 +281,12 @@ async function refreshAfterAction() {
   await Promise.all([loadData(), transactionStore.fetchReviewCount()])
 }
 
-async function openDrawer(tx) {
+async function openDrawer(row) {
+  if (row._type === 'group') return // No drawer for groups
   drawerLoading.value = true
   drawerVisible.value = true
   try {
-    const data = await transactionStore.fetchTransaction(tx.id)
+    const data = await transactionStore.fetchTransaction(row.id)
     selectedTransaction.value = data
   } finally {
     drawerLoading.value = false
@@ -190,16 +295,25 @@ async function openDrawer(tx) {
 
 function onDrawerCategoryChanged() {
   refreshAfterAction()
-  // Reload detail
   if (selectedTransaction.value) {
     openDrawer(selectedTransaction.value)
   }
 }
 
 // Negate for expenses (wallet account is source), keep positive for income (wallet account is dest)
-function displayAmount(tx) {
-  if (isWalletAccount(tx.dest)) return tx.amount
-  return -tx.amount
+function displayAmount(row) {
+  if (row._type === 'group') {
+    return -row.net_expense
+  }
+  if (isWalletAccount(row.dest)) return row.amount
+  return -row.amount
+}
+
+function rowCurrency(row) {
+  if (row._type === 'group') {
+    return row.transactions?.[0]?.currency?.symbol || ''
+  }
+  return row.currency?.symbol || ''
 }
 
 function isWalletAccount(account) {
@@ -270,7 +384,7 @@ onMounted(async () => {
           severity="secondary"
           size="small"
           icon="pi pi-check-circle"
-          :disabled="transactionStore.transactions.length === 0"
+          :disabled="tableRows.length === 0"
           @click="markAllReviewed"
         />
       </div>
@@ -347,49 +461,67 @@ onMounted(async () => {
           :label="t('review.batchTag')"
           icon="pi pi-tags"
           size="small"
-          :disabled="!batchCategoryId || transactionStore.transactions.length === 0"
+          :disabled="!batchCategoryId || tableRows.length === 0"
           @click="applyBatchTag"
         />
       </div>
     </div>
 
-    <div v-if="!transactionStore.loading && transactionStore.transactions.length === 0" class="text-center py-12 text-surface-400">
+    <div v-if="!transactionStore.loading && tableRows.length === 0" class="text-center py-12 text-surface-400">
       <i class="pi pi-check-circle text-4xl mb-3 block" />
       <p>{{ t('review.empty') }}</p>
     </div>
 
     <div v-else class="bg-surface-0 rounded-xl shadow overflow-hidden">
       <DataTable
-        :value="transactionStore.transactions"
+        :value="tableRows"
         :loading="transactionStore.loading"
         :lazy="true"
         :paginator="true"
         :rows="pageSize"
-        :totalRecords="transactionStore.totalCount"
+        :totalRecords="transactionStore.totalCount + tableRows.filter(r => r._type === 'group').length"
         @page="onPage"
         @row-click="(e) => openDrawer(e.data)"
-        dataKey="id"
+        dataKey="_key"
         stripedRows
         responsiveLayout="scroll"
         class="text-sm cursor-pointer"
       >
-        <Column field="date" :header="t('transactions.date')" style="width: 110px" />
-
-        <Column field="description" :header="t('transactions.description')">
+        <Column field="_displayDate" :header="t('transactions.date')" style="width: 110px">
           <template #body="{ data }">
-            <span v-tooltip.top="data.description" class="truncate block max-w-xs">{{ data.description || '—' }}</span>
+            <div class="flex items-center gap-2">
+              <Tag v-if="data._type === 'group'" value="Group" severity="info" class="text-[10px] px-1.5 py-0.5" />
+              <span>{{ data._displayDate }}</span>
+            </div>
+          </template>
+        </Column>
+
+        <Column field="_displayDescription" :header="t('transactions.description')">
+          <template #body="{ data }">
+            <div>
+              <span v-tooltip.top="data._displayDescription" class="truncate block max-w-xs">{{ data._displayDescription }}</span>
+              <span v-if="data._type === 'group'" class="text-xs text-surface-400">
+                {{ t('tagger.groupTransactions', { count: data.transactions?.length || 0 }) }}
+              </span>
+            </div>
           </template>
         </Column>
 
         <Column field="source" :header="t('transactions.source')" style="width: 150px">
           <template #body="{ data }">
-            <AccountDisplay :account="data.source" :highlight="isWalletAccount(data.source)" />
+            <template v-if="data._type === 'transaction'">
+              <AccountDisplay :account="data.source" :highlight="isWalletAccount(data.source)" />
+            </template>
+            <span v-else class="text-xs text-surface-400">—</span>
           </template>
         </Column>
 
         <Column field="dest" :header="t('transactions.dest')" style="width: 150px">
           <template #body="{ data }">
-            <AccountDisplay :account="data.dest" :highlight="isWalletAccount(data.dest)" />
+            <template v-if="data._type === 'transaction'">
+              <AccountDisplay :account="data.dest" :highlight="isWalletAccount(data.dest)" />
+            </template>
+            <span v-else class="text-xs text-surface-400">—</span>
           </template>
         </Column>
 
@@ -397,16 +529,22 @@ onMounted(async () => {
           <template #body="{ data }">
             <CurrencyDisplay
               :amount="displayAmount(data)"
-              :currencySymbol="data.currency.symbol || ''"
+              :currencySymbol="rowCurrency(data)"
               :showSign="true"
               colored
               class="font-medium"
             />
             <span
-              v-if="data.effective_amount != null && data.effective_amount !== data.amount"
+              v-if="data._type === 'transaction' && data.effective_amount != null && data.effective_amount !== data.amount"
               class="text-xs text-surface-400 block"
             >
               ({{ t('transactions.effectiveAmount') }}: {{ data.effective_amount }})
+            </span>
+            <span
+              v-if="data._type === 'group'"
+              class="text-xs text-surface-400 block"
+            >
+              {{ t('transactions.totalPaid') }}: {{ data.total_paid }}
             </span>
           </template>
         </Column>
@@ -425,24 +563,24 @@ onMounted(async () => {
                   <div class="flex items-center gap-1">
                     <CategorySelect
                       :modelValue="displayCategoryId(data)"
-                      @update:modelValue="(v) => onCategoryStaged(data.id, v)"
+                      @update:modelValue="(v) => onCategoryStaged(data, v)"
                       :placeholder="t('transactions.uncategorized')"
                       :showClear="!!displayCategoryId(data)"
                       class="flex-1"
-                      :class="isPending(data.id) ? 'ring-1 ring-amber-400 rounded-lg' : ''"
+                      :class="isPending(rowKey(data)) ? 'ring-1 ring-amber-400 rounded-lg' : ''"
                     />
                     <Button
-                      v-if="isPending(data.id)"
+                      v-if="isPending(rowKey(data))"
                       icon="pi pi-check"
                       severity="success"
                       size="small"
                       text
                       rounded
-                      @click="commitCategory(data.id)"
+                      @click="commitCategory(data)"
                       v-tooltip.top="t('review.saveTag')"
                     />
                   </div>
-                  <div v-if="mlStore.predictions[data.id] && !displayCategoryId(data)" class="mt-1">
+                  <div v-if="data._type === 'transaction' && mlStore.predictions[data.id] && !displayCategoryId(data)" class="mt-1">
                     <button
                       class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity"
                       :style="{
@@ -471,7 +609,7 @@ onMounted(async () => {
                 severity="secondary"
                 size="small"
                 text
-                @click="markReviewed(data.id)"
+                @click="markReviewed(data)"
               />
             </div>
           </template>

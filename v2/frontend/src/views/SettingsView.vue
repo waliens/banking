@@ -18,6 +18,7 @@ import CategoriesPanel from '../components/settings/CategoriesPanel.vue'
 import TagRulesPanel from '../components/settings/TagRulesPanel.vue'
 import MLModelsPanel from '../components/settings/MLModelsPanel.vue'
 import DuplicatesPanel from '../components/settings/DuplicatesPanel.vue'
+import ReviewResetPanel from '../components/settings/ReviewResetPanel.vue'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -60,6 +61,7 @@ async function savePassword() {
         <Tab value="rules">{{ t('settings.rules') }}</Tab>
         <Tab value="ml">{{ t('settings.mlModels') }}</Tab>
         <Tab value="duplicates">{{ t('settings.duplicates') }}</Tab>
+        <Tab value="admin">{{ t('settings.admin') }}</Tab>
         <Tab value="password">{{ t('settings.changePassword') }}</Tab>
       </TabList>
       <TabPanels>
@@ -81,6 +83,9 @@ async function savePassword() {
         </TabPanel>
         <TabPanel value="duplicates">
           <DuplicatesPanel />
+        </TabPanel>
+        <TabPanel value="admin">
+          <ReviewResetPanel />
         </TabPanel>
         <TabPanel value="password">
           <Card>

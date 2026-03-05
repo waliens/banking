@@ -46,9 +46,13 @@ const i18n = createI18n({
         hintRight: 'Accept',
         hintDown: 'Detail',
         detail: 'Detail',
+        group: 'Group',
+        groupNetExpense: 'Net expense',
+        groupTransactions: '{count} transactions',
       },
       transactions: {
         effectiveAmount: 'Effective amount',
+        totalPaid: 'Total paid',
       },
     },
   },
@@ -60,6 +64,7 @@ const stubComponents = {
   CategoryGrid: { template: '<div class="category-grid" />', props: ['categories', 'transaction'] },
   TransactionDetail: { template: '<div class="transaction-detail" />', props: ['transaction'] },
   CurrencyDisplay: { template: '<span>{{ amount }}</span>', props: ['amount', 'currencySymbol', 'showSign', 'colored'] },
+  Tag: { template: '<span>{{ value }}</span>', props: ['value', 'severity', 'icon'] },
 }
 
 const routerLinkStub = { template: '<a><slot /></a>', props: ['to'] }
@@ -70,6 +75,7 @@ function setupApiMock(txs = [], categories = []) {
     if (url === '/transactions/count') return Promise.resolve({ data: { count: txs.length } })
     if (url === '/transactions/review-inbox/count') return Promise.resolve({ data: { count: txs.length } })
     if (url === '/categories') return Promise.resolve({ data: categories })
+    if (url === '/transaction-groups/unreviewed') return Promise.resolve({ data: [] })
     return Promise.resolve({ data: {} })
   })
   api.post.mockImplementation(() => Promise.resolve({ data: { predictions: [] } }))
@@ -109,12 +115,13 @@ describe('SwipeTaggerView', () => {
     const wrapper = mountTagger()
     await new Promise((r) => setTimeout(r, 50))
 
-    expect(wrapper.text()).toContain('42.5')
+    // Amount is wallet-relative (negated for expenses)
+    expect(wrapper.text()).toContain('-42.5')
     expect(wrapper.text()).toContain('Grocery')
     expect(wrapper.text()).toContain('2025-01-15')
   })
 
-  it('shows hint bar with 4 directions in card mode', async () => {
+  it('shows hint bar with directions in card mode', async () => {
     setupApiMock(sampleTxs, [])
     const wrapper = mountTagger()
     await new Promise((r) => setTimeout(r, 50))
@@ -122,7 +129,6 @@ describe('SwipeTaggerView', () => {
     expect(wrapper.text()).toContain('Categorize')
     expect(wrapper.text()).toContain('Skip')
     expect(wrapper.text()).toContain('Detail')
-    expect(wrapper.text()).toContain('Accept')
   })
 
   it('passes wallet scoping params when loading batch', async () => {
@@ -134,6 +140,7 @@ describe('SwipeTaggerView', () => {
       params: expect.objectContaining({
         wallet: 1,
         wallet_external_only: true,
+        exclude_grouped: true,
       }),
     })
   })

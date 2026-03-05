@@ -1,12 +1,12 @@
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
 
 from app.dependencies import get_current_user, get_db
-from app.models import CategorySplit, Transaction, TransactionGroup, User
+from app.models import CategorySplit, Transaction, TransactionGroup, User, WalletAccount
 from app.schemas.transaction import CategorySplitResponse, SetCategorySplitsRequest
 from app.utils.wallet import get_wallet_account_ids as _get_wallet_account_ids
 from app.schemas.transaction_group import (
@@ -70,6 +70,7 @@ def _build_response(group: TransactionGroup, wallet_account_ids: set[int]) -> Tr
     return TransactionGroupResponse(
         id=group.id,
         name=group.name,
+        is_reviewed=group.is_reviewed,
         transactions=transactions,
         total_paid=total_paid,
         total_reimbursed=total_reimbursed,
@@ -112,6 +113,43 @@ def list_groups(
     wallet_account_ids = _get_wallet_account_ids(db, wallet_id)
     groups = db.execute(select(TransactionGroup)).scalars().unique().all()
     return [_build_response(g, wallet_account_ids) for g in groups]
+
+
+@router.get("/unreviewed", response_model=list[TransactionGroupResponse])
+def list_unreviewed_groups(
+    wallet_id: int = Query(...),
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> list[TransactionGroupResponse]:
+    """List groups that need review: not reviewed and no category splits."""
+    wallet_account_ids = _get_wallet_account_ids(db, wallet_id)
+
+    try:
+        has_split = exists(select(CategorySplit.id).where(CategorySplit.id_group == TransactionGroup.id))
+
+        # Only include groups that have at least one transaction in this wallet
+        wallet_account_id_subq = select(WalletAccount.id_account).where(WalletAccount.id_wallet == wallet_id)
+
+        q = (
+            select(TransactionGroup)
+            .where(
+                TransactionGroup.is_reviewed == False,  # noqa: E712
+                ~has_split,
+            )
+            .where(
+                TransactionGroup.transactions.any(
+                    Transaction.id_source.in_(wallet_account_id_subq)
+                    | Transaction.id_dest.in_(wallet_account_id_subq)
+                )
+            )
+        )
+
+        groups = db.execute(q).scalars().unique().all()
+        return [_build_response(g, wallet_account_ids) for g in groups]
+    except Exception:
+        # is_reviewed column may not exist yet (migration not applied)
+        db.rollback()
+        return []
 
 
 @router.get("/{group_id}", response_model=TransactionGroupResponse)
@@ -298,6 +336,59 @@ def clear_group_category_splits(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction group not found")
     for cs in list(group.category_splits):
         db.delete(cs)
+    db.commit()
+    db.refresh(group)
+    return _build_response(group, wallet_account_ids)
+
+
+@router.put("/{group_id}/category/{category_id}", response_model=TransactionGroupResponse)
+def set_group_category(
+    group_id: int,
+    category_id: int,
+    wallet_id: int = Query(...),
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> TransactionGroupResponse:
+    """Set a single category on a group (convenience over multi-split)."""
+    wallet_account_ids = _get_wallet_account_ids(db, wallet_id)
+    group = db.get(TransactionGroup, group_id)
+    if group is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction group not found")
+
+    for cs in list(group.category_splits):
+        db.delete(cs)
+    db.flush()
+
+    response = _build_response(group, wallet_account_ids)
+    group.category_splits.append(CategorySplit(id_category=category_id, amount=response.net_expense))
+    group.is_reviewed = True
+
+    # Also mark all member transactions as reviewed
+    for t in group.transactions:
+        t.is_reviewed = True
+
+    db.commit()
+    db.refresh(group)
+    return _build_response(group, wallet_account_ids)
+
+
+@router.put("/{group_id}/review", response_model=TransactionGroupResponse)
+def review_group(
+    group_id: int,
+    wallet_id: int = Query(...),
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> TransactionGroupResponse:
+    """Mark a group as reviewed without assigning a category."""
+    wallet_account_ids = _get_wallet_account_ids(db, wallet_id)
+    group = db.get(TransactionGroup, group_id)
+    if group is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction group not found")
+
+    group.is_reviewed = True
+    for t in group.transactions:
+        t.is_reviewed = True
+
     db.commit()
     db.refresh(group)
     return _build_response(group, wallet_account_ids)

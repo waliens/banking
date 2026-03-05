@@ -77,6 +77,8 @@ const messages = {
       transactionDetail: 'Transaction Detail',
       saveTag: 'Save tag',
       saveAllTags: 'Save all tags',
+      groupBadge: 'Group',
+      groupNetExpense: 'Net: {amount}',
     },
     accounts: {
       title: 'Accounts',
@@ -169,6 +171,11 @@ const messages = {
       original: 'Original',
       duplicate: 'Duplicate',
       noDuplicates: 'No duplicate transactions',
+      admin: 'Admin',
+      unreviewUncategorized: 'Reset uncategorized reviews',
+      unreviewUncategorizedDesc: 'Transactions and groups that were marked as reviewed but have no category will be set back to unreviewed, so they can be classified again.',
+      unreviewUncategorizedBtn: 'Reset reviewed',
+      unreviewResult: '{transactions} transactions and {groups} groups reset.',
     },
     tagger: {
       title: 'Swipe Tagger',
@@ -189,6 +196,9 @@ const messages = {
       hintRight: 'Accept',
       hintDown: 'Detail',
       detail: 'Detail',
+      group: 'Group',
+      groupNetExpense: 'Net expense',
+      groupTransactions: '{count} transactions',
     },
     wallet: {
       balance: 'Balance',
@@ -417,6 +427,8 @@ const messages = {
       transactionDetail: 'Détail de la transaction',
       saveTag: 'Enregistrer la catégorie',
       saveAllTags: 'Enregistrer toutes les catégories',
+      groupBadge: 'Groupe',
+      groupNetExpense: 'Net: {amount}',
     },
     accounts: {
       title: 'Comptes',
@@ -509,6 +521,11 @@ const messages = {
       original: 'Original',
       duplicate: 'Doublon',
       noDuplicates: 'Aucune transaction en double',
+      admin: 'Admin',
+      unreviewUncategorized: 'Réinitialiser les revues sans catégorie',
+      unreviewUncategorizedDesc: 'Les transactions et groupes marqués comme revus mais sans catégorie seront remis en attente de revue.',
+      unreviewUncategorizedBtn: 'Réinitialiser',
+      unreviewResult: '{transactions} transactions et {groups} groupes réinitialisés.',
     },
     tagger: {
       title: 'Tagger par glissement',
@@ -529,6 +546,9 @@ const messages = {
       hintRight: 'Accepter',
       hintDown: 'Détail',
       detail: 'Détail',
+      group: 'Groupe',
+      groupNetExpense: 'Dépense nette',
+      groupTransactions: '{count} transactions',
     },
     wallet: {
       balance: 'Solde',

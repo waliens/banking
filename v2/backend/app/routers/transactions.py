@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from app.dependencies import get_current_user, get_db
-from app.models import Category, CategorySplit, Transaction, User, WalletAccount
+from app.models import Category, CategorySplit, Transaction, TransactionGroup, User, WalletAccount
 from app.schemas.ml import PredictionItem
 from app.services.category_service import get_category_descendants
 from app.schemas.transaction import (
@@ -263,18 +263,84 @@ def review_batch(
 def review_inbox_count(
     db: Session = Depends(get_db), _user: User = Depends(get_current_user)
 ) -> ReviewInboxCountResponse:
-    has_split = exists(select(CategorySplit.id).where(CategorySplit.id_transaction == Transaction.id))
-    q = select(func.count()).select_from(
+    # Count ungrouped transactions needing review
+    has_tx_split = exists(select(CategorySplit.id).where(CategorySplit.id_transaction == Transaction.id))
+    tx_q = select(func.count()).select_from(
         select(Transaction)
         .where(
             Transaction.is_reviewed == False,  # noqa: E712
-            ~has_split,
+            ~has_tx_split,
             Transaction.id_duplicate_of.is_(None),
+            Transaction.id_transaction_group.is_(None),
         )
         .subquery()
     )
-    count = db.execute(q).scalar_one()
-    return ReviewInboxCountResponse(count=count)
+    tx_count = db.execute(tx_q).scalar_one()
+
+    # Count groups needing review
+    try:
+        has_group_split = exists(select(CategorySplit.id).where(CategorySplit.id_group == TransactionGroup.id))
+        group_q = select(func.count()).select_from(
+            select(TransactionGroup)
+            .where(
+                TransactionGroup.is_reviewed == False,  # noqa: E712
+                ~has_group_split,
+            )
+            .subquery()
+        )
+        group_count = db.execute(group_q).scalar_one()
+    except Exception:
+        # is_reviewed column may not exist yet (migration not applied)
+        db.rollback()
+        group_count = 0
+
+    return ReviewInboxCountResponse(count=tx_count + group_count)
+
+
+@router.put("/unreview-uncategorized")
+def unreview_uncategorized(
+    db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+) -> dict[str, int]:
+    """Reset is_reviewed to false for transactions and groups that are reviewed but have no category."""
+    # Transactions: reviewed, no category splits, not in a group, not duplicates
+    has_tx_split = exists(select(CategorySplit.id).where(CategorySplit.id_transaction == Transaction.id))
+    tx_q = (
+        select(Transaction)
+        .where(
+            Transaction.is_reviewed == True,  # noqa: E712
+            ~has_tx_split,
+            Transaction.id_duplicate_of.is_(None),
+            Transaction.id_transaction_group.is_(None),
+        )
+    )
+    txns = db.execute(tx_q).scalars().unique().all()
+    tx_count = 0
+    for t in txns:
+        t.is_reviewed = False
+        tx_count += 1
+
+    # Groups: reviewed, no category splits
+    group_count = 0
+    try:
+        has_group_split = exists(select(CategorySplit.id).where(CategorySplit.id_group == TransactionGroup.id))
+        group_q = (
+            select(TransactionGroup)
+            .where(
+                TransactionGroup.is_reviewed == True,  # noqa: E712
+                ~has_group_split,
+            )
+        )
+        groups = db.execute(group_q).scalars().unique().all()
+        for g in groups:
+            g.is_reviewed = False
+            for t in g.transactions:
+                t.is_reviewed = False
+            group_count += 1
+    except Exception:
+        db.rollback()
+
+    db.commit()
+    return {"transactions": tx_count, "groups": group_count}
 
 
 @router.put("/{transaction_id}/review", response_model=TransactionResponse)

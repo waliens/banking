@@ -90,6 +90,32 @@ export const useTransactionStore = defineStore('transactions', () => {
     return data
   }
 
+  // --- Transaction Group review functions ---
+
+  async function fetchUnreviewedGroups(walletId) {
+    const { data } = await api.get('/transaction-groups/unreviewed', { params: { wallet_id: walletId } })
+    return data
+  }
+
+  async function setGroupCategory(groupId, categoryId, walletId) {
+    const { data } = await api.put(`/transaction-groups/${groupId}/category/${categoryId}`, null, {
+      params: { wallet_id: walletId },
+    })
+    return data
+  }
+
+  async function reviewGroup(groupId, walletId) {
+    const { data } = await api.put(`/transaction-groups/${groupId}/review`, null, {
+      params: { wallet_id: walletId },
+    })
+    return data
+  }
+
+  async function unreviewUncategorized() {
+    const { data } = await api.put('/transactions/unreview-uncategorized')
+    return data
+  }
+
   return {
     transactions, totalCount, loading, reviewCount,
     fetchTransactions, setCategory, tagBatch,
@@ -97,5 +123,7 @@ export const useTransactionStore = defineStore('transactions', () => {
     markDuplicate, fetchDuplicateCandidates,
     unmarkDuplicate, fetchTransaction, setEffectiveAmount,
     setCategorySplits, clearCategorySplits,
+    fetchUnreviewedGroups, setGroupCategory, reviewGroup,
+    unreviewUncategorized,
   }
 })

@@ -8,6 +8,7 @@ from app.schemas.transaction import CategorySplitResponse, TransactionResponse
 class TransactionGroupResponse(BaseModel):
     id: int
     name: str | None
+    is_reviewed: bool = False
     transactions: list[TransactionResponse] = []
     total_paid: Decimal
     total_reimbursed: Decimal

@@ -63,6 +63,7 @@ const stubComponents = {
   AccountDisplay: { template: '<span />', props: ['account', 'highlight'] },
   AccountSelect: { template: '<select />', props: ['modelValue', 'placeholder', 'showClear'] },
   CategorySelect: { template: '<select />', props: ['modelValue', 'placeholder', 'showClear', 'multiple'] },
+  Tag: { template: '<span>{{ value }}</span>', props: ['value', 'severity', 'icon'] },
   'router-link': { template: '<a><slot /></a>', props: ['to'] },
 }
 
@@ -74,6 +75,7 @@ function mockApiForMount(transactions = []) {
       if (url === '/transactions/count') return Promise.resolve({ data: { count: transactions.length } })
       if (url === '/transactions/review-inbox/count') return Promise.resolve({ data: { count: transactions.length } })
       if (url === '/categories') return Promise.resolve({ data: [] })
+      if (url === '/transaction-groups/unreviewed') return Promise.resolve({ data: [] })
       return Promise.resolve({ data: {} })
     })
 }
@@ -100,6 +102,7 @@ describe('ReviewInboxView', () => {
         is_reviewed: false,
         labeled: false,
         duplicate_only: false,
+        exclude_grouped: true,
         wallet: 1,
         wallet_external_only: true,
       }),

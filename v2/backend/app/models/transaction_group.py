@@ -9,6 +9,7 @@ class TransactionGroup(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_reviewed: Mapped[bool] = mapped_column(default=False, server_default="false")
 
     transactions: Mapped[list["Transaction"]] = relationship(back_populates="transaction_group")
     category_splits: Mapped[list["CategorySplit"]] = relationship(

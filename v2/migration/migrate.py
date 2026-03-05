@@ -179,9 +179,8 @@ def migrate(v1_url: str, v2_url: str, dry_run: bool = False) -> None:
         print("Cleaning v2 tables...")
         if not dry_run:
             for table in [
-                "expense_split_reimbursement", "expense_split",
                 "category_split",
-                "tag_rule", "recurring_pattern", "ml_model",
+                "tag_rule", "ml_model",
                 "wallet_account", "wallet",
                 "transaction", "account_alias", "account",
                 "category", "currency", '"user"',
