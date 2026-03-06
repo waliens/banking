@@ -62,7 +62,6 @@ async function savePassword() {
         <Tab value="ml">{{ t('settings.mlModels') }}</Tab>
         <Tab value="duplicates">{{ t('settings.duplicates') }}</Tab>
         <Tab value="admin">{{ t('settings.admin') }}</Tab>
-        <Tab value="password">{{ t('settings.changePassword') }}</Tab>
       </TabList>
       <TabPanels>
         <TabPanel value="wallets">
@@ -85,27 +84,27 @@ async function savePassword() {
           <DuplicatesPanel />
         </TabPanel>
         <TabPanel value="admin">
-          <ReviewResetPanel />
-        </TabPanel>
-        <TabPanel value="password">
-          <Card>
-            <template #title>{{ t('settings.changePassword') }}</template>
-            <template #content>
-              <div class="flex flex-col gap-4 max-w-sm">
-                <div>
-                  <label class="block text-sm font-medium mb-1">{{ t('settings.newPassword') }}</label>
-                  <Password v-model="newPassword" :feedback="false" toggleMask class="w-full" inputClass="w-full" />
+          <div class="space-y-4">
+            <ReviewResetPanel />
+            <Card>
+              <template #title>{{ t('settings.changePassword') }}</template>
+              <template #content>
+                <div class="flex flex-col gap-4 max-w-sm">
+                  <div>
+                    <label class="block text-sm font-medium mb-1">{{ t('settings.newPassword') }}</label>
+                    <Password v-model="newPassword" :feedback="false" toggleMask class="w-full" inputClass="w-full" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1">{{ t('settings.confirmPassword') }}</label>
+                    <Password v-model="confirmPassword" :feedback="false" toggleMask class="w-full" inputClass="w-full" />
+                  </div>
+                  <div>
+                    <Button :label="t('common.save')" icon="pi pi-check" :loading="saving" @click="savePassword" />
+                  </div>
                 </div>
-                <div>
-                  <label class="block text-sm font-medium mb-1">{{ t('settings.confirmPassword') }}</label>
-                  <Password v-model="confirmPassword" :feedback="false" toggleMask class="w-full" inputClass="w-full" />
-                </div>
-                <div>
-                  <Button :label="t('common.save')" icon="pi pi-check" :loading="saving" @click="savePassword" />
-                </div>
-              </div>
-            </template>
-          </Card>
+              </template>
+            </Card>
+          </div>
         </TabPanel>
       </TabPanels>
     </Tabs>

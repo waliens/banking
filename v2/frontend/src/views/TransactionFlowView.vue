@@ -1,14 +1,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useWalletStore } from '../stores/wallets'
 import { useActiveWalletStore } from '../stores/activeWallet'
 import Button from 'primevue/button'
-import Drawer from 'primevue/drawer'
 import TransactionFlowTimeline from '../components/flow/TransactionFlowTimeline.vue'
-import FlowDetailPanel from '../components/flow/FlowDetailPanel.vue'
+
+defineOptions({ name: 'TransactionFlowView' })
 
 const { t } = useI18n()
+const router = useRouter()
 const walletStore = useWalletStore()
 const activeWalletStore = useActiveWalletStore()
 
@@ -16,19 +18,12 @@ const walletId = computed(() => activeWalletStore.activeWalletId)
 const wallet = computed(() => activeWalletStore.activeWallet)
 const walletAccountIds = computed(() => activeWalletStore.walletAccountIds)
 
-const selectedTx = ref(null)
-
-const drawerVisible = computed({
-  get: () => selectedTx.value !== null,
-  set: (v) => { if (!v) closeDetail() },
-})
-
 function openDetail(txId) {
-  selectedTx.value = txId
+  router.push(`/transactions/${txId}`)
 }
 
-function closeDetail() {
-  selectedTx.value = null
+function openGroupDetail(groupId) {
+  router.push(`/groups/${groupId}`)
 }
 
 onMounted(async () => {
@@ -63,15 +58,9 @@ onMounted(async () => {
         :contextId="walletId"
         :walletAccountIds="walletAccountIds"
         @select="openDetail"
+        @select-group="openGroupDetail"
       />
     </div>
 
-    <Drawer v-model:visible="drawerVisible" position="right" :header="t('flow.transactionDetail')" :style="{ width: '36rem' }">
-      <FlowDetailPanel
-        v-if="selectedTx"
-        :transactionId="selectedTx"
-        @back="closeDetail"
-      />
-    </Drawer>
   </div>
 </template>

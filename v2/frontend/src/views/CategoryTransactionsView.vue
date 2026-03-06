@@ -3,14 +3,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import Button from 'primevue/button'
-import Drawer from 'primevue/drawer'
 import api from '../services/api'
 import { useInfiniteScroll } from '../composables/useInfiniteScroll'
 import { collapseGroups, isIncome } from '../stores/transactionFlow'
 import { useActiveWalletStore } from '../stores/activeWallet'
 import FlowTransactionCard from '../components/flow/FlowTransactionCard.vue'
 import FlowGroupCard from '../components/flow/FlowGroupCard.vue'
-import FlowDetailPanel from '../components/flow/FlowDetailPanel.vue'
+
+defineOptions({ name: 'CategoryTransactionsView' })
 
 const { t } = useI18n()
 const route = useRoute()
@@ -31,12 +31,6 @@ const groupCache = ref({})
 const totalCount = ref(0)
 const loading = ref(false)
 const PAGE_SIZE = 50
-
-const selectedTx = ref(null)
-const drawerVisible = computed({
-  get: () => selectedTx.value !== null,
-  set: (v) => { if (!v) selectedTx.value = null },
-})
 
 function buildParams(start = 0) {
   const params = { start, count: PAGE_SIZE, order: 'desc' }
@@ -113,7 +107,11 @@ function goBack() {
 }
 
 function selectItem(id) {
-  selectedTx.value = id
+  router.push(`/transactions/${id}`)
+}
+
+function selectGroup(groupId) {
+  router.push(`/groups/${groupId}`)
 }
 
 onMounted(loadInitial)
@@ -140,7 +138,7 @@ onMounted(loadInitial)
           v-if="item.type === 'group'"
           :group="item.group"
           :direction="Number(item.group.net_expense) <= 0 ? 'income' : 'expense'"
-          @select="selectItem"
+          @select-group="selectGroup"
         />
         <FlowTransactionCard
           v-else
@@ -156,12 +154,5 @@ onMounted(loadInitial)
     <p v-else-if="!loading" class="text-surface-500 text-center py-8">{{ t('flow.noTransactions') }}</p>
     <p v-else class="text-surface-500 text-center py-8">{{ t('common.loading') }}</p>
 
-    <Drawer v-model:visible="drawerVisible" position="right" :header="t('flow.transactionDetail')" :style="{ width: '36rem' }">
-      <FlowDetailPanel
-        v-if="selectedTx"
-        :transactionId="selectedTx"
-        @back="selectedTx = null"
-      />
-    </Drawer>
   </div>
 </template>

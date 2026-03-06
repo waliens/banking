@@ -3,7 +3,10 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTransactionStore } from '../../stores/transactions'
 import Button from 'primevue/button'
+import Tooltip from 'primevue/tooltip'
 import AccountDisplay from '../common/AccountDisplay.vue'
+
+const vTooltip = Tooltip
 
 const props = defineProps({
   transactionId: { type: Number, required: true },
@@ -49,9 +52,9 @@ watch(() => props.transactionId, loadCandidates, { immediate: true })
       <div
         v-for="candidate in candidates"
         :key="candidate.id"
-        class="flex items-center justify-between bg-surface-0 p-2 rounded border border-surface-200 text-sm"
+        class="flex items-center justify-between bg-surface-0 p-2 rounded border border-surface-200 text-sm min-w-0"
       >
-        <div class="flex gap-4">
+        <div class="flex flex-wrap gap-x-4 gap-y-1 min-w-0">
           <span>{{ candidate.date }}</span>
           <span class="font-medium">{{ candidate.amount }} {{ candidate.currency?.short_name }}</span>
           <span class="text-surface-500 truncate max-w-xs">{{ candidate.description }}</span>
@@ -63,13 +66,9 @@ watch(() => props.transactionId, loadCandidates, { immediate: true })
             </template>
           </div>
         </div>
-        <div class="flex gap-2">
-          <Button
-            :label="t('review.markDuplicate')"
-            severity="warn"
-            size="small"
-            @click="markDuplicate(candidate.id)"
-          />
+        <div class="flex gap-2 shrink-0">
+          <Button icon="pi pi-clone" severity="warn" size="small" text rounded
+            v-tooltip.top="t('review.markDuplicate')" @click="markDuplicate(candidate.id)" />
         </div>
       </div>
     </div>

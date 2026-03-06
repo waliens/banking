@@ -18,7 +18,7 @@ const props = defineProps({
   walletAccountIds: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select', 'select-group'])
 
 const periodMode = ref('month')
 const periodOptions = computed(() => [
@@ -165,13 +165,13 @@ watch(periodMode, () => {
                   v-if="period.income[idx].type === 'group'"
                   :group="period.income[idx].group"
                   direction="income"
-                  @select="(id) => emit('select', id)"
+                  @select="(id) => emit('select', id)" @select-group="(id) => emit('select-group', id)"
                 />
                 <FlowTransactionCard
                   v-else
                   :transaction="period.income[idx].transaction"
                   direction="income"
-                  @select="(id) => emit('select', id)"
+                  @select="(id) => emit('select', id)" @select-group="(id) => emit('select-group', id)"
                 />
               </div>
             </div>
@@ -188,13 +188,13 @@ watch(periodMode, () => {
                   v-if="period.expense[idx].type === 'group'"
                   :group="period.expense[idx].group"
                   direction="expense"
-                  @select="(id) => emit('select', id)"
+                  @select="(id) => emit('select', id)" @select-group="(id) => emit('select-group', id)"
                 />
                 <FlowTransactionCard
                   v-else
                   :transaction="period.expense[idx].transaction"
                   direction="expense"
-                  @select="(id) => emit('select', id)"
+                  @select="(id) => emit('select', id)" @select-group="(id) => emit('select-group', id)"
                 />
               </div>
             </div>
@@ -214,14 +214,14 @@ watch(periodMode, () => {
             :group="item.group"
             :direction="period.income.includes(item) ? 'income' : 'expense'"
             :mobile="true"
-            @select="(id) => emit('select', id)"
+            @select="(id) => emit('select', id)" @select-group="(id) => emit('select-group', id)"
           />
           <FlowTransactionCard
             v-else
             :transaction="item.transaction"
             :direction="period.income.includes(item) ? 'income' : 'expense'"
             :mobile="true"
-            @select="(id) => emit('select', id)"
+            @select="(id) => emit('select', id)" @select-group="(id) => emit('select-group', id)"
           />
         </template>
       </template>

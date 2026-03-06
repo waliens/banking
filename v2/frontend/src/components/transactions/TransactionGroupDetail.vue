@@ -7,7 +7,10 @@ const { t } = useI18n()
 
 const props = defineProps({
   group: { type: Object, required: true },
+  clickableMembers: { type: Boolean, default: false },
 })
+
+const emit = defineEmits(['select'])
 
 const totalPaid = computed(() => Number(props.group.total_paid || 0))
 const totalReimbursed = computed(() => Number(props.group.total_reimbursed || 0))
@@ -49,6 +52,8 @@ const netExpense = computed(() => Number(props.group.net_expense || 0))
         v-for="tx in group.transactions"
         :key="tx.id"
         class="flex items-center gap-3 p-2 bg-surface-0 rounded border border-surface-100 text-sm"
+        :class="clickableMembers ? 'cursor-pointer hover:bg-surface-50' : ''"
+        @click="clickableMembers && emit('select', tx.id)"
       >
         <span class="text-surface-400 text-xs w-20 shrink-0">{{ tx.date }}</span>
         <span class="truncate flex-1">{{ tx.description }}</span>
@@ -58,6 +63,7 @@ const netExpense = computed(() => Number(props.group.net_expense || 0))
         <span v-if="tx.effective_amount != null && String(tx.effective_amount) !== String(tx.amount)" class="text-surface-400 text-xs whitespace-nowrap">
           (<CurrencyDisplay :amount="tx.effective_amount" />)
         </span>
+        <i v-if="clickableMembers" class="pi pi-chevron-right text-xs text-surface-300 shrink-0" />
       </div>
     </div>
   </div>

@@ -11,7 +11,7 @@ const props = defineProps({
   mobile: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select-group'])
 
 const displayAmount = computed(() => {
   const net = Number(props.group.net_expense ?? 0)
@@ -26,7 +26,7 @@ const displayAmount = computed(() => {
     v-if="mobile"
     class="bg-surface-0 rounded-lg shadow-sm p-3 cursor-pointer hover:shadow-md transition-shadow"
     :class="direction === 'income' ? 'border-l-4 border-green-400' : 'border-l-4 border-red-400'"
-    @click="emit('select', group.transactions?.[0]?.id)"
+    @click="emit('select-group', group.id)"
   >
     <div class="flex items-center justify-between gap-2">
       <span class="text-sm truncate flex-1 font-medium">{{ group.name || `Group #${group.id}` }}</span>
@@ -47,7 +47,7 @@ const displayAmount = computed(() => {
       direction === 'income' ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300',
       direction === 'income' ? 'mr-3' : 'ml-3',
     ]"
-    @click="emit('select', group.transactions?.[0]?.id)"
+    @click="emit('select-group', group.id)"
   >
     <!-- Arrow notch -->
     <div

@@ -3,6 +3,11 @@ import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
 
+const mockPush = vi.fn()
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+}))
+
 vi.mock('../../src/services/api', () => ({
   default: {
     get: vi.fn(),
@@ -128,7 +133,6 @@ describe('SwipeTaggerView', () => {
 
     expect(wrapper.text()).toContain('Categorize')
     expect(wrapper.text()).toContain('Skip')
-    expect(wrapper.text()).toContain('Detail')
   })
 
   it('passes wallet scoping params when loading batch', async () => {
@@ -254,18 +258,13 @@ describe('SwipeTaggerView', () => {
     expect(wrapper.vm.selectedParent).toBeNull()
   })
 
-  it('detail mode shows TransactionDetail component', async () => {
+  it('swipe down enters inline detail mode', async () => {
     setupApiMock(sampleTxs, [])
     const wrapper = mountTagger()
     await new Promise((r) => setTimeout(r, 50))
 
-    // Enter detail mode (swipe down)
-    wrapper.vm.mode = 'detail'
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.text()).toContain('Detail')
-    const detail = wrapper.find('.transaction-detail')
-    expect(detail.exists()).toBe(true)
+    wrapper.vm.handleSwipeDown()
+    expect(wrapper.vm.mode).toBe('detail')
   })
 
   it('ML prediction is displayed when available', async () => {

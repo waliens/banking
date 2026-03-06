@@ -79,6 +79,10 @@ const messages = {
       saveAllTags: 'Save all tags',
       groupBadge: 'Group',
       groupNetExpense: 'Net: {amount}',
+      direction: 'Direction',
+      directionAll: 'All',
+      directionIncome: 'Income',
+      directionExpense: 'Expense',
     },
     accounts: {
       title: 'Accounts',
@@ -429,6 +433,10 @@ const messages = {
       saveAllTags: 'Enregistrer toutes les catégories',
       groupBadge: 'Groupe',
       groupNetExpense: 'Net: {amount}',
+      direction: 'Direction',
+      directionAll: 'Tous',
+      directionIncome: 'Revenus',
+      directionExpense: 'Dépenses',
     },
     accounts: {
       title: 'Comptes',

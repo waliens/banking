@@ -268,7 +268,7 @@ function close() {
     @update:visible="close"
     :header="group ? t('transactions.group') : t('transactions.createGroup')"
     modal
-    :style="{ width: '700px' }"
+    class="w-[95vw] max-w-[700px]"
     :closable="true"
   >
     <!-- Name -->
@@ -278,7 +278,7 @@ function close() {
     </div>
 
     <!-- Two-panel layout -->
-    <div class="flex gap-4" style="min-height: 400px">
+    <div class="flex flex-col md:flex-row gap-4 min-h-[250px] md:min-h-[400px]">
       <!-- Left panel: Available transactions timeline -->
       <div class="flex-1 flex flex-col min-w-0 border border-surface-200 rounded-lg">
         <div class="px-3 py-2 border-b border-surface-200">
@@ -293,8 +293,7 @@ function close() {
 
         <div
           ref="scrollContainerRef"
-          class="flex-1 overflow-y-auto"
-          style="max-height: 350px"
+          class="flex-1 overflow-y-auto max-h-[250px] md:max-h-[350px]"
         >
           <!-- Top sentinel (load more future) -->
           <div ref="topSentinelRef" class="h-1" />
@@ -351,7 +350,7 @@ function close() {
       </div>
 
       <!-- Right panel: Linked transactions + summary -->
-      <div class="w-56 flex flex-col shrink-0">
+      <div class="w-full md:w-56 flex flex-col md:shrink-0">
         <h3 class="text-sm font-medium mb-2">{{ t('transactions.title') }}</h3>
 
         <div v-if="linkedTransactions.length === 0" class="text-surface-400 text-sm py-2">

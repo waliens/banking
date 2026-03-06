@@ -1,9 +1,12 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useTransactionStore } from '../../stores/transactions'
+
+const mainRef = ref(null)
+const scrollPositions = {}
 
 const { t } = useI18n()
 const router = useRouter()
@@ -12,6 +15,25 @@ const auth = useAuthStore()
 const transactionStore = useTransactionStore()
 const sidebarCollapsed = ref(false)
 const isFullscreen = computed(() => route.path === '/tagger')
+
+// Save/restore scroll position for KeepAlive views
+router.beforeEach((to, from) => {
+  if (mainRef.value) {
+    scrollPositions[from.fullPath] = mainRef.value.scrollTop
+  }
+})
+
+router.afterEach((to) => {
+  nextTick(() => {
+    nextTick(() => {
+      if (mainRef.value && scrollPositions[to.fullPath] != null) {
+        mainRef.value.scrollTop = scrollPositions[to.fullPath]
+      } else if (mainRef.value) {
+        mainRef.value.scrollTop = 0
+      }
+    })
+  })
+})
 
 const navItems = [
   { label: 'nav.wallet', icon: 'pi pi-home', route: '/' },
@@ -94,6 +116,7 @@ async function logout() {
 
     <!-- Main content -->
     <main
+      ref="mainRef"
       class="flex-1 bg-surface-50"
       :class="isFullscreen ? 'overflow-hidden pb-16 md:pb-0' : 'overflow-auto pb-16 md:pb-0'"
     >

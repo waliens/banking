@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useImportStore } from '../stores/imports'
@@ -11,11 +11,11 @@ import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
-import Drawer from 'primevue/drawer'
 import ImportTransactionTable from '../components/imports/ImportTransactionTable.vue'
 import { formatDateTime } from '../utils/date'
-import FlowDetailPanel from '../components/flow/FlowDetailPanel.vue'
 import DataTable from 'primevue/datatable'
+
+defineOptions({ name: 'ImportDetailView' })
 
 const { t } = useI18n()
 const route = useRoute()
@@ -23,14 +23,9 @@ const router = useRouter()
 const importStore = useImportStore()
 
 const loading = ref(true)
-const selectedTx = ref(null)
-const drawerVisible = computed({
-  get: () => selectedTx.value !== null,
-  set: (v) => { if (!v) selectedTx.value = null },
-})
 
 function selectTransaction(txId) {
-  selectedTx.value = txId
+  router.push(`/transactions/${txId}`)
 }
 
 onMounted(async () => {
@@ -172,12 +167,5 @@ onMounted(async () => {
       </Tabs>
     </template>
 
-    <Drawer v-model:visible="drawerVisible" position="right" :header="t('flow.transactionDetail')" :style="{ width: '36rem' }">
-      <FlowDetailPanel
-        v-if="selectedTx"
-        :transactionId="selectedTx"
-        @back="selectedTx = null"
-      />
-    </Drawer>
   </div>
 </template>

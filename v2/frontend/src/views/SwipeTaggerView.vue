@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useTransactionStore } from '../stores/transactions'
 import { useCategoryStore } from '../stores/categories'
 import { useMLStore } from '../stores/ml'
@@ -9,11 +10,17 @@ import { useSwipeGesture } from '../composables/useSwipeGesture'
 import { usePanelSwipeBack } from '../composables/usePanelSwipeBack'
 import CategoryGrid from '../components/tagger/CategoryGrid.vue'
 import MLSuggestion from '../components/MLSuggestion.vue'
-import TransactionDetail from '../components/transactions/TransactionDetail.vue'
 import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
+import AccountDisplay from '../components/common/AccountDisplay.vue'
+import TransactionDetail from '../components/transactions/TransactionDetail.vue'
+import TransactionGroupDetail from '../components/transactions/TransactionGroupDetail.vue'
+import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 
+defineOptions({ name: 'SwipeTaggerView' })
+
 const { t } = useI18n()
+const router = useRouter()
 const transactionStore = useTransactionStore()
 const categoryStore = useCategoryStore()
 const mlStore = useMLStore()
@@ -27,9 +34,9 @@ const animatingOut = ref(null) // 'left' | 'right' | 'up' | 'down' | null
 const cardRef = ref(null)
 
 // Panel refs for swipe-to-go-back
-const detailPanelRef = ref(null)
 const parentPanelRef = ref(null)
 const childPanelRef = ref(null)
+const detailPanelRef = ref(null)
 
 const batch = ref([]) // mixed: { type: 'transaction', data: tx } or { type: 'group', data: group }
 const allDone = ref(false)
@@ -57,9 +64,9 @@ const { offsetX, offsetY, swipeDirection } = useSwipeGesture(cardRef, {
 })
 
 // Panel swipe-back gestures
-usePanelSwipeBack(detailPanelRef, { onBack: backToCard, direction: 'up' })
 usePanelSwipeBack(parentPanelRef, { onBack: backToCard, direction: 'right' })
 usePanelSwipeBack(childPanelRef, { onBack: backToParent, direction: 'right' })
+usePanelSwipeBack(detailPanelRef, { onBack: backToCard, direction: 'up' })
 
 const cardTransform = computed(() => {
   if (animatingOut.value) return undefined
@@ -89,9 +96,9 @@ const overlayLabel = computed(() => {
 
 // Title for current mode (shown next to back button in header)
 const modeTitle = computed(() => {
-  if (mode.value === 'detail') return t('tagger.detail')
   if (mode.value === 'pick-child') return t('tagger.pickSubCategory')
   if (mode.value === 'pick-parent') return t('tagger.pickCategory')
+  if (mode.value === 'detail') return t('tagger.detail')
   return ''
 })
 
@@ -221,8 +228,21 @@ function handleSwipeLeft() {
 
 function handleSwipeDown() {
   if (!currentItem.value) return
-  if (isGroup.value) return // no detail view for groups (already showing info on card)
   mode.value = 'detail'
+}
+
+function openFullDetail() {
+  if (isGroup.value) {
+    router.push(`/groups/${currentItem.value.data.id}`)
+  } else {
+    router.push(`/transactions/${currentItem.value.data.id}`)
+  }
+}
+
+async function onDetailCategoryChanged() {
+  await transactionStore.fetchReviewCount()
+  selectedParent.value = null
+  animateAndAdvance('down')
 }
 
 async function selectParent(categoryId) {
@@ -415,15 +435,6 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Detail mode (scrollable, swipe down to dismiss) -->
-      <div v-else-if="mode === 'detail' && currentTx" ref="detailPanelRef" class="h-full overflow-y-auto p-4">
-        <div class="max-w-lg mx-auto">
-          <div class="bg-surface-0 rounded-xl shadow p-4">
-            <TransactionDetail :transaction="currentTx" @categoryChanged="backToCard" />
-          </div>
-        </div>
-      </div>
-
       <!-- Pick parent category (scrollable, swipe right to dismiss) -->
       <div v-else-if="mode === 'pick-parent'" ref="parentPanelRef" class="h-full overflow-y-auto p-4">
         <div class="max-w-lg mx-auto">
@@ -437,6 +448,32 @@ onMounted(async () => {
           <CategoryGrid :categories="childCategories" :transaction="currentTx || currentGroup" @select="selectChild" />
         </div>
       </div>
+
+      <!-- Detail mode (scrollable, pull down at top to dismiss) -->
+      <div v-else-if="mode === 'detail'" ref="detailPanelRef" class="h-full overflow-y-auto p-4">
+        <div class="max-w-lg mx-auto">
+          <template v-if="currentTx">
+            <div class="bg-surface-0 rounded-xl shadow p-4">
+              <TransactionDetail :transaction="currentTx" @categoryChanged="onDetailCategoryChanged" />
+            </div>
+          </template>
+          <template v-else-if="currentGroup">
+            <div class="bg-surface-0 rounded-xl shadow p-4">
+              <TransactionGroupDetail :group="currentGroup" />
+            </div>
+          </template>
+          <div class="mt-4 text-center">
+            <Button
+              :label="t('transactionDetail.openFullPage')"
+              icon="pi pi-external-link"
+              severity="secondary"
+              size="small"
+              text
+              @click="openFullDetail"
+            />
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Bottom hints bar (card mode only) -->
@@ -444,7 +481,7 @@ onMounted(async () => {
       <div class="flex justify-between text-xs text-surface-400 max-w-sm mx-auto">
         <span>← {{ t('tagger.hintLeft') }}</span>
         <span>↑ {{ t('tagger.hintUp') }}</span>
-        <span v-if="!isGroup">↓ {{ t('tagger.hintDown') }}</span>
+        <span>↓ {{ t('tagger.hintDown') }}</span>
         <span v-if="currentPrediction">{{ t('tagger.hintRight') }} →</span>
       </div>
     </div>

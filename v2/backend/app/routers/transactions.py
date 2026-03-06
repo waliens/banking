@@ -36,6 +36,7 @@ def _build_transaction_query(
     account_to: int | None = None,
     wallet: int | None = None,
     wallet_external_only: bool = False,
+    direction: str | None = None,
     labeled: bool | None = None,
     date_from: datetime.date | None = None,
     date_to: datetime.date | None = None,
@@ -61,7 +62,23 @@ def _build_transaction_query(
 
     if wallet is not None:
         wallet_account_ids = select(WalletAccount.id_account).where(WalletAccount.id_wallet == wallet)
-        if wallet_external_only:
+        if direction == "expense":
+            # source in wallet, dest outside wallet (or null)
+            q = q.where(Transaction.id_source.in_(wallet_account_ids)).where(
+                or_(
+                    Transaction.id_dest.not_in(wallet_account_ids),
+                    Transaction.id_dest.is_(None),
+                )
+            )
+        elif direction == "income":
+            # dest in wallet, source outside wallet (or null)
+            q = q.where(Transaction.id_dest.in_(wallet_account_ids)).where(
+                or_(
+                    Transaction.id_source.not_in(wallet_account_ids),
+                    Transaction.id_source.is_(None),
+                )
+            )
+        elif wallet_external_only:
             # at least one side outside the wallet
             q = q.where(
                 or_(
@@ -146,6 +163,7 @@ def list_transactions(
     account_to: int | None = None,
     wallet: int | None = None,
     wallet_external_only: bool = False,
+    direction: str | None = None,
     labeled: bool | None = None,
     is_reviewed: bool | None = None,
     date_from: datetime.date | None = None,
@@ -167,6 +185,7 @@ def list_transactions(
         account_to=account_to,
         wallet=wallet,
         wallet_external_only=wallet_external_only,
+        direction=direction,
         labeled=labeled,
         is_reviewed=is_reviewed,
         date_from=date_from,
@@ -192,6 +211,7 @@ def count_transactions(
     account_to: int | None = None,
     wallet: int | None = None,
     wallet_external_only: bool = False,
+    direction: str | None = None,
     labeled: bool | None = None,
     is_reviewed: bool | None = None,
     date_from: datetime.date | None = None,
@@ -213,6 +233,7 @@ def count_transactions(
         account_to=account_to,
         wallet=wallet,
         wallet_external_only=wallet_external_only,
+        direction=direction,
         labeled=labeled,
         is_reviewed=is_reviewed,
         date_from=date_from,

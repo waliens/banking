@@ -34,6 +34,11 @@ const routes = [
     component: () => import('../views/TransactionDetailView.vue'),
   },
   {
+    path: '/groups/:id',
+    name: 'group-detail',
+    component: () => import('../views/GroupDetailView.vue'),
+  },
+  {
     path: '/import',
     name: 'import',
     component: () => import('../views/ImportView.vue'),

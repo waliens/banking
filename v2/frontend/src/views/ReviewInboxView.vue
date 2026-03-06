@@ -1,6 +1,7 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onActivated } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useTransactionStore } from '../stores/transactions'
 import { useCategoryStore } from '../stores/categories'
 import { useAccountStore } from '../stores/accounts'
@@ -13,9 +14,8 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import DatePicker from 'primevue/datepicker'
 import ToggleSwitch from 'primevue/toggleswitch'
-import Drawer from 'primevue/drawer'
+import SelectButton from 'primevue/selectbutton'
 import Tag from 'primevue/tag'
-import TransactionDetail from '../components/transactions/TransactionDetail.vue'
 import AccountDisplay from '../components/common/AccountDisplay.vue'
 import CurrencyDisplay from '../components/common/CurrencyDisplay.vue'
 import AccountSelect from '../components/common/AccountSelect.vue'
@@ -23,7 +23,10 @@ import CategorySelect from '../components/common/CategorySelect.vue'
 import { contrastText } from '../utils/color'
 import { formatDate } from '../utils/date'
 
+defineOptions({ name: 'ReviewInboxView' })
+
 const { t } = useI18n()
+const router = useRouter()
 const transactionStore = useTransactionStore()
 const categoryStore = useCategoryStore()
 const accountStore = useAccountStore()
@@ -72,11 +75,7 @@ const showLabeled = ref(false)
 const showReviewed = ref(false)
 const accountFrom = ref(null)
 const accountTo = ref(null)
-
-// Drawer
-const drawerVisible = ref(false)
-const selectedTransaction = ref(null)
-const drawerLoading = ref(false)
+const direction = ref(null)
 
 // Batch tag
 const batchCategoryId = ref(null)
@@ -107,11 +106,52 @@ function buildParams() {
   if (dateTo.value) params.date_to = formatDate(dateTo.value)
   if (amountFrom.value != null) params.amount_from = amountFrom.value
   if (amountTo.value != null) params.amount_to = amountTo.value
-  if (searchQuery.value.trim()) params.search = searchQuery.value.trim()
+  if (searchQuery.value.trim()) params.search_query = searchQuery.value.trim()
   if (accountFrom.value != null) params.account_from = accountFrom.value
   if (accountTo.value != null) params.account_to = accountTo.value
+  if (direction.value && walletId) params.direction = direction.value
 
   return params
+}
+
+function filterGroups(groups) {
+  return groups.filter(g => {
+    // Date range: any member tx date in range
+    if (dateFrom.value) {
+      const from = formatDate(dateFrom.value)
+      if (!g.transactions?.some(tx => tx.date >= from)) return false
+    }
+    if (dateTo.value) {
+      const to = formatDate(dateTo.value)
+      if (!g.transactions?.some(tx => tx.date <= to)) return false
+    }
+    // Amount: filter on absolute net_expense
+    const absNet = Math.abs(Number(g.net_expense))
+    if (amountFrom.value != null && absNet < amountFrom.value) return false
+    if (amountTo.value != null && absNet > amountTo.value) return false
+    // Search: group name or any member tx description
+    if (searchQuery.value.trim()) {
+      const q = searchQuery.value.trim().toLowerCase()
+      const nameMatch = g.name?.toLowerCase().includes(q)
+      const txMatch = g.transactions?.some(tx => tx.description?.toLowerCase().includes(q))
+      if (!nameMatch && !txMatch) return false
+    }
+    // Account filters
+    if (accountFrom.value != null) {
+      if (!g.transactions?.some(tx => tx.id_source === accountFrom.value)) return false
+    }
+    if (accountTo.value != null) {
+      if (!g.transactions?.some(tx => tx.id_dest === accountTo.value)) return false
+    }
+    // Direction
+    if (direction.value === 'expense' && Number(g.net_expense) <= 0) return false
+    if (direction.value === 'income' && Number(g.net_expense) > 0) return false
+    // Labeled (showLabeled toggle)
+    if (!showLabeled.value && g.category_splits?.length > 0) return false
+    // Reviewed (showReviewed toggle)
+    if (!showReviewed.value && g.is_reviewed) return false
+    return true
+  })
 }
 
 async function loadData() {
@@ -119,7 +159,7 @@ async function loadData() {
 
   // Fetch transactions and unreviewed groups in parallel
   const promises = [transactionStore.fetchTransactions(buildParams())]
-  if (walletId && !showReviewed.value && !showLabeled.value) {
+  if (walletId) {
     promises.push(transactionStore.fetchUnreviewedGroups(walletId))
   } else {
     promises.push(Promise.resolve([]))
@@ -136,7 +176,8 @@ async function loadData() {
     _displayDescription: tx.description || '—',
   }))
 
-  const groupRows = (groups || []).map(g => ({
+  const filteredGroups = filterGroups(groups || [])
+  const groupRows = filteredGroups.map(g => ({
     ...g,
     _type: 'group',
     _key: `g-${g.id}`,
@@ -281,22 +322,11 @@ async function refreshAfterAction() {
   await Promise.all([loadData(), transactionStore.fetchReviewCount()])
 }
 
-async function openDrawer(row) {
-  if (row._type === 'group') return // No drawer for groups
-  drawerLoading.value = true
-  drawerVisible.value = true
-  try {
-    const data = await transactionStore.fetchTransaction(row.id)
-    selectedTransaction.value = data
-  } finally {
-    drawerLoading.value = false
-  }
-}
-
-function onDrawerCategoryChanged() {
-  refreshAfterAction()
-  if (selectedTransaction.value) {
-    openDrawer(selectedTransaction.value)
+function openDetail(row) {
+  if (row._type === 'group') {
+    router.push(`/groups/${row.id}`)
+  } else {
+    router.push(`/transactions/${row.id}`)
   }
 }
 
@@ -330,7 +360,7 @@ function debouncedReload() {
 }
 
 // Watch filters
-watch([dateFrom, dateTo, amountFrom, amountTo, showLabeled, showReviewed, accountFrom, accountTo], () => {
+watch([dateFrom, dateTo, amountFrom, amountTo, showLabeled, showReviewed, accountFrom, accountTo, direction], () => {
   pendingCategories.value = {}
   page.value = 0
   loadData()
@@ -350,6 +380,10 @@ watch(() => activeWalletStore.activeWalletId, () => {
 
 onMounted(async () => {
   await Promise.all([loadData(), categoryStore.fetchCategories(), transactionStore.fetchReviewCount(), accountStore.fetchAccounts()])
+})
+
+onActivated(() => {
+  refreshAfterAction()
 })
 </script>
 
@@ -447,6 +481,20 @@ onMounted(async () => {
             <ToggleSwitch v-model="showReviewed" />
             <span class="text-sm">{{ t('review.showReviewed') }}</span>
           </div>
+          <div v-if="activeWalletStore.activeWalletId">
+            <label class="block text-xs font-medium text-surface-500 mb-1">{{ t('review.direction') }}</label>
+            <SelectButton
+              v-model="direction"
+              :options="[
+                { label: t('review.directionAll'), value: null },
+                { label: t('review.directionExpense'), value: 'expense' },
+                { label: t('review.directionIncome'), value: 'income' },
+              ]"
+              optionLabel="label"
+              optionValue="value"
+              size="small"
+            />
+          </div>
         </div>
       </div>
       <!-- Batch tag -->
@@ -481,7 +529,7 @@ onMounted(async () => {
         :rows="pageSize"
         :totalRecords="transactionStore.totalCount + tableRows.filter(r => r._type === 'group').length"
         @page="onPage"
-        @row-click="(e) => openDrawer(e.data)"
+        @row-click="(e) => openDetail(e.data)"
         dataKey="_key"
         stripedRows
         responsiveLayout="scroll"
@@ -618,20 +666,5 @@ onMounted(async () => {
       </DataTable>
     </div>
 
-    <!-- Transaction Detail Drawer -->
-    <Drawer v-model:visible="drawerVisible" position="right" :header="t('review.transactionDetail')" :style="{ width: '36rem' }">
-      <div v-if="drawerLoading" class="flex items-center justify-center py-12">
-        <i class="pi pi-spinner pi-spin text-2xl text-surface-400"></i>
-      </div>
-      <template v-else-if="selectedTransaction">
-        <router-link :to="`/transactions/${selectedTransaction.id}`" class="block mb-4">
-          <Button :label="t('transactionDetail.openFullPage')" icon="pi pi-external-link" severity="secondary" size="small" text />
-        </router-link>
-        <TransactionDetail
-          :transaction="selectedTransaction"
-          @categoryChanged="onDrawerCategoryChanged"
-        />
-      </template>
-    </Drawer>
   </div>
 </template>

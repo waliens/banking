@@ -574,6 +574,120 @@ class TestExcludeGrouped:
         assert r.json()["count"] == 1
 
 
+class TestDirectionFilter:
+    def test_direction_expense(self, client, auth_headers, db, wallet, account_checking, account_savings, currency_eur):
+        """direction=expense returns only transactions where source is in wallet."""
+        # Expense: source=checking (in wallet), dest=savings (not in wallet)
+        expense_tx = Transaction(
+            external_id="tx-dir-expense",
+            id_source=account_checking.id,
+            id_dest=account_savings.id,
+            date=datetime.date(2024, 6, 15),
+            amount=Decimal("50.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        # Income: source=savings (not in wallet), dest=checking (in wallet)
+        income_tx = Transaction(
+            external_id="tx-dir-income",
+            id_source=account_savings.id,
+            id_dest=account_checking.id,
+            date=datetime.date(2024, 6, 16),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        db.add_all([expense_tx, income_tx])
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/transactions?wallet={wallet.id}&direction=expense",
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 1
+        assert data[0]["id"] == expense_tx.id
+
+    def test_direction_income(self, client, auth_headers, db, wallet, account_checking, account_savings, currency_eur):
+        """direction=income returns only transactions where dest is in wallet."""
+        expense_tx = Transaction(
+            external_id="tx-dir-expense2",
+            id_source=account_checking.id,
+            id_dest=account_savings.id,
+            date=datetime.date(2024, 6, 15),
+            amount=Decimal("50.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        income_tx = Transaction(
+            external_id="tx-dir-income2",
+            id_source=account_savings.id,
+            id_dest=account_checking.id,
+            date=datetime.date(2024, 6, 16),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        db.add_all([expense_tx, income_tx])
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/transactions?wallet={wallet.id}&direction=income",
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data) == 1
+        assert data[0]["id"] == income_tx.id
+
+    def test_direction_without_wallet_ignored(self, client, auth_headers, db, account_checking, currency_eur):
+        """direction without wallet param is silently ignored."""
+        tx = Transaction(
+            external_id="tx-dir-no-wallet",
+            id_source=account_checking.id,
+            date=datetime.date(2024, 6, 15),
+            amount=Decimal("50.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        db.add(tx)
+        db.flush()
+
+        r = client.get("/api/v2/transactions?direction=expense", headers=auth_headers)
+        assert r.status_code == 200
+        assert len(r.json()) == 1
+
+    def test_direction_count(self, client, auth_headers, db, wallet, account_checking, account_savings, currency_eur):
+        """direction works with count endpoint too."""
+        expense_tx = Transaction(
+            external_id="tx-dir-cnt-exp",
+            id_source=account_checking.id,
+            id_dest=account_savings.id,
+            date=datetime.date(2024, 6, 15),
+            amount=Decimal("50.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        income_tx = Transaction(
+            external_id="tx-dir-cnt-inc",
+            id_source=account_savings.id,
+            id_dest=account_checking.id,
+            date=datetime.date(2024, 6, 16),
+            amount=Decimal("30.00"),
+            id_currency=currency_eur.id,
+            data_source="manual",
+        )
+        db.add_all([expense_tx, income_tx])
+        db.flush()
+
+        r = client.get(
+            f"/api/v2/transactions/count?wallet={wallet.id}&direction=expense",
+            headers=auth_headers,
+        )
+        assert r.json()["count"] == 1
+
+
 class TestCategoryFilter:
     def test_filter_by_leaf_category(
         self, client, auth_headers, db, sample_transaction, category_food, currency_eur, account_checking
