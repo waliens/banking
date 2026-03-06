@@ -35,6 +35,8 @@ services:
       - PGDATA=/data
     volumes:
       - ./data/db:/data
+    ports:
+      - "5434:5432"
 
   # worker for celery background tasks
   celery_worker:
@@ -54,7 +56,7 @@ services:
     volumes:
       - ./data/models:/models
 
-  reverse-proxy: 
+  reverse-proxy:
     image: rmormont/banking-reverse-proxy:latest
     ports:
       - 80:80
