@@ -46,14 +46,16 @@ git -C "$V2_DIR" fetch --tags
 # Check that no newer tag exists on the remote
 LATEST_REMOTE_TAG=$(git -C "$V2_DIR" tag --sort=-v:refname | head -1)
 if [ -n "$LATEST_REMOTE_TAG" ]; then
+  # Strip leading 'v' prefix for comparison
+  LATEST_VERSION="${LATEST_REMOTE_TAG#v}"
   # Compare versions: sort both and check which comes last
-  HIGHEST=$(printf '%s\n%s' "$VERSION" "$LATEST_REMOTE_TAG" | sort -V | tail -1)
+  HIGHEST=$(printf '%s\n%s' "$VERSION" "$LATEST_VERSION" | sort -V | tail -1)
   if [ "$HIGHEST" != "$VERSION" ]; then
     echo "Error: remote already has a newer tag ($LATEST_REMOTE_TAG >= $VERSION)"
     exit 1
   fi
-  if [ "$HIGHEST" = "$LATEST_REMOTE_TAG" ] && [ "$VERSION" = "$LATEST_REMOTE_TAG" ]; then
-    echo "Error: tag $VERSION already exists"
+  if [ "$VERSION" = "$LATEST_VERSION" ]; then
+    echo "Error: tag v$VERSION already exists"
     exit 1
   fi
 fi
